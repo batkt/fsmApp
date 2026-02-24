@@ -64,13 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: h * 0.06),
               Image.asset('assets/images/zev_logo.png', height: 90),
               const SizedBox(height: 12),
-              Text('Цэвэрлэгээний апп',
+              const Text('Цэвэрлэгээний апп',
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold,
-                      color: c.primaryForeground)),
+                      color: Colors.white)),
               const SizedBox(height: 4),
-              Text('Цэвэрлэгчид даалгавруудаа харах болон удирдах',
+              const Text('Цэвэрлэгчид даалгавруудаа харах болон удирдах',
                   style: TextStyle(fontSize: 13,
-                      color: c.primaryForeground.withOpacity(0.8))),
+                      color: Colors.white70)),
               SizedBox(height: h * 0.08),
               // ── Form card ──
               Padding(

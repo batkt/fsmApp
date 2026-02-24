@@ -8,6 +8,7 @@ import '../widgets/calendar_strip.dart';
 import '../widgets/notification_modal.dart';
 import '../widgets/summary_row.dart';
 import '../widgets/task_card.dart';
+import '../widgets/task_detail_modal.dart';
 import 'profile_screen.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
@@ -63,23 +64,31 @@ class _State extends State<CleanerDashboardScreen> {
     }
   }
 
-  Future<void> _handleStart(CleaningTask t) async {
+  void _handleStart(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
     setState(() => t.status = TaskStatus.inProgress);
     _snack('"${t.title}" даалгавар эхэлсэн');
   }
 
-  Future<void> _handleFinish(CleaningTask t) async {
+  void _handleFinish(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
     setState(() => t.status = TaskStatus.completed);
     _snack('"${t.title}" даалгавар дууссан');
+  }
+
+  void _handleNextStatus(CleaningTask t) {
+    if (t.status == TaskStatus.pending) {
+      _handleStart(t);
+    } else if (t.status == TaskStatus.inProgress) {
+      _handleFinish(t);
+    }
   }
 
   Future<void> _handlePhoto(CleaningTask t) async {
     try {
       final img = await _picker.pickImage(source: ImageSource.camera);
       if (img == null) { _snack('Зураг авагдаагүй'); return; }
-      setState(() => t.hasPhoto = true);
+      setState(() { t.hasPhoto = true; t.photoCount++; });
       _snack('Зураг баталгаажуулахаар илгээгдсэн');
     } catch (_) { _snack('Камер нээхэд алдаа гарлаа'); }
   }
@@ -101,7 +110,15 @@ class _State extends State<CleanerDashboardScreen> {
           _notifications = _notifications
               .map((n) => n.copyWith(isRead: true)).toList();
         });
-      },
+      });
+  }
+
+  void _openTaskDetail(CleaningTask t) {
+    showTaskDetail(context,
+      task: t,
+      onStatusChange: () => setState(() => _handleNextStatus(t)),
+      onSubtaskToggle: (_) => setState(() {}),
+      onPhoto: () => _handlePhoto(t),
     );
   }
 
@@ -110,58 +127,45 @@ class _State extends State<CleanerDashboardScreen> {
     final c = context.colors;
     final tasks = _todayTasks;
     final unread = _unreadCount;
+    final completedCount = tasks.where(
+        (t) => t.status == TaskStatus.completed).length;
+    final totalCount = tasks.length;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Өнөөдрийн цэвэрлэгээ',
             style: TextStyle(fontWeight: FontWeight.w600)),
         actions: [
-          // ── Notification bell with badge ──
-          Stack(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: c.muted,
+          // Notification bell
+          Stack(children: [
+            Container(
+              margin: const EdgeInsets.only(right: 4),
+              decoration: BoxDecoration(color: c.muted,
                   borderRadius: BorderRadius.circular(12)),
-                child: IconButton(
-                  onPressed: _openNotifications,
-                  icon: Icon(Icons.notifications_outlined,
-                      color: c.primary),
-                  tooltip: 'Мэдэгдэл'),
-              ),
-              if (unread > 0)
-                Positioned(
-                  right: 6, top: 6,
-                  child: Container(
-                    width: 18, height: 18,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: c.background, width: 2)),
-                    child: Center(
-                      child: Text('$unread',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          // ── Profile button ──
+              child: IconButton(
+                onPressed: _openNotifications,
+                icon: Icon(Icons.notifications_outlined,
+                    color: c.primary),
+                tooltip: 'Мэдэгдэл')),
+            if (unread > 0) Positioned(right: 6, top: 6,
+              child: Container(width: 18, height: 18,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: c.background, width: 2)),
+                child: Center(child: Text('$unread',
+                    style: const TextStyle(color: Colors.white,
+                        fontSize: 9, fontWeight: FontWeight.bold))))),
+          ]),
+          // Profile
           Container(
             margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: c.muted,
-              borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: c.muted,
+                borderRadius: BorderRadius.circular(12)),
             child: IconButton(
               onPressed: _openProfile,
               icon: Icon(Icons.person_outline, color: c.primary),
-              tooltip: 'Профайл'),
-          ),
+              tooltip: 'Профайл')),
         ],
       ),
       body: SafeArea(
@@ -170,7 +174,8 @@ class _State extends State<CleanerDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Сайн байна уу, цэвэрлэгч,',
+              // Greeting
+              Text('Сайн байна уу, цэвэрлэгч 👋',
                   style: TextStyle(fontSize: 14,
                       color: c.mutedForeground)),
               const SizedBox(height: 4),
@@ -178,13 +183,62 @@ class _State extends State<CleanerDashboardScreen> {
                   style: TextStyle(fontSize: 22,
                       fontWeight: FontWeight.bold, color: c.primary)),
               const SizedBox(height: 16),
+
+              // Calendar
               CalendarStrip(days: _calDays(),
                   selectedDay: _selectedDay,
                   onSelected: (d) =>
                       setState(() => _selectedDay = stripTime(d))),
               const SizedBox(height: 16),
+
+              // Overall progress bar
+              if (totalCount > 0) ...[
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: c.brandGreen.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: c.brandGreen.withOpacity(0.12))),
+                  child: Row(children: [
+                    Icon(Icons.pie_chart_rounded, size: 20,
+                        color: c.brandGreen),
+                    const SizedBox(width: 10),
+                    Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Row(children: [
+                        Text('Өнөөдрийн явц',
+                            style: TextStyle(fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: c.primary)),
+                        const Spacer(),
+                        Text('$completedCount / $totalCount',
+                            style: TextStyle(fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: c.brandGreen)),
+                      ]),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: totalCount > 0
+                              ? completedCount / totalCount : 0,
+                          minHeight: 6,
+                          backgroundColor: c.muted,
+                          valueColor: AlwaysStoppedAnimation(
+                              c.brandGreen))),
+                    ])),
+                  ]),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // Summary chips
               SummaryRow(tasksForDay: tasks),
               const SizedBox(height: 12),
+
+              // Task list
               Expanded(
                 child: tasks.isEmpty
                     ? Center(child: Column(
@@ -202,12 +256,15 @@ class _State extends State<CleanerDashboardScreen> {
                             const SizedBox(height: 12),
                         itemBuilder: (_, i) {
                           final t = tasks[i];
-                          return TaskCard(task: t,
-                              statusColor: _statusColor(t.status, c),
-                              statusLabel: _statusLabel(t.status),
-                              onStart: () => _handleStart(t),
-                              onFinish: () => _handleFinish(t),
-                              onAttachPhoto: () => _handlePhoto(t));
+                          return TaskCard(
+                            task: t,
+                            statusColor: _statusColor(t.status, c),
+                            statusLabel: _statusLabel(t.status),
+                            onStart: () => _handleStart(t),
+                            onFinish: () => _handleFinish(t),
+                            onAttachPhoto: () => _handlePhoto(t),
+                            onTap: () => _openTaskDetail(t),
+                          );
                         }),
               ),
             ],
