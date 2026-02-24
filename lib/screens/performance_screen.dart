@@ -19,48 +19,63 @@ class PerformanceScreen extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: c.mutedForeground)),
           const SizedBox(height: 20),
 
-          // 1. Circular Progress
-          Container(
-            width: double.infinity, padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [c.brandGreen, const Color(0xFF047857),
-                    const Color(0xFF065F46)]),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(
-                  color: c.brandGreen.withOpacity(0.3),
-                  blurRadius: 12, offset: const Offset(0, 6))],
-            ),
-            child: Column(children: [
-              const Text('Өнөөдрийн гүйцэтгэл',
-                  style: TextStyle(color: Colors.white, fontSize: 16,
-                      fontWeight: FontWeight.w600)),
-              const SizedBox(height: 20),
-              SizedBox(width: 150, height: 150,
-                child: CustomPaint(
-                  painter: _RingPainter(0.75, 12,
-                      Colors.white24, Colors.white),
-                  child: const Center(child: Column(
-                      mainAxisSize: MainAxisSize.min, children: [
-                    Text('75%', style: TextStyle(fontSize: 32,
-                        fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text('6/8 даалгавар', style: TextStyle(
-                        fontSize: 12, color: Colors.white70)),
-                  ])))),
-              const SizedBox(height: 16),
-              const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                _Mini(Icons.check_circle_outline, 'Дууссан', '6'),
-                _Mini(Icons.timelapse, 'Явагдаж буй', '1'),
-                _Mini(Icons.schedule, 'Хүлээгдэж буй', '1'),
-              ]),
+          // ═══════════════════════════════════════════
+          // 1. DAILY COMPLETION RING
+          // ═══════════════════════════════════════════
+          _GreenCard(c: c, child: Column(children: [
+            const Text('Өнөөдрийн гүйцэтгэл',
+                style: TextStyle(color: Colors.white, fontSize: 16,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 20),
+            SizedBox(width: 150, height: 150,
+              child: CustomPaint(
+                painter: _RingPainter(0.75, 12,
+                    Colors.white24, Colors.white),
+                child: const Center(child: Column(
+                    mainAxisSize: MainAxisSize.min, children: [
+                  Text('75%', style: TextStyle(fontSize: 32,
+                      fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('6/8 даалгавар', style: TextStyle(
+                      fontSize: 12, color: Colors.white70)),
+                ])))),
+            const SizedBox(height: 16),
+            const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+              _Mini(Icons.check_circle_outline, 'Дууссан', '6'),
+              _Mini(Icons.timelapse, 'Явагдаж буй', '1'),
+              _Mini(Icons.schedule, 'Хүлээгдэж буй', '1'),
             ]),
-          ),
-          const SizedBox(height: 20),
+          ])),
+          const SizedBox(height: 16),
 
-          // 2. Bar Chart
+          // ═══════════════════════════════════════════
+          // 2. STREAK & ATTENDANCE ROW
+          // ═══════════════════════════════════════════
+          Row(children: [
+            Expanded(child: _InfoCard(c: c,
+              icon: Icons.local_fire_department_rounded,
+              iconColor: const Color(0xFFEF4444),
+              title: 'Тасралтгүй',
+              value: '12',
+              unit: 'хоног',
+              subtitle: 'Дараалсан өдрүүд',
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: _InfoCard(c: c,
+              icon: Icons.calendar_month_rounded,
+              iconColor: c.brandGreen,
+              title: 'Ирц',
+              value: '96%',
+              unit: '',
+              subtitle: 'Энэ сар',
+            )),
+          ]),
+          const SizedBox(height: 16),
+
+          // ═══════════════════════════════════════════
+          // 3. WEEKLY BAR CHART
+          // ═══════════════════════════════════════════
           _Card(c: c, icon: Icons.bar_chart_rounded,
               iconColor: c.chart1, title: '7 хоногийн гүйцэтгэл',
               child: SizedBox(height: 160,
@@ -72,9 +87,41 @@ class PerformanceScreen extends StatelessWidget {
               bottom: Text('Дундаж: 6.4 даалгавар/өдөр',
                   style: TextStyle(fontSize: 12,
                       color: c.mutedForeground))),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // 3. Line Chart
+          // ═══════════════════════════════════════════
+          // 4. TIME EFFICIENCY (Dual progress bars)
+          // ═══════════════════════════════════════════
+          _Card(c: c, icon: Icons.speed_rounded,
+              iconColor: c.chart4,
+              title: 'Цагийн бүтээмж',
+              child: Column(children: [
+                _ProgressBar(c: c, label: 'Дундаж хугацаа',
+                    value: 0.82, displayVal: '24 мин',
+                    expected: '30 мин', color: c.success),
+                const SizedBox(height: 16),
+                _ProgressBar(c: c, label: 'Хамгийн хурдан',
+                    value: 0.53, displayVal: '16 мин',
+                    expected: '30 мин', color: c.info),
+                const SizedBox(height: 16),
+                _ProgressBar(c: c, label: 'Хамгийн удаан',
+                    value: 1.0, displayVal: '38 мин',
+                    expected: '30 мин', color: c.warningOrange),
+              ]),
+              bottom: Row(mainAxisSize: MainAxisSize.min,
+                  children: [
+                Icon(Icons.trending_down, color: c.success,
+                    size: 16),
+                const SizedBox(width: 4),
+                Text('Дундаж хугацаа 20% багассан',
+                    style: TextStyle(fontSize: 12,
+                        color: c.success)),
+              ])),
+          const SizedBox(height: 16),
+
+          // ═══════════════════════════════════════════
+          // 5. QUALITY LINE CHART
+          // ═══════════════════════════════════════════
           _Card(c: c, icon: Icons.show_chart_rounded,
               iconColor: c.blueAccent,
               title: 'Сарын чанарын үнэлгээ',
@@ -88,11 +135,76 @@ class PerformanceScreen extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text('+5.3% өмнөх сараас',
                     style: TextStyle(fontSize: 12,
-                        fontWeight: FontWeight.w500, color: c.success)),
+                        fontWeight: FontWeight.w500,
+                        color: c.success)),
               ])),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // 4. Stats
+          // ═══════════════════════════════════════════
+          // 6. AREA COVERAGE
+          // ═══════════════════════════════════════════
+          _Card(c: c, icon: Icons.map_rounded,
+              iconColor: c.chart5,
+              title: 'Талбайн хамрах хүрээ',
+              child: Column(children: [
+                _AreaRow(c: c, area: 'А цамхаг - Үүдний танхим',
+                    count: 28, total: 30, color: c.success),
+                const SizedBox(height: 10),
+                _AreaRow(c: c, area: '5-р давхар - Оффис',
+                    count: 22, total: 25, color: c.info),
+                const SizedBox(height: 10),
+                _AreaRow(c: c, area: '3-р давхар - Ариун цэвэр',
+                    count: 30, total: 30, color: c.brandGreen),
+                const SizedBox(height: 10),
+                _AreaRow(c: c, area: 'Подвал - Агуулах',
+                    count: 8, total: 15, color: c.warningOrange),
+              ]),
+              bottom: Text('Нийт: 88/100 цэвэрлэгээ',
+                  style: TextStyle(fontSize: 12,
+                      color: c.mutedForeground))),
+          const SizedBox(height: 16),
+
+          // ═══════════════════════════════════════════
+          // 7. SUPERVISOR RATING
+          // ═══════════════════════════════════════════
+          _Card(c: c, icon: Icons.supervisor_account_rounded,
+              iconColor: c.chart4,
+              title: 'Удирдлагын үнэлгээ',
+              child: Column(children: [
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                  ...List.generate(5, (i) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Icon(
+                      i < 4 ? Icons.star_rounded
+                          : Icons.star_half_rounded,
+                      color: c.chart4, size: 36),
+                  )),
+                ]),
+                const SizedBox(height: 8),
+                Text('4.5 / 5.0',
+                    style: TextStyle(fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: c.primary)),
+                const SizedBox(height: 4),
+                Text('Сүүлийн 30 хоногийн дундаж',
+                    style: TextStyle(fontSize: 12,
+                        color: c.mutedForeground)),
+                const SizedBox(height: 16),
+                Row(children: [
+                  _RatingBar(c: c, label: 'Цэвэрлэгээ', val: 4.8),
+                  const SizedBox(width: 8),
+                  _RatingBar(c: c, label: 'Цагийн мөрдөлт', val: 4.5),
+                  const SizedBox(width: 8),
+                  _RatingBar(c: c, label: 'Хариуцлага', val: 4.2),
+                ]),
+              ])),
+          const SizedBox(height: 16),
+
+          // ═══════════════════════════════════════════
+          // 8. STATS GRID (4 tiles)
+          // ═══════════════════════════════════════════
           Row(children: [
             Expanded(child: _Tile(c: c, icon: Icons.star_rounded,
                 ic: c.chart4, t: 'Үнэлгээ', v: '4.8', s: '/ 5.0')),
@@ -111,6 +223,63 @@ class PerformanceScreen extends StatelessWidget {
                 ic: c.chart5, t: 'Нийт даалгавар', v: '142',
                 s: 'энэ сард')),
           ]),
+          const SizedBox(height: 16),
+
+          // ═══════════════════════════════════════════
+          // 9. ACHIEVEMENTS / BADGES
+          // ═══════════════════════════════════════════
+          _Card(c: c, icon: Icons.military_tech_rounded,
+              iconColor: c.chart4, title: 'Амжилтууд',
+              child: Column(children: [
+                _Badge(c: c, icon: Icons.bolt_rounded,
+                    color: c.warningOrange,
+                    title: 'Хурдан гүйцэтгэгч',
+                    desc: '10 даалгаврыг хугацаанаас өмнө дуусгасан'),
+                const SizedBox(height: 10),
+                _Badge(c: c, icon: Icons.auto_awesome_rounded,
+                    color: c.chart4,
+                    title: 'Тэргүүн цэвэрлэгч',
+                    desc: '7 хоног дараалан хамгийн өндөр үнэлгээ'),
+                const SizedBox(height: 10),
+                _Badge(c: c, icon: Icons.camera_enhance_rounded,
+                    color: c.success,
+                    title: 'Зургийн мастер',
+                    desc: '50 зураг дараалан баталгаажсан'),
+                const SizedBox(height: 10),
+                _Badge(c: c, icon: Icons.local_fire_department,
+                    color: const Color(0xFFEF4444),
+                    title: '10 өдрийн streak',
+                    desc: '10 хоног тасралтгүй бүх даалгавар гүйцэтгэсэн'),
+              ])),
+          const SizedBox(height: 16),
+
+          // ═══════════════════════════════════════════
+          // 10. MONTHLY COMPARISON
+          // ═══════════════════════════════════════════
+          _Card(c: c, icon: Icons.compare_arrows_rounded,
+              iconColor: c.info,
+              title: 'Сарын харьцуулалт',
+              child: Column(children: [
+                _CompareRow(c: c, label: 'Нийт даалгавар',
+                    thisMonth: '142', lastMonth: '128',
+                    isUp: true),
+                Divider(color: c.border, height: 20),
+                _CompareRow(c: c, label: 'Чанарын оноо',
+                    thisMonth: '95%', lastMonth: '90%',
+                    isUp: true),
+                Divider(color: c.border, height: 20),
+                _CompareRow(c: c, label: 'Дундаж хугацаа',
+                    thisMonth: '24 мин', lastMonth: '28 мин',
+                    isUp: true),
+                Divider(color: c.border, height: 20),
+                _CompareRow(c: c, label: 'Ирц',
+                    thisMonth: '96%', lastMonth: '92%',
+                    isUp: true),
+                Divider(color: c.border, height: 20),
+                _CompareRow(c: c, label: 'Гомдол',
+                    thisMonth: '0', lastMonth: '2',
+                    isUp: true),
+              ])),
           const SizedBox(height: 24),
         ]),
       ),
@@ -118,11 +287,15 @@ class PerformanceScreen extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// REUSABLE WIDGETS
+// ═══════════════════════════════════════════════════════════════
+
 class _Mini extends StatelessWidget {
   const _Mini(this.icon, this.label, this.value);
   final IconData icon; final String label, value;
   @override
-  Widget build(BuildContext context) => Column(children: [
+  Widget build(BuildContext _) => Column(children: [
     Icon(icon, color: Colors.white70, size: 20),
     const SizedBox(height: 4),
     Text(value, style: const TextStyle(fontSize: 18,
@@ -130,6 +303,24 @@ class _Mini extends StatelessWidget {
     Text(label, style: const TextStyle(fontSize: 10,
         color: Colors.white70)),
   ]);
+}
+
+class _GreenCard extends StatelessWidget {
+  const _GreenCard({required this.c, required this.child});
+  final AppColorScheme c; final Widget child;
+  @override
+  Widget build(BuildContext _) => Container(
+    width: double.infinity, padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+        colors: [c.brandGreen, const Color(0xFF047857),
+            const Color(0xFF065F46)]),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [BoxShadow(color: c.brandGreen.withOpacity(0.3),
+          blurRadius: 12, offset: const Offset(0, 6))]),
+    child: child,
+  );
 }
 
 class _Card extends StatelessWidget {
@@ -140,7 +331,7 @@ class _Card extends StatelessWidget {
   final Color iconColor; final String title;
   final Widget child; final Widget? bottom;
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext _) => Container(
     width: double.infinity, padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
       color: c.cardBackground,
@@ -156,12 +347,52 @@ class _Card extends StatelessWidget {
         Text(title, style: TextStyle(fontSize: 16,
             fontWeight: FontWeight.w600, color: c.primary)),
       ]),
-      const SizedBox(height: 20),
-      child,
+      const SizedBox(height: 20), child,
       if (bottom != null) ...[
-        const SizedBox(height: 12),
-        Center(child: bottom!),
-      ],
+        const SizedBox(height: 12), Center(child: bottom!)],
+    ]),
+  );
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.c, required this.icon,
+      required this.iconColor, required this.title,
+      required this.value, required this.unit,
+      required this.subtitle});
+  final AppColorScheme c; final IconData icon;
+  final Color iconColor; final String title, value, unit, subtitle;
+  @override
+  Widget build(BuildContext _) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: c.cardBackground,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: c.border),
+      boxShadow: [BoxShadow(color: c.primary.withOpacity(0.03),
+          blurRadius: 8, offset: const Offset(0, 3))]),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+      Container(padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: iconColor, size: 22)),
+      const SizedBox(height: 12),
+      Text(title, style: TextStyle(fontSize: 11,
+          color: c.mutedForeground)),
+      const SizedBox(height: 4),
+      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Text(value, style: TextStyle(fontSize: 26,
+            fontWeight: FontWeight.bold, color: c.primary)),
+        if (unit.isNotEmpty) ...[
+          const SizedBox(width: 4),
+          Padding(padding: const EdgeInsets.only(bottom: 4),
+            child: Text(unit, style: TextStyle(fontSize: 12,
+                color: c.mutedForeground))),
+        ],
+      ]),
+      const SizedBox(height: 4),
+      Text(subtitle, style: TextStyle(fontSize: 11,
+          color: c.mutedForeground)),
     ]),
   );
 }
@@ -172,7 +403,7 @@ class _Tile extends StatelessWidget {
   final AppColorScheme c; final IconData icon; final Color ic;
   final String t, v, s;
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext _) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: c.cardBackground,
@@ -200,6 +431,133 @@ class _Tile extends StatelessWidget {
     ]),
   );
 }
+
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({required this.c, required this.label,
+      required this.value, required this.displayVal,
+      required this.expected, required this.color});
+  final AppColorScheme c; final String label, displayVal, expected;
+  final double value; final Color color;
+  @override
+  Widget build(BuildContext _) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Row(children: [
+      Text(label, style: TextStyle(fontSize: 13, color: c.primary,
+          fontWeight: FontWeight.w500)),
+      const Spacer(),
+      Text('$displayVal / $expected', style: TextStyle(
+          fontSize: 12, color: c.mutedForeground)),
+    ]),
+    const SizedBox(height: 8),
+    ClipRRect(borderRadius: BorderRadius.circular(6),
+      child: LinearProgressIndicator(
+        value: value.clamp(0.0, 1.0),
+        minHeight: 8,
+        backgroundColor: c.muted,
+        valueColor: AlwaysStoppedAnimation(color))),
+  ]);
+}
+
+class _AreaRow extends StatelessWidget {
+  const _AreaRow({required this.c, required this.area,
+      required this.count, required this.total,
+      required this.color});
+  final AppColorScheme c; final String area;
+  final int count, total; final Color color;
+  @override
+  Widget build(BuildContext context) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Row(children: [
+      Expanded(child: Text(area, style: TextStyle(fontSize: 13,
+          color: c.primary), overflow: TextOverflow.ellipsis)),
+      Text('$count/$total', style: TextStyle(fontSize: 12,
+          fontWeight: FontWeight.w600, color: color)),
+    ]),
+    const SizedBox(height: 6),
+    ClipRRect(borderRadius: BorderRadius.circular(4),
+      child: LinearProgressIndicator(
+        value: count / total,
+        minHeight: 6,
+        backgroundColor: c.muted,
+        valueColor: AlwaysStoppedAnimation(color))),
+  ]);
+}
+
+class _RatingBar extends StatelessWidget {
+  const _RatingBar({required this.c, required this.label,
+      required this.val});
+  final AppColorScheme c; final String label; final double val;
+  @override
+  Widget build(BuildContext _) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: c.muted,
+        borderRadius: BorderRadius.circular(12)),
+      child: Column(children: [
+        Text(val.toString(), style: TextStyle(fontSize: 18,
+            fontWeight: FontWeight.bold, color: c.primary)),
+        const SizedBox(height: 2),
+        Text(label, style: TextStyle(fontSize: 9,
+            color: c.mutedForeground),
+            textAlign: TextAlign.center, maxLines: 2),
+      ]),
+    ),
+  );
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({required this.c, required this.icon,
+      required this.color, required this.title,
+      required this.desc});
+  final AppColorScheme c; final IconData icon;
+  final Color color; final String title, desc;
+  @override
+  Widget build(BuildContext _) => Row(children: [
+    Container(width: 42, height: 42,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12)),
+      child: Icon(icon, color: color, size: 22)),
+    const SizedBox(width: 12),
+    Expanded(child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, style: TextStyle(fontSize: 14,
+          fontWeight: FontWeight.w600, color: c.primary)),
+      const SizedBox(height: 2),
+      Text(desc, style: TextStyle(fontSize: 12,
+          color: c.mutedForeground), maxLines: 2),
+    ])),
+  ]);
+}
+
+class _CompareRow extends StatelessWidget {
+  const _CompareRow({required this.c, required this.label,
+      required this.thisMonth, required this.lastMonth,
+      required this.isUp});
+  final AppColorScheme c; final String label, thisMonth, lastMonth;
+  final bool isUp;
+  @override
+  Widget build(BuildContext _) => Row(children: [
+    Expanded(child: Text(label, style: TextStyle(fontSize: 13,
+        color: c.primary))),
+    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Text(thisMonth, style: TextStyle(fontSize: 16,
+          fontWeight: FontWeight.bold, color: c.primary)),
+      Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward,
+            size: 12, color: isUp ? c.success : c.destructive),
+        const SizedBox(width: 2),
+        Text(lastMonth, style: TextStyle(fontSize: 11,
+            color: c.mutedForeground)),
+      ]),
+    ]),
+  ]);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM PAINTERS
+// ═══════════════════════════════════════════════════════════════
 
 class _RingPainter extends CustomPainter {
   _RingPainter(this.p, this.sw, this.bg, this.fg);

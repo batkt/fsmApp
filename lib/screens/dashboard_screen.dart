@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/cleaning_task.dart';
+import '../models/notification_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/calendar_strip.dart';
+import '../widgets/notification_modal.dart';
 import '../widgets/summary_row.dart';
 import '../widgets/task_card.dart';
 import 'profile_screen.dart';
@@ -18,13 +20,18 @@ class _State extends State<CleanerDashboardScreen> {
   final ImagePicker _picker = ImagePicker();
   late DateTime _selectedDay;
   late List<CleaningTask> _tasks;
+  late List<AppNotification> _notifications;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = stripTime(DateTime.now());
     _tasks = generateMockTasks();
+    _notifications = generateMockNotifications();
   }
+
+  int get _unreadCount =>
+      _notifications.where((n) => !n.isRead).length;
 
   List<DateTime> _calDays() {
     final s = stripTime(DateTime.now()).subtract(const Duration(days: 2));
@@ -86,20 +93,70 @@ class _State extends State<CleanerDashboardScreen> {
   void _openProfile() => Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const ProfileScreen()));
 
+  void _openNotifications() {
+    showNotificationModal(context,
+      notifications: _notifications,
+      onMarkAllRead: () {
+        setState(() {
+          _notifications = _notifications
+              .map((n) => n.copyWith(isRead: true)).toList();
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final tasks = _todayTasks;
+    final unread = _unreadCount;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Өнөөдрийн цэвэрлэгээ',
             style: TextStyle(fontWeight: FontWeight.w600)),
         actions: [
+          // ── Notification bell with badge ──
+          Stack(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: c.muted,
+                  borderRadius: BorderRadius.circular(12)),
+                child: IconButton(
+                  onPressed: _openNotifications,
+                  icon: Icon(Icons.notifications_outlined,
+                      color: c.primary),
+                  tooltip: 'Мэдэгдэл'),
+              ),
+              if (unread > 0)
+                Positioned(
+                  right: 6, top: 6,
+                  child: Container(
+                    width: 18, height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: c.background, width: 2)),
+                    child: Center(
+                      child: Text('$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // ── Profile button ──
           Container(
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
-              color: c.muted, borderRadius: BorderRadius.circular(12)),
+              color: c.muted,
+              borderRadius: BorderRadius.circular(12)),
             child: IconButton(
               onPressed: _openProfile,
               icon: Icon(Icons.person_outline, color: c.primary),
@@ -114,13 +171,15 @@ class _State extends State<CleanerDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Сайн байна уу, цэвэрлэгч,',
-                  style: TextStyle(fontSize: 14, color: c.mutedForeground)),
+                  style: TextStyle(fontSize: 14,
+                      color: c.mutedForeground)),
               const SizedBox(height: 4),
               Text('Таны хуваарь',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,
-                      color: c.primary)),
+                  style: TextStyle(fontSize: 22,
+                      fontWeight: FontWeight.bold, color: c.primary)),
               const SizedBox(height: 16),
-              CalendarStrip(days: _calDays(), selectedDay: _selectedDay,
+              CalendarStrip(days: _calDays(),
+                  selectedDay: _selectedDay,
                   onSelected: (d) =>
                       setState(() => _selectedDay = stripTime(d))),
               const SizedBox(height: 16),
@@ -129,13 +188,13 @@ class _State extends State<CleanerDashboardScreen> {
               Expanded(
                 child: tasks.isEmpty
                     ? Center(child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                        mainAxisSize: MainAxisSize.min, children: [
                           Icon(Icons.event_available, size: 48,
                               color: c.border),
                           const SizedBox(height: 8),
                           Text('Энэ өдөр даалгавар байхгүй.',
-                              style: TextStyle(color: c.mutedForeground)),
+                              style: TextStyle(
+                                  color: c.mutedForeground)),
                         ]))
                     : ListView.separated(
                         itemCount: tasks.length,
