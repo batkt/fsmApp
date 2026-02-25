@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/cleaning_task.dart';
 import '../theme/app_theme.dart';
+import '../services/holiday_service.dart';
 
 class FullCalendar extends StatefulWidget {
   const FullCalendar({
@@ -133,6 +134,19 @@ class _FullCalendarState extends State<FullCalendar>
                               fontWeight: FontWeight.bold,
                               color: c.primary)),
                       const SizedBox(height: 2),
+                      Builder(builder: (context) {
+                        final holiday = HolidayService.getHoliday(date);
+                        if (holiday != null) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Text(holiday.name,
+                                style: TextStyle(fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: c.blueAccent)),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
                       Text(
                         dayTasks.isEmpty
                             ? 'Даалгавар байхгүй'
@@ -473,21 +487,30 @@ class _FullCalendarState extends State<FullCalendar>
                   // Task dots — always same height
                   SizedBox(
                     height: 5,
-                    child: dayTasks.isNotEmpty
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: dayTasks.take(3).map((t) => Container(
-                              width: 5, height: 5,
-                              margin: const EdgeInsets.symmetric(horizontal: 1),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.white.withOpacity(0.8)
-                                    : _statusColor(t.status, c),
-                                shape: BoxShape.circle,
-                              ),
-                            )).toList(),
-                          )
-                        : null,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (HolidayService.getHoliday(day) != null)
+                          Container(
+                            width: 5, height: 5,
+                            margin: const EdgeInsets.symmetric(horizontal: 1),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.white : c.blueAccent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ...dayTasks.take(isSelected ? 3 : 2).map((t) => Container(
+                          width: 5, height: 5,
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.white.withOpacity(0.8)
+                                : _statusColor(t.status, c),
+                            shape: BoxShape.circle,
+                          ),
+                        )),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -604,23 +627,39 @@ class _FullCalendarState extends State<FullCalendar>
                                       : c.primary),
                             ),
                           ),
-                          if (dayTasks.isNotEmpty)
-                            Padding(
+                          Builder(builder: (context) {
+                            final holiday = HolidayService.getHoliday(date);
+                            final hasTasks = dayTasks.isNotEmpty;
+                            if (holiday == null && !hasTasks) return const SizedBox.shrink();
+
+                            return Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: dayTasks.take(4).map((t) => Container(
-                                  width: 5, height: 5,
-                                  margin: const EdgeInsets.symmetric(horizontal: 0.5),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.white.withOpacity(0.8)
-                                        : _statusColor(t.status, c),
-                                    shape: BoxShape.circle,
-                                  ),
-                                )).toList(),
+                                children: [
+                                  if (holiday != null)
+                                    Container(
+                                      width: 5, height: 5,
+                                      margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? Colors.white : c.blueAccent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ...dayTasks.take(3).map((t) => Container(
+                                    width: 5, height: 5,
+                                    margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Colors.white.withOpacity(0.8)
+                                          : _statusColor(t.status, c),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  )),
+                                ],
                               ),
-                            ),
+                            );
+                          }),
                         ],
                       ),
                     ),

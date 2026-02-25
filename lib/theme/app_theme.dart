@@ -93,7 +93,7 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     mutedForeground: Color(0xFF94A3B8),
     border: Color(0xFF1E293B),
     inputBorder: Color(0xFF1E293B),
-    destructive: Color(0xFF7F1D1D),
+    destructive: Color(0xFFEF4444),
     success: Color(0xFF2EB88A),
     warning: Color(0xFFFACC15),
     warningOrange: Color(0xFFE09333),

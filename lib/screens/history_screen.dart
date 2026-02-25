@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/cleaning_task.dart';
 import '../theme/app_theme.dart';
+import '../services/image_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -27,6 +30,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
            t.status == TaskStatus.overdue)) return true;
       return false;
     }).toList();
+    _loadSavedPhotos();
+  }
+
+  Future<void> _loadSavedPhotos() async {
+    for (final t in _allTasks) {
+      final photos = await ImageService.getPhotos(t.id);
+      if (photos.isNotEmpty && mounted) {
+        setState(() {
+          t.photoPaths.clear();
+          t.photoPaths.addAll(photos);
+          t.hasPhoto = true;
+          t.photoCount = photos.length;
+        });
+      }
+    }
   }
 
   List<CleaningTask> get _filteredTasks {
@@ -164,7 +182,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     selected: _filter, c: c, color: c.success,
                     onTap: () => setState(() => _filter = 'completed')),
                 const SizedBox(width: 8),
-                _FilterChip(label: 'Хугацаа хэтэрсэн', value: 'overdue',
+                _FilterChip(label: 'Хэтэрсэн', value: 'overdue',
                     selected: _filter, c: c, color: c.destructive,
                     onTap: () => setState(() => _filter = 'overdue')),
               ]),
@@ -538,8 +556,8 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                   color: c.mutedForeground),
               const SizedBox(width: 6),
               Text('${t.photoPaths.isNotEmpty ? t.photoPaths.length : t.photoCount} зураг хавсаргасан',
-                  style: TextStyle(fontSize: 13,
-                      color: c.mutedForeground)),
+                style: TextStyle(fontSize: 13,
+                    color: c.mutedForeground)),
               const Spacer(),
               Icon(Icons.verified_rounded, size: 16,
                   color: c.success),
@@ -547,8 +565,75 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
               Text('Баталгаажсан', style: TextStyle(fontSize: 13,
                   fontWeight: FontWeight.w500, color: c.success)),
             ]),
+            const SizedBox(height: 10),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: [
+                ...t.photoPaths.map((path) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => _showFullPhoto(context, path, c),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: File(path).existsSync()
+                        ? Image.file(File(path), width: 80, height: 80, fit: BoxFit.cover)
+                        : Container(width: 80, height: 80, color: c.muted, child: Icon(Icons.broken_image, color: c.mutedForeground, size: 20)),
+                    ),
+                  ),
+                )),
+                if (t.photoPaths.isEmpty && t.hasPhoto)
+                  ...List.generate(t.photoCount, (i) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Stack(
+                        children: [
+                          Image.network(
+                            'https://images.unsplash.com/photo-1581578731548-c64695cc6958?q=80&w=150&auto=format&fit=crop',
+                            width: 80, height: 80, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(width: 80, height: 80, color: c.muted),
+                          ),
+                          Container(width: 80, height: 80, color: Colors.black12),
+                          const Positioned(right: 4, bottom: 4, child: Icon(Icons.verified_rounded, color: Colors.white70, size: 16)),
+                        ],
+                      ),
+                    ),
+                  )),
+              ]),
+            ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _showFullPhoto(BuildContext context, String path, AppColorScheme c) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: InteractiveViewer(
+                child: path.startsWith('http') 
+                  ? Image.network(path, fit: BoxFit.contain, width: double.infinity)
+                  : Image.file(File(path), fit: BoxFit.contain, width: double.infinity),
+              ),
+            ),
+            Positioned(
+              top: 8, right: 8,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

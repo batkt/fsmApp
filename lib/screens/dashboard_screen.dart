@@ -27,6 +27,7 @@ class _State extends State<CleanerDashboardScreen>
   late DateTime _selectedDay;
   late List<CleaningTask> _tasks;
   late List<AppNotification> _notifications;
+  String _filter = 'all'; // 'all', 'pending', 'inProgress', 'completed'
 
   @override
   void initState() {
@@ -88,15 +89,31 @@ class _State extends State<CleanerDashboardScreen>
   int get _unreadCount =>
       _notifications.where((n) => !n.isRead).length;
 
-
-  List<CleaningTask> get _todayTasks => _tasks
+  List<CleaningTask> get _allTodayTasks => _tasks
       .where((t) => stripTime(t.date) == stripTime(_selectedDay))
-      .toList()
-    ..sort((a, b) {
+      .toList();
+
+
+  List<CleaningTask> get _todayTasks {
+    var tasks = _tasks
+        .where((t) => stripTime(t.date) == stripTime(_selectedDay))
+        .toList();
+
+    if (_filter == 'pending') {
+      tasks = tasks.where((t) => t.status == TaskStatus.pending || t.status == TaskStatus.overdue).toList();
+    } else if (_filter == 'inProgress') {
+      tasks = tasks.where((t) => t.status == TaskStatus.inProgress).toList();
+    } else if (_filter == 'completed') {
+      tasks = tasks.where((t) => t.status == TaskStatus.completed).toList();
+    }
+
+    tasks.sort((a, b) {
       final am = a.startTime.hour * 60 + a.startTime.minute;
       final bm = b.startTime.hour * 60 + b.startTime.minute;
       return am.compareTo(bm);
     });
+    return tasks;
+  }
 
   Color _statusColor(TaskStatus s, AppColorScheme c) {
     switch (s) {
@@ -156,22 +173,44 @@ class _State extends State<CleanerDashboardScreen>
       });
 
       double progress = 0.0;
+      bool isDone = false;
+
+      // Start a timer to fake progress while background isolate works
+      // This keeps the UI feeling "alive" and the bar moving.
+      void updateProgress(double p) {
+        if (!mounted || isDone) return;
+        setState(() {
+          progress = p;
+          AppToast.show(
+            context, 
+            '📸 Зураг сайжруулж байна...', 
+            progress: progress,
+            color: context.colors.brandGreen,
+          );
+        });
+      }
+
+      // Initial progress
+      updateProgress(0.1);
+
+      // Slow simulate from 10% to 90%
+      Future.doWhile(() async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (isDone || !mounted) return false;
+        if (progress < 0.9) {
+          updateProgress(progress + 0.05);
+          return true;
+        }
+        return false;
+      });
+
       await ImageService.savePhoto(
         t.id, 
         img.path,
-        onProgress: (p) {
-          progress = p;
-          if (mounted) {
-            AppToast.show(
-              context, 
-              '📸 Зураг сайжруулж байна...', 
-              progress: progress,
-              color: context.colors.brandGreen,
-            );
-          }
-        },
       ).then((savedPath) {
+        isDone = true;
         if (mounted) {
+          updateProgress(1.0);
           setState(() {
             final idx = t.photoPaths.indexOf(img.path);
             if (idx != -1) t.photoPaths[idx] = savedPath;
@@ -227,10 +266,11 @@ class _State extends State<CleanerDashboardScreen>
   Widget build(BuildContext context) {
     final c = context.colors;
     final tasks = _todayTasks;
+    final allToday = _allTodayTasks;
     final unread = _unreadCount;
-    final completedCount = tasks.where(
+    final completedCount = allToday.where(
         (t) => t.status == TaskStatus.completed).length;
-    final totalCount = tasks.length;
+    final totalCount = allToday.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -337,8 +377,27 @@ class _State extends State<CleanerDashboardScreen>
               ],
 
               // Summary chips
-              SummaryRow(tasksForDay: tasks),
-              const SizedBox(height: 12),
+            Row(children: [
+              _FilterChip(label: 'Бүгд', value: 'all', selected: _filter, c: c, 
+                  onTap: () => setState(() => _filter = 'all')),
+              const SizedBox(width: 8),
+              _FilterChip(label: 'Хүлээгдэж буй', value: 'pending', selected: _filter, c: c, color: c.warningOrange,
+                  onTap: () => setState(() => _filter = 'pending')),
+              const SizedBox(width: 8),
+              _FilterChip(label: 'Явагдаж буй', value: 'inProgress', selected: _filter, c: c, color: c.info,
+                  onTap: () => setState(() => _filter = 'inProgress')),
+              const SizedBox(width: 8),
+              _FilterChip(label: 'Дууссан', value: 'completed', selected: _filter, c: c, color: c.success,
+                  onTap: () => setState(() => _filter = 'completed')),
+            ]),
+            const SizedBox(height: 12),
+            
+            // Result count (small)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 8),
+              child: Text('${tasks.length} даалгавар',
+                  style: TextStyle(fontSize: 13, color: c.mutedForeground)),
+            ),
 
               // Task list (inline, scrolls with page)
               if (tasks.isEmpty)
@@ -376,3 +435,59 @@ class _State extends State<CleanerDashboardScreen>
     );
   }
 }
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final String selected;
+  final AppColorScheme c;
+  final VoidCallback onTap;
+  final Color? color;
+
+  const _FilterChip({
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.c,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selected == value;
+    final activeColor = color ?? c.brandGreen;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? activeColor : c.cardBackground,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? activeColor : c.border,
+            width: 1,
+          ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: activeColor.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ] : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : c.mutedForeground,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

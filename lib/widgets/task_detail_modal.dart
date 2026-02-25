@@ -307,6 +307,29 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     ),
                   );
                 }),
+                // Mock photos for completed tasks that don't have local paths
+                if (t.photoPaths.isEmpty && t.hasPhoto)
+                  ...List.generate(t.photoCount, (i) => Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: 120, height: 120,
+                        color: c.muted,
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              'https://images.unsplash.com/photo-1581578731548-c64695cc6958?q=80&w=200&auto=format&fit=crop', // Cleaning mock
+                              width: 120, height: 120, fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Center(child: Icon(Icons.image, color: c.mutedForeground)),
+                            ),
+                            Container(color: Colors.black12),
+                            const Center(child: Icon(Icons.verified_rounded, color: Colors.white70, size: 32)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
                 // Add photo button
                 if (!done)
                   InkWell(
