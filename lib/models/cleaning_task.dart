@@ -26,7 +26,8 @@ class CleaningTask {
     this.estimatedMinutes = 0,
     this.subtasks = const [],
     this.photoCount = 0,
-  });
+    List<String>? photoPaths,
+  }) : photoPaths = photoPaths ?? [];
 
   final String id;
   final String title;
@@ -43,6 +44,7 @@ class CleaningTask {
   TaskStatus status;
   bool hasPhoto;
   int photoCount;
+  final List<String> photoPaths;
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;
@@ -65,6 +67,9 @@ List<CleaningTask> generateMockTasks() {
   final today = stripTime(DateTime.now());
   final tomorrow = today.add(const Duration(days: 1));
   final dayAfter = today.add(const Duration(days: 2));
+  final yesterday = today.subtract(const Duration(days: 1));
+  final twoDaysAgo = today.subtract(const Duration(days: 2));
+  final threeDaysAgo = today.subtract(const Duration(days: 3));
 
   return [
     // ── Today's tasks (8 tasks) ──
@@ -297,6 +302,217 @@ List<CleaningTask> generateMockTasks() {
         SubTask(title: 'Шал шүүрдэх'),
         SubTask(title: 'Тоос арчих'),
         SubTask(title: 'Хогийн сав хоослох'),
+      ],
+    ),
+
+    // ══════════════════════════════════════
+    //   PAST DAYS (for History)
+    // ══════════════════════════════════════
+
+    // ── Yesterday (4 tasks, all completed) ──
+    CleaningTask(
+      id: '13',
+      title: 'Коридор угаалга',
+      location: '2-р давхар - Урд коридор',
+      floor: '2-р давхар',
+      date: yesterday,
+      startTime: const TimeOfDay(hour: 8, minute: 0),
+      endTime: const TimeOfDay(hour: 9, minute: 0),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 3,
+      priority: TaskPriority.medium,
+      estimatedMinutes: 60,
+      supervisor: 'Б. Мөнхбат',
+      notes: 'Шал маш бохир байсан, давтан угаасан.',
+      subtasks: [
+        SubTask(title: 'Шал шүүрдэх', isDone: true),
+        SubTask(title: 'Шал угаах', isDone: true),
+        SubTask(title: 'Хогийн сав хоослох', isDone: true),
+      ],
+    ),
+    CleaningTask(
+      id: '14',
+      title: 'Захирлын өрөө цэвэрлэгээ',
+      location: '6-р давхар - Захирлын кабинет',
+      floor: '6-р давхар',
+      date: yesterday,
+      startTime: const TimeOfDay(hour: 9, minute: 30),
+      endTime: const TimeOfDay(hour: 10, minute: 30),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 2,
+      priority: TaskPriority.high,
+      estimatedMinutes: 60,
+      supervisor: 'Д. Сарантуяа',
+      notes: 'Захирлын ширээг маш болгоомжтой цэвэрлэнэ.',
+      subtasks: [
+        SubTask(title: 'Ширээ арчих', isDone: true),
+        SubTask(title: 'Шал тоос соруулах', isDone: true),
+        SubTask(title: 'Цонх арчих', isDone: true),
+        SubTask(title: 'Цэцэг услах', isDone: true),
+      ],
+    ),
+    CleaningTask(
+      id: '15',
+      title: 'Хурлын зал Б цэвэрлэгээ',
+      location: '4-р давхар - Хурлын зал Б',
+      floor: '4-р давхар',
+      date: yesterday,
+      startTime: const TimeOfDay(hour: 11, minute: 0),
+      endTime: const TimeOfDay(hour: 12, minute: 0),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 1,
+      priority: TaskPriority.medium,
+      estimatedMinutes: 60,
+      supervisor: 'Б. Мөнхбат',
+      subtasks: [
+        SubTask(title: 'Ширээ арчих', isDone: true),
+        SubTask(title: 'Сандал эмхлэх', isDone: true),
+        SubTask(title: 'Проектор цэвэрлэх', isDone: true),
+        SubTask(title: 'Хогийн сав хоослох', isDone: true),
+      ],
+    ),
+    CleaningTask(
+      id: '16',
+      title: 'Гадна талбай цэвэрлэгээ',
+      location: 'А цамхаг - Урд талбай',
+      floor: 'Гадна',
+      date: yesterday,
+      startTime: const TimeOfDay(hour: 14, minute: 0),
+      endTime: const TimeOfDay(hour: 15, minute: 30),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 4,
+      priority: TaskPriority.low,
+      estimatedMinutes: 90,
+      supervisor: 'Д. Сарантуяа',
+      subtasks: [
+        SubTask(title: 'Хог түүх', isDone: true),
+        SubTask(title: 'Зам шүүрдэх', isDone: true),
+        SubTask(title: 'Хогийн сав хоослох', isDone: true),
+      ],
+    ),
+
+    // ── 2 Days Ago (3 tasks) ──
+    CleaningTask(
+      id: '17',
+      title: 'Серверийн өрөө цэвэрлэх',
+      location: '1-р давхар - Серверийн өрөө',
+      floor: '1-р давхар',
+      date: twoDaysAgo,
+      startTime: const TimeOfDay(hour: 8, minute: 0),
+      endTime: const TimeOfDay(hour: 9, minute: 0),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 2,
+      priority: TaskPriority.high,
+      estimatedMinutes: 60,
+      supervisor: 'Б. Мөнхбат',
+      notes: 'Кабелийг хөдөлгөхгүй! Зөвхөн тоос арчих.',
+      subtasks: [
+        SubTask(title: 'Шал тоос соруулах', isDone: true),
+        SubTask(title: 'Тоос арчих', isDone: true),
+        SubTask(title: 'Агааржуулагч шүүлтүүр цэвэрлэх', isDone: true),
+      ],
+    ),
+    CleaningTask(
+      id: '18',
+      title: 'Ажилтны хоолны газар',
+      location: '1-р давхар - Хоолны газар',
+      floor: '1-р давхар',
+      date: twoDaysAgo,
+      startTime: const TimeOfDay(hour: 10, minute: 0),
+      endTime: const TimeOfDay(hour: 11, minute: 30),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 3,
+      priority: TaskPriority.medium,
+      estimatedMinutes: 90,
+      supervisor: 'Д. Сарантуяа',
+      subtasks: [
+        SubTask(title: 'Ширээ бүр арчих', isDone: true),
+        SubTask(title: 'Шал угаах', isDone: true),
+        SubTask(title: 'Гал тогооны хэсэг цэвэрлэх', isDone: true),
+        SubTask(title: 'Хогийн сав хоослох', isDone: true),
+        SubTask(title: 'Хөргөгч цэвэрлэх', isDone: true),
+      ],
+    ),
+    CleaningTask(
+      id: '19',
+      title: 'Нийтийн ариун цэврийн өрөө',
+      location: '1-6 давхар - Бүх ариун цэвэр',
+      floor: 'Бүх давхар',
+      date: twoDaysAgo,
+      startTime: const TimeOfDay(hour: 13, minute: 0),
+      endTime: const TimeOfDay(hour: 15, minute: 0),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 6,
+      priority: TaskPriority.high,
+      estimatedMinutes: 120,
+      supervisor: 'Б. Мөнхбат',
+      notes: 'Химийн бодис ашиглах үед бээлий заавал өмсөнө.',
+      subtasks: [
+        SubTask(title: 'Угаалтуур цэвэрлэх', isDone: true),
+        SubTask(title: 'Суултуур цэвэрлэх', isDone: true),
+        SubTask(title: 'Толь арчих', isDone: true),
+        SubTask(title: 'Шал угаах', isDone: true),
+        SubTask(title: 'Саван/цаас нөхөх', isDone: true),
+      ],
+    ),
+
+    // ── 3 Days Ago (3 tasks, 1 overdue) ──
+    CleaningTask(
+      id: '20',
+      title: 'Зочны хүлээлгийн танхим',
+      location: '1-р давхар - Хүлээлгийн танхим',
+      floor: '1-р давхар',
+      date: threeDaysAgo,
+      startTime: const TimeOfDay(hour: 8, minute: 30),
+      endTime: const TimeOfDay(hour: 10, minute: 0),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 2,
+      priority: TaskPriority.high,
+      estimatedMinutes: 90,
+      supervisor: 'Б. Мөнхбат',
+      subtasks: [
+        SubTask(title: 'Буудлын ширээ арчих', isDone: true),
+        SubTask(title: 'Суудлын тавилга цэвэрлэх', isDone: true),
+        SubTask(title: 'Шал угаах', isDone: true),
+        SubTask(title: 'Цэцэг услах', isDone: true),
+      ],
+    ),
+    CleaningTask(
+      id: '21',
+      title: 'Дээвэр засвар дараах цэвэрлэгээ',
+      location: 'Дээвэр - Засварын талбай',
+      floor: 'Дээвэр',
+      date: threeDaysAgo,
+      startTime: const TimeOfDay(hour: 10, minute: 30),
+      endTime: const TimeOfDay(hour: 12, minute: 0),
+      status: TaskStatus.overdue,
+      priority: TaskPriority.medium,
+      estimatedMinutes: 90,
+      supervisor: 'Д. Сарантуяа',
+      notes: 'Аюулгүй байдлын тоноглол заавал өмсөнө.',
+      subtasks: [
+        SubTask(title: 'Хог цэвэрлэх'),
+        SubTask(title: 'Шал шүүрдэх'),
+        SubTask(title: 'Зураг авах'),
+      ],
+    ),
+    CleaningTask(
+      id: '22',
+      title: 'Нэгдүгээр давхрын цонхнууд',
+      location: '1-р давхар - Бүх цонх',
+      floor: '1-р давхар',
+      date: threeDaysAgo,
+      startTime: const TimeOfDay(hour: 13, minute: 0),
+      endTime: const TimeOfDay(hour: 14, minute: 30),
+      status: TaskStatus.completed,
+      hasPhoto: true, photoCount: 3,
+      priority: TaskPriority.low,
+      estimatedMinutes: 90,
+      supervisor: 'Б. Мөнхбат',
+      subtasks: [
+        SubTask(title: 'Цонх шүршигчээр угаах', isDone: true),
+        SubTask(title: 'Алчуураар арчих', isDone: true),
+        SubTask(title: 'Цонхны хүрээ цэвэрлэх', isDone: true),
       ],
     ),
   ];

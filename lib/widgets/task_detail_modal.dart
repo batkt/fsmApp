@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/cleaning_task.dart';
@@ -10,7 +12,7 @@ class TaskDetailModal extends StatefulWidget {
   final CleaningTask task;
   final VoidCallback onStatusChange;
   final void Function(int) onSubtaskToggle;
-  final VoidCallback onPhoto;
+  final Future<void> Function() onPhoto;
 
   @override
   State<TaskDetailModal> createState() => _TaskDetailModalState();
@@ -55,6 +57,39 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
 
   String _fmt(TimeOfDay td) =>
       '${td.hour.toString().padLeft(2, '0')}:${td.minute.toString().padLeft(2, '0')}';
+
+  void _showFullPhoto(BuildContext context, String path, AppColorScheme c) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: InteractiveViewer(
+                child: Image.file(File(path), fit: BoxFit.contain,
+                    width: double.infinity),
+              ),
+            ),
+            Positioned(
+              top: 8, right: 8,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded,
+                    color: Colors.white, size: 28),
+                style: IconButton.styleFrom(
+                    backgroundColor: Colors.black54),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -243,39 +278,63 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
               Text('📸 Зураг', style: TextStyle(fontSize: 16,
                   fontWeight: FontWeight.w600, color: c.primary)),
               const Spacer(),
-              if (t.photoCount > 0)
-                Text('${t.photoCount} зураг',
+              if (t.photoPaths.isNotEmpty)
+                Text('${t.photoPaths.length} зураг',
                     style: TextStyle(fontSize: 14,
                         color: c.mutedForeground)),
             ]),
             const SizedBox(height: 8),
-            Row(children: [
-              if (t.hasPhoto) ...List.generate(
-                  t.photoCount.clamp(0, 3), (i) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Container(width: 64, height: 64,
-                  decoration: BoxDecoration(
-                    color: c.muted,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: c.border)),
-                  child: Icon(Icons.image_rounded,
-                      color: c.mutedForeground, size: 28)),
-              )),
-              if (!done)
-                InkWell(
-                  onTap: widget.onPhoto,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(width: 64, height: 64,
-                    decoration: BoxDecoration(
-                      color: c.brandGreen.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: c.brandGreen.withOpacity(0.2),
-                          style: BorderStyle.solid)),
-                    child: Icon(Icons.add_a_photo_rounded,
-                        color: c.brandGreen, size: 24)),
-                ),
-            ]),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: [
+                // Actual photos from local storage
+                ...t.photoPaths.map((path) {
+                  final file = File(path);
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: GestureDetector(
+                      onTap: () => _showFullPhoto(context, path, c),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: file.existsSync()
+                            ? Image.file(file,
+                                width: 120, height: 120, fit: BoxFit.cover)
+                            : Container(width: 120, height: 120,
+                                color: c.muted,
+                                child: Icon(Icons.broken_image_rounded,
+                                    color: c.mutedForeground, size: 36)),
+                      ),
+                    ),
+                  );
+                }),
+                // Add photo button
+                if (!done)
+                  InkWell(
+                    onTap: () async {
+                      await widget.onPhoto();
+                      if (mounted) setState(() {});
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(width: 120, height: 120,
+                      decoration: BoxDecoration(
+                        color: c.brandGreen.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: c.brandGreen.withOpacity(0.2))),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo_rounded,
+                              color: c.brandGreen, size: 30),
+                          const SizedBox(height: 4),
+                          Text('Нэмэх', style: TextStyle(fontSize: 12,
+                              color: c.brandGreen,
+                              fontWeight: FontWeight.w600)),
+                        ],
+                      )),
+                  ),
+              ]),
+            ),
 
             const SizedBox(height: 24),
           ]),
@@ -367,7 +426,7 @@ Future<void> showTaskDetail(BuildContext context,
     {required CleaningTask task,
     required VoidCallback onStatusChange,
     required void Function(int) onSubtaskToggle,
-    required VoidCallback onPhoto}) {
+    required Future<void> Function() onPhoto}) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,

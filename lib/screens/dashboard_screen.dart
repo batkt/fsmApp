@@ -10,6 +10,8 @@ import '../widgets/summary_row.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_modal.dart';
 import '../services/widget_service.dart';
+import '../services/image_service.dart';
+import '../widgets/app_toast.dart';
 import 'profile_screen.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
@@ -34,6 +36,21 @@ class _State extends State<CleanerDashboardScreen>
     _tasks = generateMockTasks();
     _notifications = generateMockNotifications();
     _syncWidget();
+    _loadSavedPhotos();
+  }
+
+  Future<void> _loadSavedPhotos() async {
+    for (final t in _tasks) {
+      final photos = await ImageService.getPhotos(t.id);
+      if (photos.isNotEmpty && mounted) {
+        setState(() {
+          t.photoPaths.clear();
+          t.photoPaths.addAll(photos);
+          t.hasPhoto = photos.isNotEmpty;
+          t.photoCount = photos.length;
+        });
+      }
+    }
   }
 
   @override
@@ -123,17 +140,63 @@ class _State extends State<CleanerDashboardScreen>
 
   Future<void> _handlePhoto(CleaningTask t) async {
     try {
-      final img = await _picker.pickImage(source: ImageSource.camera);
-      if (img == null) { _snack('Зураг авагдаагүй'); return; }
-      setState(() { t.hasPhoto = true; t.photoCount++; });
-      _snack('Зураг баталгаажуулахаар илгээгдсэн');
-    } catch (_) { _snack('Камер нээхэд алдаа гарлаа'); }
+      final img = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 2000,
+        maxHeight: 2000,
+        imageQuality: 85,
+      );
+      if (img == null) return;
+
+      // Update count instantly
+      setState(() {
+        t.photoPaths.add(img.path);
+        t.hasPhoto = true;
+        t.photoCount = t.photoPaths.length;
+      });
+
+      double progress = 0.0;
+      await ImageService.savePhoto(
+        t.id, 
+        img.path,
+        onProgress: (p) {
+          progress = p;
+          if (mounted) {
+            AppToast.show(
+              context, 
+              '📸 Зураг сайжруулж байна...', 
+              progress: progress,
+              color: context.colors.brandGreen,
+            );
+          }
+        },
+      ).then((savedPath) {
+        if (mounted) {
+          setState(() {
+            final idx = t.photoPaths.indexOf(img.path);
+            if (idx != -1) t.photoPaths[idx] = savedPath;
+          });
+          AppToast.show(
+            context, 
+            '✅ Зураг хадгаллаа',
+            icon: Icons.check_circle_rounded,
+            color: context.colors.success,
+          );
+        }
+      });
+    } catch (_) { 
+      AppToast.show(
+        context, 
+        'Камер нээхэд алдаа гарлаа',
+        icon: Icons.error_outline_rounded,
+        color: context.colors.destructive,
+      );
+    }
   }
 
   void _snack(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)));
+    AppToast.show(context, msg);
   }
 
   void _openProfile() => Navigator.of(context).push(

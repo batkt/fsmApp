@@ -138,15 +138,16 @@ class _TaskCardState extends State<TaskCard> {
                           color: Colors.white)),
                 ),
                 const SizedBox(width: 8),
-                // Photo indicator
-                if (t.hasPhoto) ...[
-                  Icon(Icons.verified_rounded, size: 16,
-                      color: c.success),
-                  const SizedBox(width: 2),
-                  Text('${t.photoCount}', style: TextStyle(
-                      fontSize: 15, color: c.success)),
-                  const SizedBox(width: 8),
-                ],
+                // Photo indicator (always visible)
+                Icon(Icons.camera_alt_rounded, size: 16,
+                    color: (t.photoPaths.isNotEmpty || t.hasPhoto)
+                        ? c.brandGreen : c.mutedForeground.withOpacity(0.4)),
+                const SizedBox(width: 3),
+                Text('${t.photoPaths.isNotEmpty ? t.photoPaths.length : t.photoCount}', style: TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600,
+                    color: (t.photoPaths.isNotEmpty || t.hasPhoto)
+                        ? c.brandGreen : c.mutedForeground.withOpacity(0.4))),
+                const SizedBox(width: 8),
                 // Subtask progress
                 if (t.subtasks.isNotEmpty) ...[
                   Icon(Icons.checklist_rounded, size: 16,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/biometric_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_toast.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.onLogout});
@@ -37,15 +38,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _bioEnabled = value);
 
     final c = context.colors;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(value
-          ? 'Хурууны хээ идэвхжүүлсэн'
-          : 'Хурууны хээ идэвхгүй болсон'),
-      backgroundColor: value ? c.brandGreen : c.mutedForeground,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10)),
-    ));
+    AppToast.show(
+      context, 
+      value ? 'Хурууны хээ идэвхжүүлсэн' : 'Хурууны хээ идэвхгүй болсон',
+      icon: Icons.fingerprint,
+      color: value ? c.brandGreen : c.mutedForeground,
+    );
   }
 
   Future<void> _confirmLogout(AppColorScheme c) async {

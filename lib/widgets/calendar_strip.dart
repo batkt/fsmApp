@@ -23,6 +23,7 @@ class _FullCalendarState extends State<FullCalendar>
     with SingleTickerProviderStateMixin {
   late DateTime _currentMonth;
   bool _expanded = false;
+  int _weekOffset = 0; // 0 = selected day's week, -1 = prev, +1 = next
 
   @override
   void initState() {
@@ -261,11 +262,12 @@ class _FullCalendarState extends State<FullCalendar>
     );
   }
 
-  /// Get the week (Mon-Sun) containing the selected day
-  List<DateTime> _selectedWeekDays() {
+  /// Get the week (Mon-Sun) with offset
+  List<DateTime> _currentWeekDays() {
     final sel = widget.selectedDay;
     final monday = sel.subtract(Duration(days: sel.weekday - 1));
-    return List.generate(7, (i) => monday.add(Duration(days: i)));
+    final offsetMonday = monday.add(Duration(days: _weekOffset * 7));
+    return List.generate(7, (i) => offsetMonday.add(Duration(days: i)));
   }
 
   static const _monthNames = [
@@ -308,18 +310,24 @@ class _FullCalendarState extends State<FullCalendar>
                   onTap: () {
                     setState(() {
                       _currentMonth = DateTime(today.year, today.month);
+                      _weekOffset = 0;
                     });
                     widget.onSelected(stripTime(today));
                   },
                   child: Column(children: [
-                    Text(
-                      '${_monthNames[_expanded ? _currentMonth.month : widget.selectedDay.month]} сар, ${_expanded ? _currentMonth.year : widget.selectedDay.year}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: c.primary,
-                      ),
-                    ),
+                    Builder(builder: (_) {
+                      final displayDate = _expanded
+                          ? _currentMonth
+                          : _currentWeekDays()[3]; // mid-week for month label
+                      return Text(
+                        '${_monthNames[displayDate.month]} сар, ${displayDate.year}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: c.primary,
+                        ),
+                      );
+                    }),
                   ]),
                 ),
               ),
@@ -365,9 +373,44 @@ class _FullCalendarState extends State<FullCalendar>
             duration: const Duration(milliseconds: 250),
             crossFadeState:
                 _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            firstChild: _buildWeekStrip(c, today),
+            firstChild: GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity == null) return;
+                if (details.primaryVelocity! < -100) {
+                  setState(() => _weekOffset++);
+                } else if (details.primaryVelocity! > 100) {
+                  setState(() => _weekOffset--);
+                }
+              },
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) =>
+                    FadeTransition(opacity: animation, child: child),
+                child: _buildWeekStrip(c, today,
+                    key: ValueKey(_weekOffset)),
+              ),
+            ),
             secondChild: _buildMonthGrid(c, today),
           ),
+
+          // ── Swipe tip (only when collapsed) ──
+          if (!_expanded) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.chevron_left_rounded,
+                    size: 16, color: c.mutedForeground.withOpacity(0.4)),
+                const SizedBox(width: 4),
+                Text('Долоо хоног шударна уу',
+                    style: TextStyle(fontSize: 11,
+                        color: c.mutedForeground.withOpacity(0.5))),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right_rounded,
+                    size: 16, color: c.mutedForeground.withOpacity(0.4)),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -376,9 +419,10 @@ class _FullCalendarState extends State<FullCalendar>
   // ═══════════════════════════════════════════════
   //   COLLAPSED: Week Strip (Mon to Sun)
   // ═══════════════════════════════════════════════
-  Widget _buildWeekStrip(AppColorScheme c, DateTime today) {
-    final weekDays = _selectedWeekDays();
+  Widget _buildWeekStrip(AppColorScheme c, DateTime today, {Key? key}) {
+    final weekDays = _currentWeekDays();
     return Row(
+      key: key,
       children: List.generate(7, (i) {
         final day = weekDays[i];
         final isToday = _same(day, today);
@@ -387,11 +431,14 @@ class _FullCalendarState extends State<FullCalendar>
 
         return Expanded(
           child: GestureDetector(
-            onTap: () => widget.onSelected(day),
+            onTap: () {
+              setState(() => _weekOffset = 0);
+              widget.onSelected(day);
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
+              height: 76,
               margin: const EdgeInsets.symmetric(horizontal: 2),
-              padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
                     ? c.brandGreen
@@ -404,7 +451,7 @@ class _FullCalendarState extends State<FullCalendar>
                     : null,
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     _weekHeaders[i],
@@ -423,21 +470,25 @@ class _FullCalendarState extends State<FullCalendar>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Task dots
-                  if (dayTasks.isNotEmpty)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: dayTasks.take(3).map((t) => Container(
-                        width: 5, height: 5,
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.white.withOpacity(0.8)
-                              : _statusColor(t.status, c),
-                          shape: BoxShape.circle,
-                        ),
-                      )).toList(),
-                    ),
+                  // Task dots — always same height
+                  SizedBox(
+                    height: 5,
+                    child: dayTasks.isNotEmpty
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: dayTasks.take(3).map((t) => Container(
+                              width: 5, height: 5,
+                              margin: const EdgeInsets.symmetric(horizontal: 1),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.white.withOpacity(0.8)
+                                    : _statusColor(t.status, c),
+                                shape: BoxShape.circle,
+                              ),
+                            )).toList(),
+                          )
+                        : null,
+                  ),
                 ],
               ),
             ),
