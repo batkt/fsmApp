@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'screens/root_screen.dart';
 import 'theme/app_theme.dart';
+import 'services/holiday_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await HolidayService.init();
   runApp(const CleanerApp());
 }
 
