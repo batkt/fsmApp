@@ -86,6 +86,7 @@ class _State extends State<CleanerDashboardScreen>
       case TaskStatus.pending: return c.warningOrange;
       case TaskStatus.inProgress: return c.info;
       case TaskStatus.completed: return c.success;
+      case TaskStatus.overdue: return c.destructive;
     }
   }
 
@@ -94,6 +95,7 @@ class _State extends State<CleanerDashboardScreen>
       case TaskStatus.pending: return 'Хүлээгдэж буй';
       case TaskStatus.inProgress: return 'Явагдаж буй';
       case TaskStatus.completed: return 'Дууссан';
+      case TaskStatus.overdue: return 'Хугацаа хэтэрсэн';
     }
   }
 
@@ -112,7 +114,7 @@ class _State extends State<CleanerDashboardScreen>
   }
 
   void _handleNextStatus(CleaningTask t) {
-    if (t.status == TaskStatus.pending) {
+    if (t.status == TaskStatus.pending || t.status == TaskStatus.overdue) {
       _handleStart(t);
     } else if (t.status == TaskStatus.inProgress) {
       _handleFinish(t);
@@ -205,7 +207,7 @@ class _State extends State<CleanerDashboardScreen>
         ],
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,35 +277,35 @@ class _State extends State<CleanerDashboardScreen>
               SummaryRow(tasksForDay: tasks),
               const SizedBox(height: 12),
 
-              // Task list
-              Expanded(
-                child: tasks.isEmpty
-                    ? Center(child: Column(
-                        mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.event_available, size: 48,
-                              color: c.border),
-                          const SizedBox(height: 8),
-                          Text('Энэ өдөр даалгавар байхгүй.',
-                              style: TextStyle(
-                                  color: c.mutedForeground)),
-                        ]))
-                    : ListView.separated(
-                        itemCount: tasks.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (_, i) {
-                          final t = tasks[i];
-                          return TaskCard(
-                            task: t,
-                            statusColor: _statusColor(t.status, c),
-                            statusLabel: _statusLabel(t.status),
-                            onStart: () => _handleStart(t),
-                            onFinish: () => _handleFinish(t),
-                            onAttachPhoto: () => _handlePhoto(t),
-                            onTap: () => _openTaskDetail(t),
-                          );
-                        }),
-              ),
+              // Task list (inline, scrolls with page)
+              if (tasks.isEmpty)
+                Center(child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.event_available, size: 48,
+                          color: c.border),
+                      const SizedBox(height: 8),
+                      Text('Энэ өдөр даалгавар байхгүй.',
+                          style: TextStyle(
+                              color: c.mutedForeground)),
+                    ]),
+                ))
+              else
+                ...tasks.map((t) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TaskCard(
+                    task: t,
+                    statusColor: _statusColor(t.status, c),
+                    statusLabel: _statusLabel(t.status),
+                    onStart: () => _handleStart(t),
+                    onFinish: () => _handleFinish(t),
+                    onAttachPhoto: () => _handlePhoto(t),
+                    onTap: () => _openTaskDetail(t),
+                  ),
+                )),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),

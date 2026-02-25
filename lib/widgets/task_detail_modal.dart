@@ -40,6 +40,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       case TaskStatus.pending: return 'Хүлээгдэж буй';
       case TaskStatus.inProgress: return 'Явагдаж буй';
       case TaskStatus.completed: return 'Дууссан';
+      case TaskStatus.overdue: return 'Хугацаа хэтэрсэн';
     }
   }
 
@@ -48,6 +49,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       case TaskStatus.pending: return c.warningOrange;
       case TaskStatus.inProgress: return c.info;
       case TaskStatus.completed: return c.success;
+      case TaskStatus.overdue: return c.destructive;
     }
   }
 
@@ -94,15 +96,16 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
               const SizedBox(height: 4),
               Row(children: [
                 Container(
+                  width: 110,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: sc.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: sc.withOpacity(0.2))),
+                    color: sc,
+                    borderRadius: BorderRadius.circular(6)),
                   child: Text(_statusLabel(t.status),
-                      style: TextStyle(fontSize: 13,
-                          fontWeight: FontWeight.w600, color: sc))),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13,
+                          fontWeight: FontWeight.w600, color: Colors.white))),
                 const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -286,7 +289,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             border: Border(
                 top: BorderSide(color: c.border))),
           child: Row(children: [
-            if (!done && t.status == TaskStatus.pending)
+            if (!done && (t.status == TaskStatus.pending || t.status == TaskStatus.overdue))
               Expanded(child: ElevatedButton.icon(
                 onPressed: () {
                   widget.onStatusChange();

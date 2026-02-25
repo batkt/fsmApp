@@ -19,7 +19,7 @@ class TaskWidgetFactory(private val context: Context) :
         val index: Int,
         val title: String,
         val time: String,
-        val status: Int // 0=pending, 1=inProgress, 2=completed
+        val status: Int // 0=pending, 1=inProgress, 2=completed, 3=overdue
     )
 
     private var tasks = mutableListOf<TaskItem>()
@@ -71,6 +71,7 @@ class TaskWidgetFactory(private val context: Context) :
         val dotColor = when (task.status) {
             1 -> "#3B82F6"  // inProgress - blue
             2 -> "#10B981"  // completed - green
+            3 -> "#EF4444"  // overdue - red
             else -> "#F59E0B" // pending - orange
         }
         views.setInt(R.id.taskItemDot, "setColorFilter", Color.parseColor(dotColor))
@@ -91,6 +92,11 @@ class TaskWidgetFactory(private val context: Context) :
                 views.setTextViewText(R.id.taskItemStatus, "✓")
                 views.setInt(R.id.taskItemStatus, "setBackgroundResource",
                     R.drawable.widget_btn_done)
+            }
+            3 -> { // overdue
+                views.setTextViewText(R.id.taskItemStatus, "Эхлэх")
+                views.setInt(R.id.taskItemStatus, "setBackgroundResource",
+                    R.drawable.widget_btn_start)
             }
         }
 

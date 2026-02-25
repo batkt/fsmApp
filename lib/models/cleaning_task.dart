@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum TaskStatus { pending, inProgress, completed }
+enum TaskStatus { pending, inProgress, completed, overdue }
 enum TaskPriority { high, medium, low }
 
 class SubTask {
@@ -118,7 +118,7 @@ List<CleaningTask> generateMockTasks() {
       date: today,
       startTime: const TimeOfDay(hour: 11, minute: 0),
       endTime: const TimeOfDay(hour: 11, minute: 45),
-      status: TaskStatus.pending,
+      status: TaskStatus.overdue,
       priority: TaskPriority.high,
       estimatedMinutes: 45,
       supervisor: 'Б. Мөнхбат',

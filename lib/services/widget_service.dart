@@ -84,7 +84,7 @@ class WidgetService {
       if (widgetStatus != taskStatus) {
         final id = prefs.getString('widget_task${i+1}_id') ?? '';
         if (id.isNotEmpty) {
-          changes[id] = TaskStatus.values[widgetStatus.clamp(0, 2)];
+          changes[id] = TaskStatus.values[widgetStatus.clamp(0, 3)];
         }
       }
     }

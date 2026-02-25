@@ -125,17 +125,17 @@ class _TaskCardState extends State<TaskCard> {
               Row(children: [
                 // Status badge
                 Container(
+                  width: 120,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                      horizontal: 8, vertical: 5),
                   decoration: BoxDecoration(
-                    color: widget.statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                        color: widget.statusColor.withOpacity(0.2))),
+                    color: widget.statusColor,
+                    borderRadius: BorderRadius.circular(999)),
                   child: Text(widget.statusLabel,
-                      style: TextStyle(fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: widget.statusColor)),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white)),
                 ),
                 const SizedBox(width: 8),
                 // Photo indicator
