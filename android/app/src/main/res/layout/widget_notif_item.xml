@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notifItemRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/widget_task_bg"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="4dp">
+
+    <TextView
+        android:id="@+id/notifItemIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📋"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="10dp">
+
+        <TextView
+            android:id="@+id/notifItemTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Мэдэгдэл"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/widget_task_title"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/notifItemBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Мэдэгдлийн дэлгэрэнгүй"
+            android:textSize="13sp"
+            android:textColor="@color/widget_task_time"
+            android:maxLines="2"
+            android:ellipsize="end"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/notifItemTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5 мин"
+        android:textSize="12sp"
+        android:textColor="@color/widget_subtitle"/>
+</LinearLayout>

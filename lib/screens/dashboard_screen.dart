@@ -9,15 +9,18 @@ import '../widgets/notification_modal.dart';
 import '../widgets/summary_row.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_modal.dart';
+import '../services/widget_service.dart';
 import 'profile_screen.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
-  const CleanerDashboardScreen({super.key});
+  const CleanerDashboardScreen({super.key, required this.onLogout});
+  final VoidCallback onLogout;
   @override
   State<CleanerDashboardScreen> createState() => _State();
 }
 
-class _State extends State<CleanerDashboardScreen> {
+class _State extends State<CleanerDashboardScreen>
+    with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
   late DateTime _selectedDay;
   late List<CleaningTask> _tasks;
@@ -26,18 +29,48 @@ class _State extends State<CleanerDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _selectedDay = stripTime(DateTime.now());
     _tasks = generateMockTasks();
     _notifications = generateMockNotifications();
+    _syncWidget();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncFromWidget();
+    }
+  }
+
+  void _syncWidget() {
+    WidgetService.updateWidget(_todayTasks);
+    WidgetService.updateNotificationWidget(_notifications);
+  }
+
+  /// Read state changes from widget (user tapped Start/Finish on widget)
+  Future<void> _syncFromWidget() async {
+    final changes = await WidgetService.readWidgetChanges(_todayTasks);
+    if (changes.isEmpty) return;
+
+    setState(() {
+      for (final task in _tasks) {
+        if (changes.containsKey(task.id)) {
+          task.status = changes[task.id]!;
+        }
+      }
+    });
   }
 
   int get _unreadCount =>
       _notifications.where((n) => !n.isRead).length;
 
-  List<DateTime> _calDays() {
-    final s = stripTime(DateTime.now()).subtract(const Duration(days: 2));
-    return List.generate(7, (i) => s.add(Duration(days: i)));
-  }
 
   List<CleaningTask> get _todayTasks => _tasks
       .where((t) => stripTime(t.date) == stripTime(_selectedDay))
@@ -67,12 +100,14 @@ class _State extends State<CleanerDashboardScreen> {
   void _handleStart(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
     setState(() => t.status = TaskStatus.inProgress);
+    _syncWidget();
     _snack('"${t.title}" даалгавар эхэлсэн');
   }
 
   void _handleFinish(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
     setState(() => t.status = TaskStatus.completed);
+    _syncWidget();
     _snack('"${t.title}" даалгавар дууссан');
   }
 
@@ -100,7 +135,8 @@ class _State extends State<CleanerDashboardScreen> {
   }
 
   void _openProfile() => Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ProfileScreen()));
+      MaterialPageRoute(builder: (_) => ProfileScreen(
+          onLogout: widget.onLogout)));
 
   void _openNotifications() {
     showNotificationModal(context,
@@ -176,17 +212,18 @@ class _State extends State<CleanerDashboardScreen> {
             children: [
               // Greeting
               Text('Сайн байна уу, цэвэрлэгч 👋',
-                  style: TextStyle(fontSize: 14,
+                  style: TextStyle(fontSize: 16,
                       color: c.mutedForeground)),
               const SizedBox(height: 4),
               Text('Таны хуваарь',
-                  style: TextStyle(fontSize: 22,
+                  style: TextStyle(fontSize: 24,
                       fontWeight: FontWeight.bold, color: c.primary)),
               const SizedBox(height: 16),
 
               // Calendar
-              CalendarStrip(days: _calDays(),
+              FullCalendar(
                   selectedDay: _selectedDay,
+                  tasks: _tasks,
                   onSelected: (d) =>
                       setState(() => _selectedDay = stripTime(d))),
               const SizedBox(height: 16),
@@ -209,12 +246,12 @@ class _State extends State<CleanerDashboardScreen> {
                         children: [
                       Row(children: [
                         Text('Өнөөдрийн явц',
-                            style: TextStyle(fontSize: 13,
+                            style: TextStyle(fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: c.primary)),
                         const Spacer(),
                         Text('$completedCount / $totalCount',
-                            style: TextStyle(fontSize: 13,
+                            style: TextStyle(fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: c.brandGreen)),
                       ]),

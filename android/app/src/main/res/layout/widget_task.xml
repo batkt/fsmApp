@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="14dp">
+
+    <!-- ═══ Header ═══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="10dp">
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="FSM"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Даалгавар"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/widget_title"/>
+
+            <TextView
+                android:id="@+id/widgetDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2026-02-25"
+                android:textSize="12sp"
+                android:textColor="@color/widget_subtitle"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widgetProgressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1/8"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/widget_green"/>
+    </LinearLayout>
+
+    <!-- ═══ Progress Bar ═══ -->
+    <ProgressBar
+        android:id="@+id/widgetProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginBottom="10dp"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:progress="12"
+        android:max="100"
+        android:progressDrawable="@drawable/widget_progress"/>
+
+    <!-- ═══ Scrollable Task List ═══ -->
+    <ListView
+        android:id="@+id/widgetTaskList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="@null"
+        android:dividerHeight="4dp"
+        android:scrollbars="none"
+        android:fadingEdge="vertical"
+        android:fadingEdgeLength="16dp"/>
+
+</LinearLayout>

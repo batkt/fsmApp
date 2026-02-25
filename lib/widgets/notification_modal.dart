@@ -79,7 +79,7 @@ class _NotificationModalState extends State<NotificationModal> {
                     border: Border.all(
                         color: c.destructive.withOpacity(0.2))),
                   child: Text('$unread шинэ',
-                      style: TextStyle(fontSize: 11,
+                      style: TextStyle(fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: c.destructive)),
                 ),
@@ -88,7 +88,7 @@ class _NotificationModalState extends State<NotificationModal> {
               TextButton(
                 onPressed: unread > 0 ? _markAllRead : null,
                 child: Text('Бүгд уншсан',
-                    style: TextStyle(fontSize: 12,
+                    style: TextStyle(fontSize: 14,
                         color: unread > 0
                             ? c.brandGreen : c.mutedForeground)),
               ),
@@ -178,16 +178,16 @@ class _NotifTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(child: Text(notif.title,
-                  style: TextStyle(fontSize: 14,
+                  style: TextStyle(fontSize: 16,
                       fontWeight: notif.isRead
                           ? FontWeight.w500 : FontWeight.w700,
                       color: c.primary))),
               Text(_timeAgo(notif.time),
-                  style: TextStyle(fontSize: 11,
+                  style: TextStyle(fontSize: 13,
                       color: c.mutedForeground)),
             ]),
             const SizedBox(height: 4),
-            Text(notif.body, style: TextStyle(fontSize: 13,
+            Text(notif.body, style: TextStyle(fontSize: 15,
                 color: c.mutedForeground, height: 1.3),
                 maxLines: 2, overflow: TextOverflow.ellipsis),
           ])),

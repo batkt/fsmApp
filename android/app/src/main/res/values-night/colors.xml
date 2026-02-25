@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget colors (Dark Mode) from coloring.md -->
+    <color name="widget_bg">#0F172A</color>
+    <color name="widget_bg_stroke">#1E293B</color>
+    <color name="widget_title">#F8FAFC</color>
+    <color name="widget_subtitle">#94A3B8</color>
+    <color name="widget_task_bg">#1E293B</color>
+    <color name="widget_task_title">#F8FAFC</color>
+    <color name="widget_task_time">#94A3B8</color>
+    <color name="widget_progress_bg">#334155</color>
+    <color name="widget_green">#10B981</color>
+    <color name="widget_button_text">#FFFFFF</color>
+</resources>

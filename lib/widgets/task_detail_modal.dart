@@ -89,7 +89,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              Text(t.title, style: TextStyle(fontSize: 18,
+              Text(t.title, style: TextStyle(fontSize: 20,
                   fontWeight: FontWeight.bold, color: c.primary)),
               const SizedBox(height: 4),
               Row(children: [
@@ -101,7 +101,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: sc.withOpacity(0.2))),
                   child: Text(_statusLabel(t.status),
-                      style: TextStyle(fontSize: 11,
+                      style: TextStyle(fontSize: 13,
                           fontWeight: FontWeight.w600, color: sc))),
                 const SizedBox(width: 6),
                 Container(
@@ -112,7 +112,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: pc.withOpacity(0.2))),
                   child: Text(_prioLabel(t.priority),
-                      style: TextStyle(fontSize: 11,
+                      style: TextStyle(fontSize: 13,
                           fontWeight: FontWeight.w600, color: pc))),
               ]),
             ])),
@@ -154,7 +154,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             // Notes
             if (t.notes.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Text('📝 Тэмдэглэл', style: TextStyle(fontSize: 14,
+              Text('📝 Тэмдэглэл', style: TextStyle(fontSize: 16,
                   fontWeight: FontWeight.w600, color: c.primary)),
               const SizedBox(height: 8),
               Container(
@@ -165,7 +165,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                       color: c.chart4.withOpacity(0.15))),
-                child: Text(t.notes, style: TextStyle(fontSize: 13,
+                child: Text(t.notes, style: TextStyle(fontSize: 15,
                     color: c.primary, height: 1.4)),
               ),
             ],
@@ -174,11 +174,11 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             if (t.subtasks.isNotEmpty) ...[
               const SizedBox(height: 16),
               Row(children: [
-                Text('☑ Дэд даалгавар', style: TextStyle(fontSize: 14,
+                Text('☑ Дэд даалгавар', style: TextStyle(fontSize: 16,
                     fontWeight: FontWeight.w600, color: c.primary)),
                 const Spacer(),
                 Text('${t.subtasksDone}/${t.subtasks.length}',
-                    style: TextStyle(fontSize: 13,
+                    style: TextStyle(fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: c.brandGreen)),
               ]),
@@ -221,7 +221,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                             size: 20),
                         const SizedBox(width: 10),
                         Expanded(child: Text(st.title,
-                            style: TextStyle(fontSize: 13,
+                            style: TextStyle(fontSize: 15,
                               color: st.isDone
                                   ? c.mutedForeground : c.primary,
                               decoration: st.isDone
@@ -237,12 +237,12 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             // Photos section
             const SizedBox(height: 16),
             Row(children: [
-              Text('📸 Зураг', style: TextStyle(fontSize: 14,
+              Text('📸 Зураг', style: TextStyle(fontSize: 16,
                   fontWeight: FontWeight.w600, color: c.primary)),
               const Spacer(),
               if (t.photoCount > 0)
                 Text('${t.photoCount} зураг',
-                    style: TextStyle(fontSize: 12,
+                    style: TextStyle(fontSize: 14,
                         color: c.mutedForeground)),
             ]),
             const SizedBox(height: 8),
@@ -353,9 +353,9 @@ class _InfoRow extends StatelessWidget {
     Icon(icon, size: 18, color: c.mutedForeground),
     const SizedBox(width: 8),
     SizedBox(width: 80, child: Text(label,
-        style: TextStyle(fontSize: 12, color: c.mutedForeground))),
+        style: TextStyle(fontSize: 14, color: c.mutedForeground))),
     Expanded(child: Text(value,
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500,
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500,
             color: c.primary))),
   ]);
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FSM</string>
+    <string name="widget_description">Өнөөдрийн даалгавар, явцын мэдээлэл</string>
+    <string name="notif_widget_description">Сүүлийн мэдэгдлүүд</string>
+
+    <!-- Widget colors (Light Mode) -->
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_bg_stroke">#E2E8F0</color>
+    <color name="widget_title">#0F172A</color>
+    <color name="widget_subtitle">#64748B</color>
+    <color name="widget_task_bg">#F1F5F9</color>
+    <color name="widget_task_title">#0F172A</color>
+    <color name="widget_task_time">#64748B</color>
+    <color name="widget_progress_bg">#E2E8F0</color>
+    <color name="widget_green">#10B981</color>
+    <color name="widget_button_text">#FFFFFF</color>
+</resources>

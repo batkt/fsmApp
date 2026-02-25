@@ -14,39 +14,46 @@ class RootScreen extends StatefulWidget {
 
 class _RootScreenState extends State<RootScreen> {
   bool _isLoggedIn = false;
+
   void _handleLoggedIn() => setState(() => _isLoggedIn = true);
+  void _handleLogout() => setState(() => _isLoggedIn = false);
 
   @override
   Widget build(BuildContext context) {
     if (!_isLoggedIn) return LoginScreen(onLoggedIn: _handleLoggedIn);
-    return const _HomeShell();
+    return _HomeShell(onLogout: _handleLogout);
   }
 }
 
 class _HomeShell extends StatefulWidget {
-  const _HomeShell();
+  const _HomeShell({required this.onLogout});
+  final VoidCallback onLogout;
   @override
   State<_HomeShell> createState() => _HomeShellState();
 }
 
 class _HomeShellState extends State<_HomeShell> {
   int _idx = 0;
-  final _pages = const [
-    CleanerDashboardScreen(),
-    HistoryScreen(),
-    PerformanceScreen(),
-  ];
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final pages = [
+      CleanerDashboardScreen(onLogout: widget.onLogout),
+      const HistoryScreen(),
+      const PerformanceScreen(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _idx, children: _pages),
+      body: IndexedStack(index: _idx, children: pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _idx,
         backgroundColor: c.cardBackground,
         selectedItemColor: c.brandGreen,
         unselectedItemColor: c.mutedForeground,
+        selectedFontSize: 14,
+        unselectedFontSize: 13,
+        iconSize: 28,
         onTap: (i) => setState(() => _idx = i),
         items: const [
           BottomNavigationBarItem(

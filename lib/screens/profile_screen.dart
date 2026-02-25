@@ -1,9 +1,98 @@
 import 'package:flutter/material.dart';
 
+import '../services/biometric_service.dart';
 import '../theme/app_theme.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key, required this.onLogout});
+  final VoidCallback onLogout;
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _bio = BiometricService();
+  bool _bioSupported = false;
+  bool _bioEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBioState();
+  }
+
+  Future<void> _loadBioState() async {
+    final supported = await _bio.isDeviceSupported();
+    final enabled = await _bio.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _bioSupported = supported;
+      _bioEnabled = enabled;
+    });
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    await _bio.setEnabled(value);
+    if (!mounted) return;
+    setState(() => _bioEnabled = value);
+
+    final c = context.colors;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(value
+          ? 'Хурууны хээ идэвхжүүлсэн'
+          : 'Хурууны хээ идэвхгүй болсон'),
+      backgroundColor: value ? c.brandGreen : c.mutedForeground,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10)),
+    ));
+  }
+
+  Future<void> _confirmLogout(AppColorScheme c) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.cardBackground,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20)),
+        title: Row(children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: c.destructive.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12)),
+            child: Icon(Icons.logout_rounded,
+                color: c.destructive, size: 24)),
+          const SizedBox(width: 12),
+          Text('Гарах', style: TextStyle(fontSize: 18,
+              fontWeight: FontWeight.bold, color: c.primary)),
+        ]),
+        content: Text(
+          'Та системээс гарахдаа итгэлтэй байна уу?',
+          style: TextStyle(fontSize: 16, color: c.primary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Үгүй',
+                style: TextStyle(color: c.mutedForeground))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: c.destructive,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 0),
+            child: const Text('Гарах')),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      Navigator.of(context).pop(); // close profile
+      widget.onLogout();           // go to login
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,31 +100,136 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Профайл',
           style: TextStyle(fontWeight: FontWeight.w600))),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(radius: 32,
-                backgroundColor: c.brandGreen.withOpacity(0.1),
-                child: Icon(Icons.person, size: 32,
-                    color: c.brandGreen)),
-            const SizedBox(height: 16),
-            Text('Цэвэрлэгчийн нэр', style: TextStyle(fontSize: 20,
-                fontWeight: FontWeight.bold, color: c.primary)),
-            const SizedBox(height: 4),
-            Text('Өнөөдрийн гүйцэтгэлийн тойм',
-                style: TextStyle(fontSize: 13,
-                    color: c.mutedForeground)),
-            const SizedBox(height: 24),
+            // ── User info ──
             Row(children: [
-              _Card(label: 'Дууссан', value: '3', color: c.success),
-              const SizedBox(width: 12),
-              _Card(label: 'Явагдаж буй', value: '1', color: c.info),
+              CircleAvatar(radius: 32,
+                  backgroundColor: c.brandGreen.withOpacity(0.1),
+                  child: Icon(Icons.person, size: 32,
+                      color: c.brandGreen)),
+              const SizedBox(width: 16),
+              Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text('Цэвэрлэгчийн нэр',
+                    style: TextStyle(fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: c.primary)),
+                const SizedBox(height: 4),
+                Text('cleaner@example.com',
+                    style: TextStyle(fontSize: 15,
+                        color: c.mutedForeground)),
+              ])),
             ]),
             const SizedBox(height: 24),
-            Text('Энэ хуудас нь профайл/тохиргооны дэлгэрэнгүй мэдээллийн хуудас юм.',
-                style: TextStyle(color: c.mutedForeground)),
+
+            // ── Stats ──
+            Row(children: [
+              _StatCard(label: 'Дууссан', value: '3',
+                  color: c.success, c: c),
+              const SizedBox(width: 12),
+              _StatCard(label: 'Явагдаж буй', value: '1',
+                  color: c.info, c: c),
+            ]),
+            const SizedBox(height: 24),
+
+            // ── Settings Section ──
+            Text('Тохиргоо',
+                style: TextStyle(fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: c.primary)),
+            const SizedBox(height: 12),
+
+            // ── Biometric Toggle ──
+            if (_bioSupported)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: c.cardBackground,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: c.border)),
+                child: Row(children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: c.brandGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10)),
+                    child: Icon(Icons.fingerprint,
+                        color: c.brandGreen, size: 22)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text('Хурууны хээ',
+                        style: TextStyle(fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: c.primary)),
+                    Text('Хурууны хээгээр нэвтрэх',
+                        style: TextStyle(fontSize: 14,
+                            color: c.mutedForeground)),
+                  ])),
+                  Switch(
+                    value: _bioEnabled,
+                    onChanged: _toggleBiometric,
+                    activeColor: c.brandGreen,
+                    activeTrackColor:
+                        c.brandGreen.withOpacity(0.3),
+                  ),
+                ]),
+              ),
+
+            if (!_bioSupported)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: c.muted,
+                  borderRadius: BorderRadius.circular(16)),
+                child: Row(children: [
+                  Icon(Icons.fingerprint,
+                      color: c.mutedForeground, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(
+                      'Энэ төхөөрөмж хурууны хээг дэмжихгүй байна.',
+                      style: TextStyle(fontSize: 15,
+                          color: c.mutedForeground))),
+                ]),
+              ),
+
+            const SizedBox(height: 12),
+
+            // ── Other settings ──
+            _SettingTile(c: c, icon: Icons.language_rounded,
+                title: 'Хэл', subtitle: 'Монгол'),
+            const SizedBox(height: 8),
+            _SettingTile(c: c, icon: Icons.dark_mode_rounded,
+                title: 'Загвар', subtitle: 'Системийн тохиргоо'),
+            const SizedBox(height: 8),
+            _SettingTile(c: c, icon: Icons.info_outline_rounded,
+                title: 'Хувилбар', subtitle: '1.0.0'),
+            const SizedBox(height: 24),
+
+            // ── Logout ──
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _confirmLogout(c),
+                icon: Icon(Icons.logout_rounded,
+                    color: c.destructive, size: 20),
+                label: Text('Гарах',
+                    style: TextStyle(color: c.destructive)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(
+                      color: c.destructive.withOpacity(0.3)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12))),
+              ),
+            ),
           ],
         ),
       ),
@@ -43,33 +237,63 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _Card extends StatelessWidget {
-  const _Card({required this.label, required this.value,
-      required this.color});
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.label, required this.value,
+      required this.color, required this.c});
   final String label, value;
   final Color color;
+  final AppColorScheme c;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
+  Widget build(BuildContext _) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.15)),
-        ),
+          border: Border.all(color: color.withOpacity(0.15))),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          Text(value, style: TextStyle(fontSize: 20,
+          Text(value, style: TextStyle(fontSize: 22,
               fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 12,
+          Text(label, style: TextStyle(fontSize: 14,
               color: c.mutedForeground)),
         ]),
       ),
+    );
+  }
+}
+
+class _SettingTile extends StatelessWidget {
+  const _SettingTile({required this.c, required this.icon,
+      required this.title, required this.subtitle});
+  final AppColorScheme c;
+  final IconData icon;
+  final String title, subtitle;
+
+  @override
+  Widget build(BuildContext _) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: c.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.border)),
+      child: Row(children: [
+        Icon(icon, color: c.mutedForeground, size: 20),
+        const SizedBox(width: 12),
+        Text(title, style: TextStyle(fontSize: 16,
+            color: c.primary)),
+        const Spacer(),
+        Text(subtitle, style: TextStyle(fontSize: 15,
+            color: c.mutedForeground)),
+        const SizedBox(width: 4),
+        Icon(Icons.chevron_right, size: 18,
+            color: c.mutedForeground),
+      ]),
     );
   }
 }

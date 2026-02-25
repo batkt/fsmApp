@@ -16,7 +16,7 @@ class PerformanceScreen extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
           Text('Таны гүйцэтгэлийн тойм',
-              style: TextStyle(fontSize: 16, color: c.mutedForeground)),
+              style: TextStyle(fontSize: 18, color: c.mutedForeground)),
           const SizedBox(height: 20),
 
           // ═══════════════════════════════════════════
@@ -24,7 +24,7 @@ class PerformanceScreen extends StatelessWidget {
           // ═══════════════════════════════════════════
           _GreenCard(c: c, child: Column(children: [
             const Text('Өнөөдрийн гүйцэтгэл',
-                style: TextStyle(color: Colors.white, fontSize: 16,
+                style: TextStyle(color: Colors.white, fontSize: 18,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 20),
             SizedBox(width: 150, height: 150,
@@ -36,7 +36,7 @@ class PerformanceScreen extends StatelessWidget {
                   Text('75%', style: TextStyle(fontSize: 32,
                       fontWeight: FontWeight.bold, color: Colors.white)),
                   Text('6/8 даалгавар', style: TextStyle(
-                      fontSize: 12, color: Colors.white70)),
+                      fontSize: 14, color: Colors.white70)),
                 ])))),
             const SizedBox(height: 16),
             const Row(
@@ -85,7 +85,7 @@ class PerformanceScreen extends StatelessWidget {
                       ['Дав','Мяг','Лха','Пүр','Баа','Бям','Ням'],
                       c.chart2, 3, c.mutedForeground))),
               bottom: Text('Дундаж: 6.4 даалгавар/өдөр',
-                  style: TextStyle(fontSize: 12,
+                  style: TextStyle(fontSize: 14,
                       color: c.mutedForeground))),
           const SizedBox(height: 16),
 
@@ -114,7 +114,7 @@ class PerformanceScreen extends StatelessWidget {
                     size: 16),
                 const SizedBox(width: 4),
                 Text('Дундаж хугацаа 20% багассан',
-                    style: TextStyle(fontSize: 12,
+                    style: TextStyle(fontSize: 14,
                         color: c.success)),
               ])),
           const SizedBox(height: 16),
@@ -134,7 +134,7 @@ class PerformanceScreen extends StatelessWidget {
                 Icon(Icons.trending_up, color: c.success, size: 18),
                 const SizedBox(width: 4),
                 Text('+5.3% өмнөх сараас',
-                    style: TextStyle(fontSize: 12,
+                    style: TextStyle(fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: c.success)),
               ])),
@@ -160,7 +160,7 @@ class PerformanceScreen extends StatelessWidget {
                     count: 8, total: 15, color: c.warningOrange),
               ]),
               bottom: Text('Нийт: 88/100 цэвэрлэгээ',
-                  style: TextStyle(fontSize: 12,
+                  style: TextStyle(fontSize: 14,
                       color: c.mutedForeground))),
           const SizedBox(height: 16),
 
@@ -189,7 +189,7 @@ class PerformanceScreen extends StatelessWidget {
                         color: c.primary)),
                 const SizedBox(height: 4),
                 Text('Сүүлийн 30 хоногийн дундаж',
-                    style: TextStyle(fontSize: 12,
+                    style: TextStyle(fontSize: 14,
                         color: c.mutedForeground)),
                 const SizedBox(height: 16),
                 Row(children: [
@@ -298,7 +298,7 @@ class _Mini extends StatelessWidget {
   Widget build(BuildContext _) => Column(children: [
     Icon(icon, color: Colors.white70, size: 20),
     const SizedBox(height: 4),
-    Text(value, style: const TextStyle(fontSize: 18,
+    Text(value, style: const TextStyle(fontSize: 20,
         fontWeight: FontWeight.bold, color: Colors.white)),
     Text(label, style: const TextStyle(fontSize: 10,
         color: Colors.white70)),
@@ -344,7 +344,7 @@ class _Card extends StatelessWidget {
       Row(children: [
         Icon(icon, color: iconColor, size: 22),
         const SizedBox(width: 8),
-        Text(title, style: TextStyle(fontSize: 16,
+        Text(title, style: TextStyle(fontSize: 18,
             fontWeight: FontWeight.w600, color: c.primary)),
       ]),
       const SizedBox(height: 20), child,
@@ -377,7 +377,7 @@ class _InfoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: iconColor, size: 22)),
       const SizedBox(height: 12),
-      Text(title, style: TextStyle(fontSize: 11,
+      Text(title, style: TextStyle(fontSize: 13,
           color: c.mutedForeground)),
       const SizedBox(height: 4),
       Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -386,12 +386,12 @@ class _InfoCard extends StatelessWidget {
         if (unit.isNotEmpty) ...[
           const SizedBox(width: 4),
           Padding(padding: const EdgeInsets.only(bottom: 4),
-            child: Text(unit, style: TextStyle(fontSize: 12,
+            child: Text(unit, style: TextStyle(fontSize: 14,
                 color: c.mutedForeground))),
         ],
       ]),
       const SizedBox(height: 4),
-      Text(subtitle, style: TextStyle(fontSize: 11,
+      Text(subtitle, style: TextStyle(fontSize: 13,
           color: c.mutedForeground)),
     ]),
   );
@@ -418,14 +418,14 @@ class _Tile extends StatelessWidget {
             borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: ic, size: 20)),
       const SizedBox(height: 12),
-      Text(t, style: TextStyle(fontSize: 11, color: c.mutedForeground)),
+      Text(t, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
       const SizedBox(height: 4),
       Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(v, style: TextStyle(fontSize: 22,
+        Text(v, style: TextStyle(fontSize: 24,
             fontWeight: FontWeight.bold, color: c.primary)),
         const SizedBox(width: 4),
         Padding(padding: const EdgeInsets.only(bottom: 3),
-          child: Text(s, style: TextStyle(fontSize: 11,
+          child: Text(s, style: TextStyle(fontSize: 13,
               color: c.mutedForeground))),
       ]),
     ]),
@@ -442,11 +442,11 @@ class _ProgressBar extends StatelessWidget {
   Widget build(BuildContext _) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
-      Text(label, style: TextStyle(fontSize: 13, color: c.primary,
+      Text(label, style: TextStyle(fontSize: 15, color: c.primary,
           fontWeight: FontWeight.w500)),
       const Spacer(),
       Text('$displayVal / $expected', style: TextStyle(
-          fontSize: 12, color: c.mutedForeground)),
+          fontSize: 14, color: c.mutedForeground)),
     ]),
     const SizedBox(height: 8),
     ClipRRect(borderRadius: BorderRadius.circular(6),
@@ -468,9 +468,9 @@ class _AreaRow extends StatelessWidget {
   Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
-      Expanded(child: Text(area, style: TextStyle(fontSize: 13,
+      Expanded(child: Text(area, style: TextStyle(fontSize: 15,
           color: c.primary), overflow: TextOverflow.ellipsis)),
-      Text('$count/$total', style: TextStyle(fontSize: 12,
+      Text('$count/$total', style: TextStyle(fontSize: 14,
           fontWeight: FontWeight.w600, color: color)),
     ]),
     const SizedBox(height: 6),
@@ -495,7 +495,7 @@ class _RatingBar extends StatelessWidget {
         color: c.muted,
         borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
-        Text(val.toString(), style: TextStyle(fontSize: 18,
+        Text(val.toString(), style: TextStyle(fontSize: 20,
             fontWeight: FontWeight.bold, color: c.primary)),
         const SizedBox(height: 2),
         Text(label, style: TextStyle(fontSize: 9,
@@ -522,10 +522,10 @@ class _Badge extends StatelessWidget {
     const SizedBox(width: 12),
     Expanded(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: TextStyle(fontSize: 14,
+      Text(title, style: TextStyle(fontSize: 16,
           fontWeight: FontWeight.w600, color: c.primary)),
       const SizedBox(height: 2),
-      Text(desc, style: TextStyle(fontSize: 12,
+      Text(desc, style: TextStyle(fontSize: 14,
           color: c.mutedForeground), maxLines: 2),
     ])),
   ]);
@@ -539,16 +539,16 @@ class _CompareRow extends StatelessWidget {
   final bool isUp;
   @override
   Widget build(BuildContext _) => Row(children: [
-    Expanded(child: Text(label, style: TextStyle(fontSize: 13,
+    Expanded(child: Text(label, style: TextStyle(fontSize: 15,
         color: c.primary))),
     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Text(thisMonth, style: TextStyle(fontSize: 16,
+      Text(thisMonth, style: TextStyle(fontSize: 18,
           fontWeight: FontWeight.bold, color: c.primary)),
       Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward,
             size: 12, color: isUp ? c.success : c.destructive),
         const SizedBox(width: 2),
-        Text(lastMonth, style: TextStyle(fontSize: 11,
+        Text(lastMonth, style: TextStyle(fontSize: 13,
             color: c.mutedForeground)),
       ]),
     ]),
@@ -593,7 +593,7 @@ class _BarsPainter extends CustomPainter {
       if (hl) {
         final tp = TextPainter(text: TextSpan(
             text: vals[i].toInt().toString(),
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold,
                 color: clr)), textDirection: TextDirection.ltr)..layout();
         tp.paint(cv, Offset(x+(bw-tp.width)/2, y-16));
       }
@@ -638,7 +638,7 @@ class _LinePainter extends CustomPainter {
     }
     final tp = TextPainter(text: TextSpan(
         text: '${vals.last.toInt()}%',
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold,
             color: lc)), textDirection: TextDirection.ltr)..layout();
     tp.paint(cv, Offset(pts.last.dx-tp.width-8, pts.last.dy-6));
   }

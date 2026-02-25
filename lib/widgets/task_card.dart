@@ -85,7 +85,7 @@ class _TaskCardState extends State<TaskCard> {
                     children: [
                   Row(children: [
                     Expanded(child: Text(t.title,
-                        style: TextStyle(fontSize: 15,
+                        style: TextStyle(fontSize: 17,
                             fontWeight: FontWeight.w600,
                             color: c.primary))),
                     // Priority indicator
@@ -97,7 +97,7 @@ class _TaskCardState extends State<TaskCard> {
                         color: c.mutedForeground),
                     const SizedBox(width: 3),
                     Expanded(child: Text(t.location,
-                        style: TextStyle(fontSize: 12,
+                        style: TextStyle(fontSize: 14,
                             color: c.mutedForeground),
                         maxLines: 1, overflow: TextOverflow.ellipsis)),
                   ]),
@@ -106,14 +106,14 @@ class _TaskCardState extends State<TaskCard> {
                     Icon(Icons.schedule, size: 14,
                         color: c.mutedForeground),
                     const SizedBox(width: 3),
-                    Text(_time(), style: TextStyle(fontSize: 12,
+                    Text(_time(), style: TextStyle(fontSize: 14,
                         color: c.mutedForeground)),
                     const SizedBox(width: 10),
                     Icon(Icons.timer_outlined, size: 14,
                         color: c.mutedForeground),
                     const SizedBox(width: 3),
                     Text('${t.estimatedMinutes} мин',
-                        style: TextStyle(fontSize: 12,
+                        style: TextStyle(fontSize: 14,
                             color: c.mutedForeground)),
                   ]),
                 ])),
@@ -133,7 +133,7 @@ class _TaskCardState extends State<TaskCard> {
                     border: Border.all(
                         color: widget.statusColor.withOpacity(0.2))),
                   child: Text(widget.statusLabel,
-                      style: TextStyle(fontSize: 11,
+                      style: TextStyle(fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: widget.statusColor)),
                 ),
@@ -144,7 +144,7 @@ class _TaskCardState extends State<TaskCard> {
                       color: c.success),
                   const SizedBox(width: 2),
                   Text('${t.photoCount}', style: TextStyle(
-                      fontSize: 11, color: c.success)),
+                      fontSize: 15, color: c.success)),
                   const SizedBox(width: 8),
                 ],
                 // Subtask progress
@@ -153,7 +153,7 @@ class _TaskCardState extends State<TaskCard> {
                       color: c.mutedForeground),
                   const SizedBox(width: 3),
                   Text('${t.subtasksDone}/${t.subtasks.length}',
-                      style: TextStyle(fontSize: 11,
+                      style: TextStyle(fontSize: 15,
                           color: c.mutedForeground)),
                 ],
                 const Spacer(),
@@ -190,7 +190,7 @@ class _TaskCardState extends State<TaskCard> {
                     if (t.subtasks.isNotEmpty) ...[
                       Row(children: [
                         Text('Дэд даалгавар', style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600,
+                            fontSize: 14, fontWeight: FontWeight.w600,
                             color: c.primary)),
                         const Spacer(),
                         SizedBox(width: 60,
@@ -215,7 +215,7 @@ class _TaskCardState extends State<TaskCard> {
                                   ? c.success : c.mutedForeground),
                           const SizedBox(width: 6),
                           Text(st.title, style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               color: st.isDone
                                   ? c.mutedForeground : c.primary,
                               decoration: st.isDone
@@ -228,7 +228,7 @@ class _TaskCardState extends State<TaskCard> {
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
                               '+${t.subtasks.length - 4} бусад...',
-                              style: TextStyle(fontSize: 11,
+                              style: TextStyle(fontSize: 15,
                                   color: c.brandGreen)),
                         ),
                     ],
@@ -240,7 +240,7 @@ class _TaskCardState extends State<TaskCard> {
                             size: 14, color: c.chart4),
                         const SizedBox(width: 4),
                         Expanded(child: Text(t.notes,
-                            style: TextStyle(fontSize: 12,
+                            style: TextStyle(fontSize: 14,
                                 color: c.mutedForeground),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis)),
