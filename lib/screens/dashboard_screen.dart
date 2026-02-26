@@ -9,9 +9,15 @@ import '../widgets/notification_modal.dart';
 import '../widgets/summary_row.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_modal.dart';
+import '../models/project_model.dart';
+import '../services/auth_service.dart';
+import '../services/project_service.dart';
+import '../services/task_service.dart';
+import '../services/subtask_service.dart';
 import '../services/widget_service.dart';
 import '../services/image_service.dart';
 import '../widgets/app_toast.dart';
+import 'chat_screen.dart';
 import 'profile_screen.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
@@ -28,16 +34,21 @@ class _State extends State<CleanerDashboardScreen>
   late List<CleaningTask> _tasks;
   late List<AppNotification> _notifications;
   String _filter = 'all'; // 'all', 'pending', 'inProgress', 'completed'
+  String? _selectedProjectId;
+  List<Project> _apiProjects = [];
+  bool _projectsLoading = true;
+  bool _tasksLoading = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _selectedDay = stripTime(DateTime.now());
-    _tasks = generateMockTasks();
+    _tasks = [];
     _notifications = generateMockNotifications();
+    
     _syncWidget();
-    _loadSavedPhotos();
+    _loadProjects();
   }
 
   Future<void> _loadSavedPhotos() async {
@@ -89,15 +100,11 @@ class _State extends State<CleanerDashboardScreen>
   int get _unreadCount =>
       _notifications.where((n) => !n.isRead).length;
 
-  List<CleaningTask> get _allTodayTasks => _tasks
-      .where((t) => stripTime(t.date) == stripTime(_selectedDay))
-      .toList();
+  List<CleaningTask> get _allTodayTasks => _tasks;
 
 
   List<CleaningTask> get _todayTasks {
-    var tasks = _tasks
-        .where((t) => stripTime(t.date) == stripTime(_selectedDay))
-        .toList();
+    var tasks = List<CleaningTask>.from(_tasks);
 
     if (_filter == 'pending') {
       tasks = tasks.where((t) => t.status == TaskStatus.pending || t.status == TaskStatus.overdue).toList();
@@ -138,6 +145,7 @@ class _State extends State<CleanerDashboardScreen>
     setState(() => t.status = TaskStatus.inProgress);
     _syncWidget();
     _snack('"${t.title}" даалгавар эхэлсэн');
+    TaskService.update(t.id, {'tuluv': 'khiigdej bui'});
   }
 
   void _handleFinish(CleaningTask t) {
@@ -145,6 +153,7 @@ class _State extends State<CleanerDashboardScreen>
     setState(() => t.status = TaskStatus.completed);
     _syncWidget();
     _snack('"${t.title}" даалгавар дууссан');
+    TaskService.update(t.id, {'tuluv': 'duussan'});
   }
 
   void _handleNextStatus(CleaningTask t) {
@@ -257,7 +266,25 @@ class _State extends State<CleanerDashboardScreen>
     showTaskDetail(context,
       task: t,
       onStatusChange: () => setState(() => _handleNextStatus(t)),
-      onSubtaskToggle: (_) => setState(() {}),
+      onSubtaskToggle: (idx) async {
+        final sub = t.subtasks[idx];
+        setState(() => sub.isDone = !sub.isDone);
+        await SubTaskService.toggle(sub.id, sub.isDone);
+
+        // If all subtasks are done, and task is not completed, prompt to finish and go to chat.
+        if (t.subtaskProgress >= 1.0 && t.status != TaskStatus.completed && mounted) {
+           _handleFinish(t);
+           Navigator.push(context, MaterialPageRoute(
+             builder: (_) => ChatScreen(
+                projectId: t.projectId,
+                taskId: t.id,
+                barilgiinId: t.buildingId,
+                baiguullagiinId: AuthService.currentUser?.baiguullagaId ?? '',
+                title: '${t.taskCode} - Чат',
+             ),
+           ));
+        }
+      },
       onPhoto: () => _handlePhoto(t),
     );
   }
@@ -316,13 +343,21 @@ class _State extends State<CleanerDashboardScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Greeting
-              Text('Сайн байна уу, цэвэрлэгч 👋',
+              Text('Сайн байна уу, ${AuthService.currentUser?.ner ?? "цэвэрлэгч"} 👋',
                   style: TextStyle(fontSize: 16,
                       color: c.mutedForeground)),
               const SizedBox(height: 4),
-              Text('Таны хуваарь',
-                  style: TextStyle(fontSize: 24,
-                      fontWeight: FontWeight.bold, color: c.primary)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Text('Таны хуваарь',
+                        style: TextStyle(fontSize: 24,
+                            fontWeight: FontWeight.bold, color: c.primary)),
+                  ),
+                  _buildProjectSelector(c),
+                ],
+              ),
               const SizedBox(height: 16),
 
               // Calendar
@@ -400,7 +435,13 @@ class _State extends State<CleanerDashboardScreen>
             ),
 
               // Task list (inline, scrolls with page)
-              if (tasks.isEmpty)
+              if (_tasksLoading)
+                Center(child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: CircularProgressIndicator(
+                      color: c.brandGreen, strokeWidth: 2.5),
+                ))
+              else if (tasks.isEmpty)
                 Center(child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Column(
@@ -408,7 +449,7 @@ class _State extends State<CleanerDashboardScreen>
                       Icon(Icons.event_available, size: 48,
                           color: c.border),
                       const SizedBox(height: 8),
-                      Text('Энэ өдөр даалгавар байхгүй.',
+                      Text('Даалгавар олдсонгүй.',
                           style: TextStyle(
                               color: c.mutedForeground)),
                     ]),
@@ -424,6 +465,17 @@ class _State extends State<CleanerDashboardScreen>
                     onFinish: () => _handleFinish(t),
                     onAttachPhoto: () => _handlePhoto(t),
                     onTap: () => _openTaskDetail(t),
+                    onChat: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                           projectId: t.projectId,
+                           taskId: t.id,
+                           barilgiinId: t.buildingId,
+                           baiguullagiinId: AuthService.currentUser?.baiguullagaId ?? '',
+                           title: '${t.taskCode} - Чат',
+                        ),
+                      ));
+                    },
                   ),
                 )),
 
@@ -432,6 +484,256 @@ class _State extends State<CleanerDashboardScreen>
           ),
         ),
       ),
+    );
+  }
+
+  // ── Project API ──
+
+  Future<void> _loadProjects() async {
+    final fetched = await ProjectService.myProjects();
+    if (!mounted) return;
+    setState(() {
+      _apiProjects = fetched;
+      _projectsLoading = false;
+      if (_apiProjects.isNotEmpty) {
+        _selectedProjectId = _apiProjects.first.id;
+      }
+    });
+    // Load tasks for the first project
+    if (_selectedProjectId != null) {
+      _loadTasks(_selectedProjectId!);
+    }
+  }
+
+  Future<void> _loadTasks(String projectId) async {
+    setState(() => _tasksLoading = true);
+    final apiTasks = await TaskService.byProject(projectId);
+    if (!mounted) return;
+    setState(() {
+      _tasks = apiTasks.map((t) => CleaningTask.fromApi(t)).toList();
+      _tasksLoading = false;
+    });
+    _syncWidget();
+  }
+
+  Project? get _currentProject {
+    if (_selectedProjectId == null || _apiProjects.isEmpty) return null;
+    try {
+      final p = _apiProjects.firstWhere((p) => p.id == _selectedProjectId);
+      ProjectService.activeProject.value = p;
+      return p;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Widget _buildProjectSelector(AppColorScheme c) {
+    if (_projectsLoading) {
+      return SizedBox(
+        width: 20, height: 20,
+        child: CircularProgressIndicator(
+            strokeWidth: 2, color: c.brandGreen),
+      );
+    }
+    if (_apiProjects.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final name = _currentProject?.ner ?? 'Төсөл';
+
+    return GestureDetector(
+      onTap: () => _showProjectModal(c),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: c.brandGreen.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: c.brandGreen.withOpacity(0.25)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.location_city_rounded, size: 16, color: c.brandGreen),
+            const SizedBox(width: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Text(name,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: c.brandGreen)),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: c.brandGreen),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showProjectModal(AppColorScheme c) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final mc = ctx.colors;
+        return Container(
+          decoration: BoxDecoration(
+            color: mc.cardBackground,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                        color: mc.border,
+                        borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Header
+                  Row(children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: mc.brandGreen.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.location_city_rounded,
+                          color: mc.brandGreen, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Төсөл сонгох',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: mc.primary)),
+                          const SizedBox(height: 2),
+                          Text('${_apiProjects.length} төсөл олдлоо',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: mc.mutedForeground)),
+                        ],
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 20),
+
+                  // Project list
+                  ..._apiProjects.map((project) {
+                    final isSelected = project.id == _selectedProjectId;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() => _selectedProjectId = project.id);
+                            Navigator.pop(ctx);
+                            _loadTasks(project.id);
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? mc.brandGreen.withOpacity(0.08)
+                                  : mc.muted.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected
+                                    ? mc.brandGreen.withOpacity(0.4)
+                                    : mc.border.withOpacity(0.3),
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Row(children: [
+                              Container(
+                                width: 42, height: 42,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? mc.brandGreen.withOpacity(0.15)
+                                      : mc.muted,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(Icons.apartment_rounded,
+                                    size: 22,
+                                    color: isSelected
+                                        ? mc.brandGreen
+                                        : mc.mutedForeground),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(project.ner,
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: isSelected
+                                                ? mc.brandGreen
+                                                : mc.primary)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                        isSelected
+                                            ? 'Одоо сонгогдсон'
+                                            : project.tuluvLabel,
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: isSelected
+                                                ? mc.brandGreen
+                                                    .withOpacity(0.7)
+                                                : mc.mutedForeground)),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                Container(
+                                  width: 28, height: 28,
+                                  decoration: BoxDecoration(
+                                    color: mc.brandGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.check_rounded,
+                                      size: 16, color: Colors.white),
+                                ),
+                            ]),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

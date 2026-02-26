@@ -319,7 +319,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                         child: Stack(
                           children: [
                             Image.network(
-                              'https://images.unsplash.com/photo-1581578731548-c64695cc6958?q=80&w=200&auto=format&fit=crop', // Cleaning mock
+                              'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=200&auto=format&fit=crop', // Cleaning mock
                               width: 120, height: 120, fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Center(child: Icon(Icons.image, color: c.mutedForeground)),
                             ),

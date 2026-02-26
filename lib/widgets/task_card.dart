@@ -7,11 +7,11 @@ class TaskCard extends StatefulWidget {
   const TaskCard({super.key, required this.task, required this.statusColor,
       required this.statusLabel, required this.onStart,
       required this.onFinish, required this.onAttachPhoto,
-      required this.onTap});
+      required this.onChat, required this.onTap});
   final CleaningTask task;
   final Color statusColor;
   final String statusLabel;
-  final VoidCallback onStart, onFinish, onAttachPhoto, onTap;
+  final VoidCallback onStart, onFinish, onAttachPhoto, onChat, onTap;
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -249,22 +249,18 @@ class _TaskCardState extends State<TaskCard> {
                     ],
                     const SizedBox(height: 10),
                     // Action buttons
+                    // Action buttons
                     Row(children: [
                       Expanded(child: OutlinedButton.icon(
-                        onPressed: done ? null : widget.onAttachPhoto,
-                        icon: Icon(t.hasPhoto
-                            ? Icons.verified_rounded
-                            : Icons.camera_alt_outlined, size: 16),
-                        label: Text(t.hasPhoto
-                            ? 'Баталгаажсан' : 'Зураг',
-                            style: const TextStyle(fontSize: 12)),
+                        onPressed: widget.onChat,
+                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                        label: const Text('Чат',
+                            style: TextStyle(fontSize: 12)),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               vertical: 8),
-                          foregroundColor: t.hasPhoto
-                              ? c.success : c.brandGreen,
-                          side: BorderSide(color: t.hasPhoto
-                              ? c.success : c.border),
+                          foregroundColor: c.primary,
+                          side: BorderSide(color: c.border),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
                       )),

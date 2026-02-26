@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/cleaning_task.dart';
-import '../theme/app_theme.dart';
+import '../models/task_model.dart';
 import '../services/image_service.dart';
+import '../services/task_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/task_detail_modal.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -13,24 +16,39 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  late List<CleaningTask> _allTasks;
+  List<CleaningTask> _allTasks = [];
+  bool _loading = true;
   String _filter = 'all';
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    // Only past/ended tasks — exclude today's pending/inProgress & future tasks
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    final apiTasks = await TaskService.myTasks();
+    if (!mounted) return;
+
     final today = stripTime(DateTime.now());
-    _allTasks = generateMockTasks().where((t) {
-      final d = stripTime(t.date);
-      if (d.isBefore(today)) return true; // past day → always show
-      if (d == today &&
-          (t.status == TaskStatus.completed ||
-           t.status == TaskStatus.overdue)) return true;
-      return false;
-    }).toList();
-    _loadSavedPhotos();
+    final List<CleaningTask> loaded = [];
+
+    for (var t in apiTasks) {
+      final ct = CleaningTask.fromApi(t);
+      final d = stripTime(ct.date);
+
+      // Include if past day OR today but completed/overdue
+      if (d.isBefore(today) ||
+         (d == today && (ct.status == TaskStatus.completed || ct.status == TaskStatus.overdue))) {
+        loaded.add(ct);
+      }
+    }
+
+    setState(() {
+      _allTasks = loaded;
+      _loading = false;
+    });
   }
 
   Future<void> _loadSavedPhotos() async {
@@ -137,17 +155,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Stats ──
-              Row(children: [
-                _StatCard(c: c, label: 'Нийт', count: _allTasks.length,
-                    color: c.primary, icon: Icons.history_rounded),
-                const SizedBox(width: 10),
-                _StatCard(c: c, label: 'Дууссан', count: completedCount,
-                    color: c.success, icon: Icons.check_circle_rounded),
-                const SizedBox(width: 10),
-                _StatCard(c: c, label: 'Хэтэрсэн', count: overdueCount,
-                    color: c.destructive, icon: Icons.error_rounded),
-              ]),
-              const SizedBox(height: 16),
+              // ── Stats ──
+              if (_loading)
+                Center(child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: CircularProgressIndicator(color: c.brandGreen, strokeWidth: 2.5),
+                ))
+              else ...[
+                Row(children: [
+                  _StatCard(c: c, label: 'Нийт', count: _allTasks.length,
+                      color: c.primary, icon: Icons.history_rounded),
+                  const SizedBox(width: 10),
+                  _StatCard(c: c, label: 'Дууссан', count: completedCount,
+                      color: c.success, icon: Icons.check_circle_rounded),
+                  const SizedBox(width: 10),
+                  _StatCard(c: c, label: 'Хэтэрсэн', count: overdueCount,
+                      color: c.destructive, icon: Icons.error_rounded),
+                ]),
+                const SizedBox(height: 16),
+
 
               // ── Search ──
               Container(
@@ -237,6 +263,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ],
                   );
                 }),
+              ], // End else
               const SizedBox(height: 20),
             ],
           ),
@@ -589,7 +616,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                       child: Stack(
                         children: [
                           Image.network(
-                            'https://images.unsplash.com/photo-1581578731548-c64695cc6958?q=80&w=150&auto=format&fit=crop',
+                            'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=200&auto=format&fit=crop',
                             width: 80, height: 80, fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(width: 80, height: 80, color: c.muted),
                           ),

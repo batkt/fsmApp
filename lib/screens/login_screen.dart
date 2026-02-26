@@ -3,8 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_toast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.onLoggedIn});
@@ -47,12 +49,14 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _initBiometric() async {
     final supported = await _bio.isDeviceSupported();
     final enabled = await _bio.isEnabled();
+    // Check if there's a saved session (user previously logged in via API)
+    final hasSession = await AuthService.restoreSession();
     if (!mounted) return;
     setState(() {
       _bioSupported = supported;
-      _bioEnabled = enabled;
+      _bioEnabled = enabled && hasSession; // only enable if saved session exists
     });
-    if (supported && enabled) _handleBiometricLogin();
+    if (_bioSupported && _bioEnabled) _handleBiometricLogin();
   }
 
   Future<void> _loadVersion() async {
@@ -71,17 +75,39 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await AuthService.login(
+      _emailCtrl.text.trim(),
+      _passCtrl.text,
+    );
+
     if (!mounted) return;
-    setState(() => _isLoading = false);
-    await _maybeAskBiometric();
-    if (!mounted) return;
-    widget.onLoggedIn();
+
+    if (result.isSuccess) {
+      setState(() => _isLoading = false);
+      await _maybeAskBiometric();
+      if (!mounted) return;
+      widget.onLoggedIn();
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      AppToast.show(
+        context, 
+        result.errorMessage ?? 'Алдаа гарлаа',
+        color: context.colors.destructive,
+        icon: Icons.error_outline_rounded,
+      );
+    }
   }
 
   Future<void> _handleBiometricLogin() async {
     if (!_bioSupported || !_bioEnabled) return;
+    // Only allow biometric if we have a valid saved session
+    if (!AuthService.isLoggedIn) return;
     final authenticated = await _bio.authenticate();
     if (authenticated && mounted) widget.onLoggedIn();
   }
@@ -357,18 +383,19 @@ class _LoginScreenState extends State<LoginScreen>
                     ]),
                     const SizedBox(height: 24),
 
-                    // Email field
-                    Text('Имэйл / ID', style: TextStyle(fontSize: 13,
+                    // Username field
+                    Text('Нэвтрэх нэр', style: TextStyle(fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: c.primary)),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _emailCtrl,
                       style: TextStyle(color: c.primary, fontSize: 16),
-                      decoration: _inputDeco(c, 'Имэйл хаяг оруулна уу',
+                      textInputAction: TextInputAction.next,
+                      decoration: _inputDeco(c, 'Нэвтрэх нэрээ оруулна уу',
                           Icons.person_outline),
                       validator: (v) => (v == null || v.isEmpty)
-                          ? 'ID-гаа оруулна уу' : null,
+                          ? 'Нэвтрэх нэрээ оруулна уу' : null,
                     ),
                     const SizedBox(height: 18),
 
@@ -380,6 +407,8 @@ class _LoginScreenState extends State<LoginScreen>
                     TextFormField(
                       controller: _passCtrl,
                       style: TextStyle(color: c.primary, fontSize: 16),
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _handleLogin(),
                       decoration: _inputDeco(c, 'Нууц үг оруулна уу',
                           Icons.lock_outline).copyWith(
                         suffixIcon: IconButton(

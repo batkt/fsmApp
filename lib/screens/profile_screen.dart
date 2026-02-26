@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
@@ -103,37 +104,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── User info ──
+            // ── User info Header ──
             Row(children: [
-              CircleAvatar(radius: 32,
+              CircleAvatar(radius: 36,
                   backgroundColor: c.brandGreen.withOpacity(0.1),
-                  child: Icon(Icons.person, size: 32,
-                      color: c.brandGreen)),
-              const SizedBox(width: 16),
+                  child: Text(
+                    AuthService.currentUser?.ner.substring(0, 1).toUpperCase() ?? 'U',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: c.brandGreen),
+                  )),
+              const SizedBox(width: 20),
               Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                Text('Цэвэрлэгчийн нэр',
+                Text('${AuthService.currentUser?.ovog} ${AuthService.currentUser?.ner}',
                     style: TextStyle(fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: c.primary)),
-                const SizedBox(height: 4),
-                Text('cleaner@example.com',
-                    style: TextStyle(fontSize: 15,
+                const SizedBox(height: 2),
+                Text('Ажилтан',
+                    style: TextStyle(fontSize: 14,
                         color: c.mutedForeground)),
               ])),
             ]),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // ── Stats ──
-            Row(children: [
-              _StatCard(label: 'Дууссан', value: '3',
-                  color: c.success, c: c),
-              const SizedBox(width: 12),
-              _StatCard(label: 'Явагдаж буй', value: '1',
-                  color: c.info, c: c),
-            ]),
-            const SizedBox(height: 24),
+            // ── General Information ──
+            Text('Ерөнхий мэдээлэл',
+                style: TextStyle(fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: c.primary)),
+            const SizedBox(height: 12),
+            _InfoRow(c: c, icon: Icons.business_rounded, label: 'Байгууллага', value: AuthService.currentUser?.baiguullagaNer ?? '-'),
+            _InfoRow(c: c, icon: Icons.phone_android_rounded, label: 'Утасны дугаар', value: AuthService.currentUser?.utas ?? '-'),
+            const SizedBox(height: 32),
 
             // ── Settings Section ──
             Text('Тохиргоо',
@@ -260,6 +263,42 @@ class _StatCard extends StatelessWidget {
           Text(label, style: TextStyle(fontSize: 14,
               color: c.mutedForeground)),
         ]),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.c, required this.icon, required this.label, required this.value});
+  final AppColorScheme c;
+  final IconData icon;
+  final String label, value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.border.withOpacity(0.6)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: c.mutedForeground),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 12, color: c.mutedForeground)),
+                const SizedBox(height: 2),
+                Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.primary)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
