@@ -7,30 +7,42 @@ import 'services/holiday_service.dart';
 import 'services/fcm_service.dart';
 
 // Background message handler (must be top-level)
+// This function must be top-level and cannot be a class method
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  FCMService.firebaseMessagingBackgroundHandler(message);
+  // Initialize Firebase if not already initialized
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('[FCM Background] Firebase already initialized or error: $e');
+  }
+
+  // Call the FCM service handler
+  await FCMService.firebaseMessagingBackgroundHandler(message);
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   try {
     await Firebase.initializeApp();
-    
+
     // Set up background message handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    
+
     // Initialize FCM
     await FCMService.initialize();
   } catch (e) {
     debugPrint('[Main] Firebase initialization error: $e');
-    debugPrint('[Main] Continuing without Firebase - using local notifications only');
-    debugPrint('[Main] Note: To use Firebase, you need to add google-services.json (Android) and GoogleService-Info.plist (iOS)');
+    debugPrint(
+      '[Main] Continuing without Firebase - using local notifications only',
+    );
+    debugPrint(
+      '[Main] Note: To use Firebase, you need to add google-services.json (Android) and GoogleService-Info.plist (iOS)',
+    );
   }
-  
+
   await HolidayService.init();
   runApp(const CleanerApp());
 }
@@ -88,10 +100,12 @@ class CleanerApp extends StatelessWidget {
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColorScheme.light.primary,
           contentTextStyle: TextStyle(
-              color: AppColorScheme.light.primaryForeground),
+            color: AppColorScheme.light.primaryForeground,
+          ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         useMaterial3: true,
         extensions: const [AppColorScheme.light],
@@ -139,11 +153,11 @@ class CleanerApp extends StatelessWidget {
         ),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColorScheme.dark.secondary,
-          contentTextStyle: TextStyle(
-              color: AppColorScheme.dark.primary),
+          contentTextStyle: TextStyle(color: AppColorScheme.dark.primary),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
         useMaterial3: true,
         extensions: const [AppColorScheme.dark],

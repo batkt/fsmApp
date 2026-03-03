@@ -229,8 +229,13 @@ class _NotifTile extends StatelessWidget {
       case NotifType.task:
       case NotifType.taskCreated:
       case NotifType.taskUpdated:
-      case NotifType.taskCompleted:
+      case NotifType.taskStarted:
+      case NotifType.taskReset:
         return c.info;
+      case NotifType.taskCompleted:
+        return c.success;
+      case NotifType.taskExpired:
+        return c.warningOrange;
       case NotifType.alert:
       case NotifType.assignment:
       case NotifType.reminder:

@@ -8,7 +8,10 @@ enum NotifType {
   medegdel,
   taskCreated,
   taskUpdated,
+  taskStarted,
   taskCompleted,
+  taskExpired,
+  taskReset,
   projectCreated,
   projectUpdated,
   chatMessage,
@@ -102,18 +105,27 @@ class AppNotification {
   NotifType get type {
     switch (turul) {
       case 'taskCreated':
+        return NotifType.taskCreated;
       case 'taskUpdated':
+        return NotifType.taskUpdated;
+      case 'taskStarted':
+        return NotifType.taskStarted;
       case 'taskCompleted':
-        return NotifType.task;
+        return NotifType.taskCompleted;
+      case 'taskExpired':
+        return NotifType.taskExpired;
+      case 'taskReset':
+        return NotifType.taskReset;
       case 'projectCreated':
+        return NotifType.projectCreated;
       case 'projectUpdated':
-        return NotifType.info;
+        return NotifType.projectUpdated;
       case 'chatMessage':
-        return NotifType.info;
+        return NotifType.chatMessage;
       case 'assignment':
-        return NotifType.alert;
+        return NotifType.assignment;
       case 'reminder':
-        return NotifType.alert;
+        return NotifType.reminder;
       default:
         return NotifType.medegdel;
     }
@@ -155,8 +167,15 @@ IconData notifIcon(NotifType t) {
     case NotifType.task:
     case NotifType.taskCreated:
     case NotifType.taskUpdated:
-    case NotifType.taskCompleted:
       return Icons.assignment_rounded;
+    case NotifType.taskStarted:
+      return Icons.play_circle_outline_rounded;
+    case NotifType.taskCompleted:
+      return Icons.check_circle_rounded;
+    case NotifType.taskExpired:
+      return Icons.schedule_rounded;
+    case NotifType.taskReset:
+      return Icons.refresh_rounded;
     case NotifType.alert:
     case NotifType.assignment:
     case NotifType.reminder:

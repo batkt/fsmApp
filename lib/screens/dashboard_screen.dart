@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:async';
 
 import '../models/cleaning_task.dart';
 import '../models/notification_model.dart';
@@ -30,6 +31,7 @@ import '../widgets/walkthrough_wrapper.dart';
 import '../services/walkthrough_service.dart';
 import '../services/shake_detection_service.dart';
 import '../services/fcm_service.dart';
+import '../services/task_status_service.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'faq_screen.dart';
@@ -52,6 +54,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   bool _projectsLoading = true;
   bool _tasksLoading = false;
   bool _faqModalOpen = false;
+  Timer? _taskStatusTimer; // Timer for periodic task status updates
 
   // Walkthrough keys
   final GlobalKey _projectSelectorKey = GlobalKey();
@@ -76,6 +79,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     _loadNotifications();
     _loadProjects();
     _setupShakeDetection();
+    _startTaskStatusChecker();
   }
 
   void _setupShakeDetection() {
@@ -410,6 +414,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _taskStatusTimer?.cancel();
     ShakeDetectionService.stopListening();
     WidgetsBinding.instance.removeObserver(this);
     // Clean up socket listeners
@@ -592,28 +597,63 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   }
 
   /// Show notification for task updated
+  /// Detects status changes and shows appropriate messages
   Future<void> _showTaskUpdatedNotification(ApiTask task) async {
     try {
-      final title = 'Даалгавар шинэчлэгдлээ';
-      final message = '${task.ner} (${task.taskId}) даалгавар шинэчлэгдлээ';
+      String title;
+      String message;
+      String notificationType;
+
+      // Determine notification type and message based on status
+      switch (task.tuluv) {
+        case 'khiigdej bui':
+          title = 'Даалгавар эхэлсэн';
+          message = '${task.ner} (${task.taskId}) даалгавар эхэлсэн цаг ирлээ';
+          notificationType = 'taskStarted';
+          break;
+        case 'duussan':
+          title = 'Даалгавар дууссан';
+          message = '${task.ner} (${task.taskId}) даалгавар амжилттай дууссан';
+          notificationType = 'taskCompleted';
+          break;
+        case 'khugatsaa khetersen':
+          title = 'Хугацаа хэтэрсэн';
+          message = '${task.ner} (${task.taskId}) даалгаврын хугацаа хэтэрлээ';
+          notificationType = 'taskExpired';
+          break;
+        case 'shine':
+          title = 'Даалгавар шинэчлэгдлээ';
+          message =
+              '${task.ner} (${task.taskId}) даалгавар дахин шинэ төлөвт шилжлээ';
+          notificationType = 'taskReset';
+          break;
+        default:
+          title = 'Даалгавар шинэчлэгдлээ';
+          message = '${task.ner} (${task.taskId}) даалгавар шинэчлэгдлээ';
+          notificationType = 'taskUpdated';
+      }
 
       await PushNotificationService.showTaskNotification(
         AppNotification(
-          id: 'task_updated_${task.id}',
+          id: 'task_${notificationType}_${task.id}_${DateTime.now().millisecondsSinceEpoch}',
           ajiltniiId: AuthService.currentUser?.id ?? '',
           baiguullagiinId: task.baiguullagiinId,
           barilgiinId: task.barilgiinId,
           projectId: task.projectId,
           taskId: task.id,
-          turul: 'taskUpdated',
+          turul: notificationType,
           title: title,
           message: message,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
+
+      debugPrint(
+        '[Dashboard] ✅ Task ${notificationType} notification shown for ${task.taskId}',
+      );
     } catch (e) {
-      debugPrint('[Dashboard] Error showing task updated notification: $e');
+      debugPrint('[Dashboard] ❌ Error showing task updated notification: $e');
     }
   }
 
@@ -678,6 +718,11 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   List<CleaningTask> get _todayTasks {
     var tasks = List<CleaningTask>.from(_tasks);
 
+    // Filter by selected day
+    tasks = tasks
+        .where((t) => stripTime(t.date) == stripTime(_selectedDay))
+        .toList();
+
     if (_filter == 'pending') {
       tasks = tasks
           .where(
@@ -728,18 +773,69 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   void _handleStart(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
-    setState(() => t.status = TaskStatus.inProgress);
+
+    // Optimistically update UI and reset local progress baseline
+    setState(() {
+      t.startedAtLocal = DateTime.now();
+      t.status = TaskStatus.inProgress;
+    });
     _syncWidget();
     _snack('"${t.title}" даалгавар эхэлсэн');
-    TaskService.update(t.id, {'tuluv': 'khiigdej bui'});
+
+    // Update backend status via task-status controller (force khiigdej bui)
+    TaskStatusService.updateTaskStatus(t.id, newStatus: 'khiigdej bui').then((
+      success,
+    ) {
+      if (!success && mounted) {
+        // Revert on failure
+        setState(() => t.status = TaskStatus.pending);
+        _syncWidget();
+        AppToast.show(
+          context,
+          'Даалгаврын статус шинэчлэхэд алдаа гарлаа',
+          icon: Icons.error_outline_rounded,
+          color: context.colors.destructive,
+        );
+      } else if (success) {
+        // Refresh tasks to get updated status and notifications
+        if (_selectedProjectId != null) {
+          _refreshTasks();
+        }
+        _loadNotifications();
+      }
+    });
   }
 
   void _handleFinish(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
+
+    // Optimistically update UI
     setState(() => t.status = TaskStatus.completed);
     _syncWidget();
     _snack('"${t.title}" даалгавар дууссан');
-    TaskService.update(t.id, {'tuluv': 'duussan'});
+
+    // Update backend status via task-status controller (force duussan)
+    TaskStatusService.updateTaskStatus(t.id, newStatus: 'duussan').then((
+      success,
+    ) {
+      if (!success && mounted) {
+        // Revert on failure
+        setState(() => t.status = TaskStatus.inProgress);
+        _syncWidget();
+        AppToast.show(
+          context,
+          'Даалгаврын статус шинэчлэхэд алдаа гарлаа',
+          icon: Icons.error_outline_rounded,
+          color: context.colors.destructive,
+        );
+      } else if (success) {
+        // Refresh tasks to get updated status and notifications
+        if (_selectedProjectId != null) {
+          _refreshTasks();
+        }
+        _loadNotifications();
+      }
+    });
   }
 
   void _handleNextStatus(CleaningTask t) {
@@ -898,7 +994,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     showTaskDetail(
       context,
       task: t,
-      onStatusChange: () => setState(() => _handleNextStatus(t)),
+      onStatusChange: () => _handleNextStatus(t),
       onSubtaskToggle: (idx) async {
         final sub = t.subtasks[idx];
         final newState = !sub.isDone;
@@ -1270,6 +1366,30 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   Future<void> _refreshTasks() async {
     if (_selectedProjectId == null) return;
     await _loadTasks(_selectedProjectId!);
+  }
+
+  /// Start periodic task status checker
+  /// Checks and updates task statuses every 5 minutes (configurable via backend)
+  void _startTaskStatusChecker() {
+    // Check every 5 minutes (300 seconds)
+    // Backend scheduler should handle this, but we can also check periodically
+    _taskStatusTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      debugPrint('[Dashboard] Periodic task status check...');
+      // Update all task statuses via backend
+      TaskStatusService.updateAllTasks().then((success) {
+        if (success && _selectedProjectId != null) {
+          // Refresh tasks after status update
+          _refreshTasks();
+        }
+      });
+    });
+
+    debugPrint('[Dashboard] Task status checker started (every 5 minutes)');
   }
 
   Project? get _currentProject {

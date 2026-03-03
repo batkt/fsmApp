@@ -140,6 +140,8 @@ class ApiTask {
         return 'Шалгах';
       case 'duussan':
         return 'Дууссан';
+      case 'khugatsaa khetersen':
+        return 'Хугацаа хэтэрсэн';
       default:
         return tuluv;
     }

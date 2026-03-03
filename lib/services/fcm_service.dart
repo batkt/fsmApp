@@ -48,8 +48,11 @@ class FCMService {
           await registerTokenWithBackend(_fcmToken!);
         }
 
-        // Handle foreground messages
-        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+        // Handle foreground messages (when app is open)
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          debugPrint('[FCM] Foreground message received: ${message.messageId}');
+          _handleForegroundMessage(message);
+        });
 
         // Handle background message taps (when app is opened from notification)
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
@@ -73,15 +76,30 @@ class FCMService {
   /// Handle foreground messages (when app is open)
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
     debugPrint('[FCM] Received foreground message: ${message.messageId}');
+    debugPrint('[FCM] Foreground message data: ${message.data}');
+    debugPrint(
+      '[FCM] Foreground message notification: ${message.notification?.title} - ${message.notification?.body}',
+    );
 
     // Convert RemoteMessage to AppNotification and show local notification
     try {
+      // Ensure PushNotificationService is initialized
+      await PushNotificationService.initialize();
+
       final notification = _remoteMessageToAppNotification(message);
       if (notification != null) {
+        debugPrint(
+          '[FCM] Showing foreground notification: ${notification.title}',
+        );
         await PushNotificationService.showNotification(notification);
+        debugPrint('[FCM] ✅ Foreground notification shown');
+      } else {
+        debugPrint(
+          '[FCM] ⚠️ Could not convert RemoteMessage to AppNotification',
+        );
       }
     } catch (e) {
-      debugPrint('[FCM] Error handling foreground message: $e');
+      debugPrint('[FCM] ❌ Error handling foreground message: $e');
     }
   }
 
@@ -248,7 +266,23 @@ class FCMService {
     RemoteMessage message,
   ) async {
     debugPrint('[FCM] Background message received: ${message.messageId}');
-    // Background messages are handled automatically by the system
-    // We can process them here if needed
+    debugPrint('[FCM] Background message data: ${message.data}');
+    debugPrint(
+      '[FCM] Background message notification: ${message.notification?.title} - ${message.notification?.body}',
+    );
+
+    // Initialize Firebase if not already initialized
+    try {
+      // Convert RemoteMessage to AppNotification and show local notification
+      final notification = _remoteMessageToAppNotification(message);
+      if (notification != null) {
+        // Initialize PushNotificationService for background
+        await PushNotificationService.initialize();
+        await PushNotificationService.showNotification(notification);
+        debugPrint('[FCM] ✅ Background notification shown');
+      }
+    } catch (e) {
+      debugPrint('[FCM] ❌ Error handling background message: $e');
+    }
   }
 }

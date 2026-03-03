@@ -10,13 +10,15 @@ class ShakeDetectionService {
   static VoidCallback? _onShake;
   static bool _isListening = false;
 
-  // Shake detection parameters
+  // Shake detection parameters - made more strict to avoid simple movements
   static const double _shakeThreshold =
-      10.0; // Acceleration threshold (increased to reduce false positives)
-  static const int _shakeWindowMs = 500; // Time window for shake detection
-  static const int _minShakeCount = 2; // Minimum shakes in window
+      18.0; // Acceleration threshold (increased from 10.0 to require stronger shakes)
+  static const int _shakeWindowMs =
+      800; // Time window for shake detection (increased from 500ms)
+  static const int _minShakeCount =
+      4; // Minimum shakes in window (increased from 2 to 4)
   static const int _debounceMs =
-      3000; // Debounce time between shake triggers (3 seconds)
+      5000; // Debounce time between shake triggers (increased from 3 to 5 seconds)
 
   static DateTime? _lastShakeTime;
   static int _shakeCount = 0;

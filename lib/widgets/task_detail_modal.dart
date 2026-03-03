@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -29,11 +30,36 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
   final GlobalKey _statusButtonKey = GlobalKey();
   final GlobalKey _subtasksKey = GlobalKey();
   final GlobalKey _photosKey = GlobalKey();
+  Timer? _progressTimer;
 
   @override
   void initState() {
     super.initState();
     _checkWalkthrough();
+    _startProgressTimer();
+  }
+
+  @override
+  void dispose() {
+    _progressTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startProgressTimer() {
+    _progressTimer?.cancel();
+    // Only start timer if task is in progress
+    if (t.status == TaskStatus.inProgress) {
+      _progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (mounted && t.status == TaskStatus.inProgress) {
+          setState(() {
+            // Force rebuild to update elapsed time
+          });
+        } else {
+          timer.cancel();
+          _progressTimer = null;
+        }
+      });
+    }
   }
 
   Future<void> _checkWalkthrough() async {
@@ -320,11 +346,14 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           value: '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
                         ),
                         const SizedBox(height: 10),
+                        // Progress indicator with elapsed time
+                        _ProgressRow(task: t, c: c),
+                        const SizedBox(height: 10),
                         _InfoRow(
                           c: c,
-                          icon: Icons.timer_outlined,
-                          label: 'Тооцоолсон',
-                          value: '${t.estimatedMinutes} мин',
+                          icon: Icons.calculate_outlined,
+                          label: 'Тооцоолох',
+                          value: t.formattedDuration,
                         ),
                         const SizedBox(height: 10),
                         _InfoRow(
@@ -753,6 +782,112 @@ class _InfoRow extends StatelessWidget {
       ),
     ],
   );
+}
+
+class _ProgressRow extends StatelessWidget {
+  const _ProgressRow({required this.task, required this.c});
+  final CleaningTask task;
+  final AppColorScheme c;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = task.progressPercentage;
+    final elapsed = task.formattedElapsedTime;
+    final total = task.formattedDuration;
+
+    // Determine color based on status
+    Color progressColor;
+    Color textColor;
+    IconData icon;
+
+    switch (task.status) {
+      case TaskStatus.overdue:
+        progressColor = c.destructive;
+        textColor = c.destructive;
+        icon = Icons.schedule_rounded;
+        break;
+      case TaskStatus.completed:
+        progressColor = c.success;
+        textColor = c.success;
+        icon = Icons.check_circle_rounded;
+        break;
+      case TaskStatus.inProgress:
+        progressColor = c.info;
+        textColor = c.info;
+        icon = Icons.play_circle_outline_rounded;
+        break;
+      default:
+        progressColor = c.mutedForeground;
+        textColor = c.mutedForeground;
+        icon = Icons.timer_outlined;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: textColor),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 80,
+              child: Text(
+                'Явц',
+                style: TextStyle(fontSize: 14, color: c.mutedForeground),
+              ),
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Text(
+                    elapsed,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                  if (total != 'Тооцоолох боломжгүй') ...[
+                    Text(
+                      ' / $total',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: c.mutedForeground,
+                      ),
+                    ),
+                  ],
+                  if (progress != null) ...[
+                    const Spacer(),
+                    Text(
+                      '${(progress * 100).toInt()}%',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (progress != null) ...[
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: c.muted,
+              valueColor: AlwaysStoppedAnimation(progressColor),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 Future<void> showTaskDetail(
