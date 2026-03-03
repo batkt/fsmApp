@@ -45,7 +45,7 @@ class ChatMessage {
     barilgiinId: (j['barilgiinId'] ?? '').toString(),
     baiguullagiinId: (j['baiguullagiinId'] ?? '').toString(),
     createdAt: j['createdAt'] != null
-        ? DateTime.tryParse(j['createdAt'].toString())
+        ? DateTime.tryParse(j['createdAt'].toString())?.toUtc()
         : null,
     unshsan: (j['unshsan'] as List?)?.map((e) => e.toString()).toList() ?? [],
     isLocal: false,

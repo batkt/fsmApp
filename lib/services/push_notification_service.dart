@@ -14,7 +14,7 @@ class PushNotificationService {
     if (_initialized) return;
 
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@drawable/ic_notification',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -35,8 +35,58 @@ class PushNotificationService {
     // Create notification channels for Android
     await _createNotificationChannels();
 
+    // Request notification permission (required for Android 13+)
+    await requestPermission();
+
     _initialized = true;
     debugPrint('[PushNotification] Service initialized');
+  }
+
+  /// Request notification permission (required for Android 13+ / API 33+)
+  static Future<bool> requestPermission() async {
+    try {
+      final androidImplementation = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      if (androidImplementation != null) {
+        final granted = await androidImplementation
+            .requestNotificationsPermission();
+        debugPrint('[PushNotification] Permission granted: $granted');
+        return granted ?? false;
+      }
+
+      // For iOS, permissions are requested automatically via DarwinInitializationSettings
+      debugPrint(
+        '[PushNotification] Permission check skipped (iOS or older Android)',
+      );
+      return true;
+    } catch (e) {
+      debugPrint('[PushNotification] Error requesting permission: $e');
+      return false;
+    }
+  }
+
+  /// Check if notification permission is granted
+  static Future<bool> isPermissionGranted() async {
+    try {
+      final androidImplementation = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      if (androidImplementation != null) {
+        final granted = await androidImplementation.areNotificationsEnabled();
+        debugPrint('[PushNotification] Permission status: $granted');
+        return granted ?? false;
+      }
+
+      return true; // Assume granted for iOS or older Android
+    } catch (e) {
+      debugPrint('[PushNotification] Error checking permission: $e');
+      return false;
+    }
   }
 
   /// Create notification channels for Android
@@ -55,9 +105,10 @@ class PushNotificationService {
       'task_notifications',
       'Task Notifications',
       description: 'Notifications for task updates',
-      importance: Importance.defaultImportance,
+      importance: Importance.high, // Changed to high for better visibility
       playSound: true,
       enableVibration: true,
+      showBadge: true,
     );
 
     await _notifications
@@ -88,6 +139,21 @@ class PushNotificationService {
       await initialize();
     }
 
+    // Check permission before showing
+    final hasPermission = await isPermissionGranted();
+    if (!hasPermission) {
+      debugPrint(
+        '[PushNotification] ⚠️ Permission not granted for chat notification, requesting...',
+      );
+      final granted = await requestPermission();
+      if (!granted) {
+        debugPrint(
+          '[PushNotification] ❌ Cannot show chat notification: permission denied',
+        );
+        return;
+      }
+    }
+
     // Don't show notification if user is viewing that chat
     // This will be handled by checking app state in the caller
 
@@ -100,7 +166,7 @@ class PushNotificationService {
       showWhen: true,
       enableVibration: true,
       playSound: true,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
       styleInformation: BigTextStyleInformation(
         notification.message,
         contentTitle: notification.title,
@@ -147,16 +213,35 @@ class PushNotificationService {
       await initialize();
     }
 
+    // Check permission before showing
+    final hasPermission = await isPermissionGranted();
+    if (!hasPermission) {
+      debugPrint(
+        '[PushNotification] ⚠️ Permission not granted for task notification, requesting...',
+      );
+      final granted = await requestPermission();
+      if (!granted) {
+        debugPrint(
+          '[PushNotification] ❌ Cannot show task notification: permission denied',
+        );
+        return;
+      }
+    }
+
     final androidDetails = AndroidNotificationDetails(
       'task_notifications',
       'Task Notifications',
       channelDescription: 'Notifications for task updates',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      importance: Importance.high, // Changed to high for better visibility
+      priority: Priority.high, // Changed to high priority
       showWhen: true,
       enableVibration: true,
       playSound: true,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
+      styleInformation: BigTextStyleInformation(
+        notification.message,
+        contentTitle: notification.title,
+      ),
     );
 
     final iosDetails = DarwinNotificationDetails(
@@ -192,6 +277,19 @@ class PushNotificationService {
 
   /// Show notification based on type
   static Future<void> showNotification(AppNotification notification) async {
+    // Check permission before showing
+    final hasPermission = await isPermissionGranted();
+    if (!hasPermission) {
+      debugPrint('[PushNotification] ⚠️ Permission not granted, requesting...');
+      final granted = await requestPermission();
+      if (!granted) {
+        debugPrint(
+          '[PushNotification] ❌ Cannot show notification: permission denied',
+        );
+        return;
+      }
+    }
+
     if (notification.turul == 'chatMessage') {
       await showChatNotification(notification);
     } else {
@@ -213,5 +311,56 @@ class PushNotificationService {
   static Future<int> getPendingCount() async {
     final pending = await _notifications.pendingNotificationRequests();
     return pending.length;
+  }
+
+  /// Test notification - useful for debugging
+  static Future<void> showTestNotification() async {
+    if (!_initialized) {
+      await initialize();
+    }
+
+    final hasPermission = await isPermissionGranted();
+    if (!hasPermission) {
+      debugPrint('[PushNotification] ⚠️ Permission not granted, requesting...');
+      final granted = await requestPermission();
+      if (!granted) {
+        debugPrint(
+          '[PushNotification] ❌ Cannot show test notification: permission denied',
+        );
+        return;
+      }
+    }
+
+    const androidDetails = AndroidNotificationDetails(
+      'task_notifications',
+      'Task Notifications',
+      channelDescription: 'Notifications for task updates',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      enableVibration: true,
+      playSound: true,
+      icon: '@drawable/ic_notification',
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      999999, // Test notification ID
+      'Тест мэдэгдэл',
+      'Хэрэв та энэ мэдэгдлийг харж байгаа бол мэдэгдлийн систем ажиллаж байна.',
+      details,
+    );
+
+    debugPrint('[PushNotification] ✅ Test notification shown');
   }
 }

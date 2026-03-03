@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/chat_model.dart';
 import '../services/api_service.dart';
+import '../services/timezone_service.dart';
 import '../theme/app_theme.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -213,7 +214,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                               decoration: TextDecoration.underline)),
                       subtitle: msg.createdAt != null
                           ? Text(
-                              '${msg.createdAt!.year}-${msg.createdAt!.month.toString().padLeft(2, '0')}-${msg.createdAt!.day.toString().padLeft(2, '0')}',
+                              TimezoneService.formatDateTime(msg.createdAt).split(' ')[0], // Get date part only
                               style: TextStyle(color: c.mutedForeground))
                           : null,
                     );

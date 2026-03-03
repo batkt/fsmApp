@@ -50,5 +50,15 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Бид даалгаврын зураг авахад камер ашиглах шаардлагатай.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Бид даалгаврын зураг сонгоход галлерей ашиглах шаардлагатай.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Бид даалгаврын зураг хадгалахад галлерей ашиглах шаардлагатай.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Бид таныг Face ID ашиглан баталгаажуулах шаардлагатай.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Бид тусламж хэсгийг нээхэд төхөөрөмжийн хөдөлгөөний мэдээллийг ашиглана.</string>
 </dict>
 </plist>

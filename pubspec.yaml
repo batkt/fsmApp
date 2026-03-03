@@ -47,6 +47,7 @@ dependencies:
   photo_view: ^0.15.0
   dio: ^5.9.1
   flutter_local_notifications: ^18.0.1
+  sensors_plus: ^5.0.0
 
 dev_dependencies:
   flutter_test:

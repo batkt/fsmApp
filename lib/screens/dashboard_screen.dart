@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../models/cleaning_task.dart';
@@ -27,8 +28,10 @@ import '../services/push_notification_service.dart';
 import '../widgets/app_toast.dart';
 import '../widgets/walkthrough_wrapper.dart';
 import '../services/walkthrough_service.dart';
+import '../services/shake_detection_service.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
+import 'faq_screen.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
   const CleanerDashboardScreen({super.key, required this.onLogout});
@@ -47,6 +50,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   List<Project> _apiProjects = [];
   bool _projectsLoading = true;
   bool _tasksLoading = false;
+  bool _faqModalOpen = false;
 
   // Walkthrough keys
   final GlobalKey _projectSelectorKey = GlobalKey();
@@ -69,12 +73,97 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     _setupSocketListeners();
     _loadNotifications();
     _loadProjects();
+    _setupShakeDetection();
+  }
+
+  void _setupShakeDetection() {
+    debugPrint('[Dashboard] Setting up shake detection');
+    ShakeDetectionService.startListening(() {
+      debugPrint('[Dashboard] Shake detected callback called');
+      if (!mounted) {
+        debugPrint('[Dashboard] Widget not mounted, skipping navigation');
+        return;
+      }
+
+      // Try to show modal immediately
+      try {
+        debugPrint('[Dashboard] Navigating to FAQ screen immediately');
+        _showFAQModal();
+      } catch (e) {
+        // If immediate show fails, schedule for next frame
+        debugPrint('[Dashboard] Immediate show failed, scheduling: $e');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            debugPrint('[Dashboard] Navigating to FAQ screen (scheduled)');
+            try {
+              _showFAQModal();
+            } catch (e2, stackTrace) {
+              debugPrint('[Dashboard] ❌ Navigation error: $e2');
+              debugPrint('[Dashboard] Stack trace: $stackTrace');
+            }
+          }
+        });
+        WidgetsBinding.instance.ensureVisualUpdate();
+      }
+    });
+  }
+
+  void _showFAQModal() {
+    if (!mounted) {
+      debugPrint('[Dashboard] Widget not mounted, cannot show FAQ modal');
+      return;
+    }
+
+    if (_faqModalOpen) {
+      debugPrint('[Dashboard] ⚠️ FAQ modal already open, skipping');
+      return;
+    }
+
+    try {
+      _faqModalOpen = true;
+      showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            backgroundColor: Colors.transparent,
+            isDismissible: true,
+            enableDrag: true,
+            builder: (ctx) => Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: const FAQScreen(),
+            ),
+          )
+          .then((_) {
+            _faqModalOpen = false;
+            debugPrint('[Dashboard] FAQ modal closed');
+          })
+          .catchError((error) {
+            _faqModalOpen = false;
+            debugPrint('[Dashboard] ❌ Error showing FAQ modal: $error');
+          });
+      debugPrint('[Dashboard] ✅ FAQ screen modal opened');
+    } catch (e, stackTrace) {
+      _faqModalOpen = false;
+      debugPrint('[Dashboard] ❌ Failed to show FAQ modal: $e');
+      debugPrint('[Dashboard] Stack trace: $stackTrace');
+    }
   }
 
   Future<void> _initializePushNotifications() async {
     await PushNotificationService.initialize();
     // Set up notification tap handler
     PushNotificationService.onNotificationTapped = _handleNotificationTap;
+
+    // Check permission status
+    final hasPermission = await PushNotificationService.isPermissionGranted();
+    debugPrint('[Dashboard] Notification permission granted: $hasPermission');
+    if (!hasPermission) {
+      debugPrint(
+        '[Dashboard] ⚠️ Notification permission not granted. User needs to enable it in settings.',
+      );
+    }
   }
 
   void _handleNotificationTap(String? payload) {
@@ -124,7 +213,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     }
 
     // Listen for new notifications
-    SocketService.onNewNotification((notificationData) {
+    SocketService.onNewNotification((notificationData) async {
       if (!mounted) return;
       try {
         debugPrint(
@@ -158,9 +247,30 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           });
           _syncWidget();
 
-          // Show push notification (works even when app is in background/closed)
-          // Show even if already marked as read - backend might auto-mark it
-          _showPushNotification(notification);
+          // Check if this notification has already been shown as push notification
+          final prefs = await SharedPreferences.getInstance();
+          final shownIds =
+              prefs.getStringList('shown_push_notifications') ?? <String>[];
+
+          if (!shownIds.contains(notification.id)) {
+            // Show push notification (works even when app is in background/closed)
+            _showPushNotification(notification);
+
+            // Mark as shown
+            final updatedShownIds = <String>[...shownIds, notification.id];
+            // Keep only last 1000 to prevent storage bloat
+            final finalShownIds = updatedShownIds.length > 1000
+                ? updatedShownIds.sublist(updatedShownIds.length - 1000)
+                : updatedShownIds;
+            await prefs.setStringList(
+              'shown_push_notifications',
+              finalShownIds,
+            );
+          } else {
+            debugPrint(
+              '[Dashboard] Notification ${notification.id} already shown as push notification, skipping',
+            );
+          }
         } else {
           debugPrint(
             '[Dashboard] Notification not for current user. Expected: $currentUserId, Got: ${notification.ajiltniiId}',
@@ -279,6 +389,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    ShakeDetectionService.stopListening();
     WidgetsBinding.instance.removeObserver(this);
     // Clean up socket listeners
     SocketService.offNewNotification();
@@ -328,6 +439,11 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       debugPrint('[Dashboard] Loaded ${notifications.length} notifications');
 
+      // Get list of notification IDs that have already been shown as push notifications
+      final prefs = await SharedPreferences.getInstance();
+      final shownIds =
+          prefs.getStringList('shown_push_notifications') ?? <String>[];
+
       // Check for new notifications that weren't in our list before
       final previousIds = _notifications.map((n) => n.id).toSet();
       final newNotifications = notifications
@@ -338,18 +454,40 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         debugPrint(
           '[Dashboard] Found ${newNotifications.length} new notifications',
         );
-        // Show push notifications for new notifications (even if marked as read)
-        // Backend might auto-mark them as read, but user should still see them
-        for (final notification in newNotifications) {
-          // Only show if notification is recent (within last 5 minutes)
-          final isRecent =
-              DateTime.now().difference(notification.createdAt).inMinutes < 5;
-          if (isRecent) {
+
+        // Filter out notifications that have already been shown as push notifications
+        final notificationsToShow = newNotifications
+            .where((n) => !shownIds.contains(n.id))
+            .toList();
+
+        // Only show push notifications for the latest 3 unshown notifications
+        notificationsToShow.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        final latest3 = notificationsToShow.take(3).toList();
+
+        if (latest3.isNotEmpty) {
+          debugPrint(
+            '[Dashboard] Showing push notifications for ${latest3.length} latest unshown notifications',
+          );
+
+          // Show push notifications and mark them as shown
+          final updatedShownIds = <String>[...shownIds];
+          for (final notification in latest3) {
             debugPrint(
-              '[Dashboard] Showing push notification for recent notification: ${notification.id}',
+              '[Dashboard] Showing push notification for notification: ${notification.id}, created: ${notification.createdAt}',
             );
             _showPushNotification(notification);
+            updatedShownIds.add(notification.id);
           }
+
+          // Save updated list (keep only last 1000 to prevent storage bloat)
+          final finalShownIds = updatedShownIds.length > 1000
+              ? updatedShownIds.sublist(updatedShownIds.length - 1000)
+              : updatedShownIds;
+          await prefs.setStringList('shown_push_notifications', finalShownIds);
+        } else {
+          debugPrint(
+            '[Dashboard] All new notifications have already been shown as push notifications',
+          );
         }
       }
 
@@ -362,11 +500,15 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// Show push notification for chat messages
-  /// Only shows if app is in background or closed
+  /// Show push notification - works even when app is in background or closed
   Future<void> _showPushNotification(AppNotification notification) async {
     try {
-      // Only show push notification for chat messages
+      debugPrint(
+        '[Dashboard] Showing push notification: ${notification.id}, type: ${notification.turul}',
+      );
+
+      // Show push notification for all notification types
+      // This will appear on the phone even when app is in background or closed
       if (notification.turul == 'chatMessage') {
         // Check if user is currently viewing this chat
         // If they are, don't show notification (handled in chat screen)
@@ -377,13 +519,20 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
         if (!isViewingChat) {
           await PushNotificationService.showChatNotification(notification);
+          debugPrint('[Dashboard] ✅ Chat notification shown');
+        } else {
+          debugPrint(
+            '[Dashboard] ⏭️ Skipping chat notification (user viewing chat)',
+          );
         }
       } else {
-        // Show other notifications too
+        // Show all other notification types (task updates, project updates, etc.)
         await PushNotificationService.showNotification(notification);
+        debugPrint('[Dashboard] ✅ Notification shown: ${notification.turul}');
       }
-    } catch (e) {
-      debugPrint('[Dashboard] Error showing push notification: $e');
+    } catch (e, stackTrace) {
+      debugPrint('[Dashboard] ❌ Error showing push notification: $e');
+      debugPrint('[Dashboard] Stack trace: $stackTrace');
     }
   }
 
@@ -854,9 +1003,29 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       autoStart: false,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Өнөөдрийн цэвэрлэгээ',
-            style: TextStyle(fontWeight: FontWeight.w600),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: Image.asset(
+                  'assets/images/zev_logo.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Өнөөдрийн цэвэрлэгээ',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           actions: [
             // Help/Walkthrough button

@@ -11,6 +11,7 @@ import '../services/chat_service.dart';
 import '../services/socket_service.dart';
 import '../services/api_service.dart';
 import '../services/notification_service.dart';
+import '../services/timezone_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
 import 'chat_detail_screen.dart';
@@ -90,19 +91,20 @@ class _ChatScreenState extends State<ChatScreen> {
   void _setupSocket() {
     SocketService.connect();
     SocketService.joinRoom(projectId: widget.projectId, taskId: widget.taskId);
-    
+
     SocketService.onNewMessage((msg) {
       if (!mounted) return;
-      
+
       // Safety Filter: Ensure message belongs to THIS specific chat view
       if (msg.projectId != widget.projectId) return;
       if (widget.taskId != null && msg.taskId != widget.taskId) return;
-      if (widget.taskId == null && msg.taskId != null && msg.taskId!.isNotEmpty) return;
+      if (widget.taskId == null && msg.taskId != null && msg.taskId!.isNotEmpty)
+        return;
 
       if (_messages.any((m) => m.id == msg.id)) return;
       setState(() => _messages.add(msg));
       _scrollToBottom();
-      
+
       // If we are in the chat, mark it as read
       if (msg.ajiltniiId != _myId) {
         _markAllAsRead();
@@ -193,7 +195,7 @@ class _ChatScreenState extends State<ChatScreen> {
       turul: 'text',
       barilgiinId: widget.barilgiinId,
       baiguullagiinId: widget.baiguullagiinId,
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toUtc(),
       unshsan: [],
       isLocal: true,
     );
@@ -221,28 +223,40 @@ class _ChatScreenState extends State<ChatScreen> {
           _messages.add(msg);
         }
       } else {
-        AppToast.show(context, 'Мессеж илгээхэд алдаа гарлаа',
-            icon: Icons.error_outline_rounded,
-            color: context.colors.destructive);
+        AppToast.show(
+          context,
+          'Мессеж илгээхэд алдаа гарлаа',
+          icon: Icons.error_outline_rounded,
+          color: context.colors.destructive,
+        );
       }
     });
     _scrollToBottom();
   }
 
   Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
     if (picked == null) return;
     await _uploadFile(picked.path);
   }
 
   Future<void> _takePhoto() async {
-    final picked = await _picker.pickImage(source: ImageSource.camera, imageQuality: 70);
+    final picked = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 70,
+    );
     if (picked == null) return;
     await _uploadFile(picked.path);
   }
 
   Future<void> _uploadFile(String path) async {
-    final isImage = path.toLowerCase().endsWith('.jpg') || path.toLowerCase().endsWith('.png') || path.toLowerCase().endsWith('.jpeg');
+    final isImage =
+        path.toLowerCase().endsWith('.jpg') ||
+        path.toLowerCase().endsWith('.png') ||
+        path.toLowerCase().endsWith('.jpeg');
     final localId = 'local_${DateTime.now().millisecondsSinceEpoch}';
     final localMsg = ChatMessage(
       id: localId,
@@ -254,7 +268,7 @@ class _ChatScreenState extends State<ChatScreen> {
       turul: 'text',
       barilgiinId: widget.barilgiinId,
       baiguullagiinId: widget.baiguullagiinId,
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toUtc(),
       unshsan: [],
       isLocal: true,
     );
@@ -281,9 +295,12 @@ class _ChatScreenState extends State<ChatScreen> {
           _messages.add(msg);
         }
       } else {
-        AppToast.show(context, 'Файл илгээхэд алдаа гарлаа',
-            icon: Icons.error_outline_rounded,
-            color: context.colors.destructive);
+        AppToast.show(
+          context,
+          'Файл илгээхэд алдаа гарлаа',
+          icon: Icons.error_outline_rounded,
+          color: context.colors.destructive,
+        );
       }
     });
     _scrollToBottom();
@@ -303,28 +320,43 @@ class _ChatScreenState extends State<ChatScreen> {
           top: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                    color: c.border, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 20),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                _AttachOption(
-                  icon: Icons.photo_library_rounded,
-                  label: 'Зураг',
-                  color: c.brandGreen,
-                  onTap: () { Navigator.pop(ctx); _pickImage(); },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                _AttachOption(
-                  icon: Icons.camera_alt_rounded,
-                  label: 'Камер',
-                  color: c.info,
-                  onTap: () { Navigator.pop(ctx); _takePhoto(); },
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _AttachOption(
+                      icon: Icons.photo_library_rounded,
+                      label: 'Зураг',
+                      color: c.brandGreen,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _pickImage();
+                      },
+                    ),
+                    _AttachOption(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'Камер',
+                      color: c.info,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _takePhoto();
+                      },
+                    ),
+                  ],
                 ),
-              ]),
-            ]),
+              ],
+            ),
           ),
         ),
       ),
@@ -333,7 +365,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _openGallery(ChatMessage tappedMsg) {
     // Filter only images
-    final imageMessages = _messages.where((m) => m.isImage && m.fileUrl != null).toList();
+    final imageMessages = _messages
+        .where((m) => m.isImage && m.fileUrl != null)
+        .toList();
     if (imageMessages.isEmpty) return;
 
     final initialIndex = imageMessages.indexWhere((m) => m.id == tappedMsg.id);
@@ -355,14 +389,25 @@ class _ChatScreenState extends State<ChatScreen> {
                   final url = '${ApiService.baseUrl}/${msg.fileUrl}';
                   try {
                     final appDocDir = await getApplicationDocumentsDirectory();
-                    final savePath = '${appDocDir.path}/${msg.fileName ?? 'image.jpg'}';
+                    final savePath =
+                        '${appDocDir.path}/${msg.fileName ?? 'image.jpg'}';
                     await Dio().download(url, savePath);
                     if (context.mounted) {
-                      AppToast.show(context, 'Зураг татагдлаа', icon: Icons.check_circle_rounded, color: context.colors.success);
+                      AppToast.show(
+                        context,
+                        'Зураг татагдлаа',
+                        icon: Icons.check_circle_rounded,
+                        color: context.colors.success,
+                      );
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      AppToast.show(context, 'Татахад алдаа гарлаа', icon: Icons.error_outline_rounded, color: context.colors.destructive);
+                      AppToast.show(
+                        context,
+                        'Татахад алдаа гарлаа',
+                        icon: Icons.error_outline_rounded,
+                        color: context.colors.destructive,
+                      );
                     }
                   }
                 },
@@ -376,7 +421,9 @@ class _ChatScreenState extends State<ChatScreen> {
             builder: (context, index) {
               final msg = imageMessages[index];
               return PhotoViewGalleryPageOptions(
-                imageProvider: NetworkImage('${ApiService.baseUrl}/${msg.fileUrl}'),
+                imageProvider: NetworkImage(
+                  '${ApiService.baseUrl}/${msg.fileUrl}',
+                ),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 2,
                 heroAttributes: PhotoViewHeroAttributes(tag: msg.id),
@@ -399,39 +446,67 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0,
         backgroundColor: c.cardBackground,
         automaticallyImplyLeading: widget.showBackButton,
-        leading: widget.showBackButton ? IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: c.primary, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ) : null,
+        leading: widget.showBackButton
+            ? IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: c.primary,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.title,
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600, color: c.primary)),
             Text(
-              SocketService.isConnected 
+              widget.title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: c.primary,
+              ),
+            ),
+            Text(
+              SocketService.isConnected
                   ? (() {
-                      final memberIds = _messages.map((m) => m.ajiltniiId).where((id) => id.isNotEmpty).toSet();
-                      if (memberIds.isEmpty) return 'Онлайн'; 
+                      final memberIds = _messages
+                          .map((m) => m.ajiltniiId)
+                          .where((id) => id.isNotEmpty)
+                          .toSet();
+                      if (memberIds.isEmpty) return 'Онлайн';
                       int active = 0;
                       for (var id in memberIds) {
-                        if (SocketService.onlineUsers[id] == 'online' || id == _myId) active++;
+                        if (SocketService.onlineUsers[id] == 'online' ||
+                            id == _myId)
+                          active++;
                       }
                       int inactive = memberIds.length - active;
                       if (inactive < 0) inactive = 0;
                       return 'Идэвхтэй $active, Идэвхгүй $inactive';
                     })()
                   : 'Холбогдож байна...',
-              style: TextStyle(fontSize: 12, color: c.mutedForeground)),
+              style: TextStyle(fontSize: 12, color: c.mutedForeground),
+            ),
           ],
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: TextButton.icon(
-              icon: Icon(Icons.info_outline_rounded, color: c.brandGreen, size: 20),
-              label: Text('Дэлгэрэнгүй', style: TextStyle(color: c.brandGreen, fontWeight: FontWeight.w600, fontSize: 13)),
+              icon: Icon(
+                Icons.info_outline_rounded,
+                color: c.brandGreen,
+                size: 20,
+              ),
+              label: Text(
+                'Дэлгэрэнгүй',
+                style: TextStyle(
+                  color: c.brandGreen,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -447,92 +522,142 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: Column(children: [
-        // Messages
-        Expanded(
-          child: _loading
-              ? Center(child: CircularProgressIndicator(color: c.brandGreen, strokeWidth: 2.5))
-              : _messages.isEmpty
-                  ? Center(child: Column(
+      body: Column(
+        children: [
+          // Messages
+          Expanded(
+            child: _loading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: c.brandGreen,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : _messages.isEmpty
+                ? Center(
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.chat_bubble_outline_rounded, size: 56, color: c.border),
+                        Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          size: 56,
+                          color: c.border,
+                        ),
                         const SizedBox(height: 12),
-                        Text('Мессеж байхгүй байна',
-                            style: TextStyle(color: c.mutedForeground, fontSize: 15)),
+                        Text(
+                          'Мессеж байхгүй байна',
+                          style: TextStyle(
+                            color: c.mutedForeground,
+                            fontSize: 15,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text('Эхлээд мессеж бичнэ үү',
-                            style: TextStyle(color: c.mutedForeground.withOpacity(0.7), fontSize: 13)),
+                        Text(
+                          'Эхлээд мессеж бичнэ үү',
+                          style: TextStyle(
+                            color: c.mutedForeground.withOpacity(0.7),
+                            fontSize: 13,
+                          ),
+                        ),
                       ],
-                    ))
-                  : ListView.builder(
-                      controller: _scrollCtrl,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      itemCount: _messages.length,
-                      itemBuilder: (ctx, i) => _buildMessage(_messages[i], c),
                     ),
-        ),
+                  )
+                : ListView.builder(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
+                    itemCount: _messages.length,
+                    itemBuilder: (ctx, i) => _buildMessage(_messages[i], c),
+                  ),
+          ),
 
-        // Input bar
-        Container(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-          decoration: BoxDecoration(
-            color: c.cardBackground,
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2)),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(children: [
-              // Attach button
-              IconButton(
-                icon: Icon(Icons.add_circle_outline_rounded, color: c.brandGreen, size: 28),
-                onPressed: _showAttachMenu,
-              ),
-              // Text input
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: c.muted,
-                    borderRadius: BorderRadius.circular(24),
+          // Input bar
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            decoration: BoxDecoration(
+              color: c.cardBackground,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                children: [
+                  // Attach button
+                  IconButton(
+                    icon: Icon(
+                      Icons.add_circle_outline_rounded,
+                      color: c.brandGreen,
+                      size: 28,
+                    ),
+                    onPressed: _showAttachMenu,
                   ),
-                  child: TextField(
-                    controller: _msgCtrl,
-                    style: TextStyle(color: c.primary, fontSize: 15),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sendText(),
-                    decoration: InputDecoration(
-                      hintText: 'Мессеж бичих...',
-                      hintStyle: TextStyle(color: c.mutedForeground.withOpacity(0.6)),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  // Text input
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: c.muted,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: TextField(
+                        controller: _msgCtrl,
+                        style: TextStyle(color: c.primary, fontSize: 15),
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _sendText(),
+                        decoration: InputDecoration(
+                          hintText: 'Мессеж бичих...',
+                          hintStyle: TextStyle(
+                            color: c.mutedForeground.withOpacity(0.6),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  // Send button
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: _sending ? c.muted : c.brandGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: _sending
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: c.brandGreen,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                      onPressed: _sending ? null : _sendText,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 4),
-              // Send button
-              Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(
-                  color: _sending ? c.muted : c.brandGreen,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: _sending
-                      ? SizedBox(width: 18, height: 18,
-                          child: CircularProgressIndicator(
-                            color: c.brandGreen, strokeWidth: 2))
-                      : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                  onPressed: _sending ? null : _sendText,
-                ),
-              ),
-            ]),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -549,15 +674,15 @@ class _ChatScreenState extends State<ChatScreen> {
       bottomRight: isMine ? Radius.zero : const Radius.circular(16),
     );
 
-    // Time string
-    final time = msg.createdAt != null
-        ? '${msg.createdAt!.hour.toString().padLeft(2, '0')}:${msg.createdAt!.minute.toString().padLeft(2, '0')}'
-        : '';
+    // Time string in Mongolia timezone (UTC+8)
+    final time = TimezoneService.formatTime(msg.createdAt);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMine
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // Avatar for others
@@ -566,8 +691,15 @@ class _ChatScreenState extends State<ChatScreen> {
               radius: 14,
               backgroundColor: c.brandGreen.withOpacity(0.15),
               child: Text(
-                  msg.ajiltniiNer.isNotEmpty ? msg.ajiltniiNer[0].toUpperCase() : '?',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c.brandGreen)),
+                msg.ajiltniiNer.isNotEmpty
+                    ? msg.ajiltniiNer[0].toUpperCase()
+                    : '?',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: c.brandGreen,
+                ),
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -581,8 +713,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (!isMine)
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
-                    child: Text(msg.ajiltniiNer,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: c.brandGreen)),
+                    child: Text(
+                      msg.ajiltniiNer,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: c.brandGreen,
+                      ),
+                    ),
                   ),
 
                 // Bubble
@@ -590,164 +728,249 @@ class _ChatScreenState extends State<ChatScreen> {
                   onLongPress: () => _showSeenByInfo(msg),
                   child: Container(
                     constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.70),
+                      maxWidth: MediaQuery.of(context).size.width * 0.70,
+                    ),
                     padding: msg.isImage
-                        ? EdgeInsets.zero // Remove padding for raw images
-                        : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        ? EdgeInsets
+                              .zero // Remove padding for raw images
+                        : const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                     decoration: BoxDecoration(
                       color: msg.isImage ? Colors.transparent : bgColor,
                       borderRadius: radius,
-                      border: (isMine || msg.isImage) ? null : Border.all(color: c.border.withOpacity(0.3)),
+                      border: (isMine || msg.isImage)
+                          ? null
+                          : Border.all(color: c.border.withOpacity(0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                      // Image
-                      if (msg.isImage && msg.fileUrl != null)
-                        GestureDetector(
-                          onTap: () => _openGallery(msg),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              '${ApiService.baseUrl}/${msg.fileUrl}',
-                              width: 220,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (_, child, progress) {
-                                if (progress == null) return child;
-                                return SizedBox(
-                                  width: 220, height: 150,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                        color: c.brandGreen, strokeWidth: 2),
+                        // Image
+                        if (msg.isImage && msg.fileUrl != null)
+                          GestureDetector(
+                            onTap: () => _openGallery(msg),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                '${ApiService.baseUrl}/${msg.fileUrl}',
+                                width: 220,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (_, child, progress) {
+                                  if (progress == null) return child;
+                                  return SizedBox(
+                                    width: 220,
+                                    height: 150,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: c.brandGreen,
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 220,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    color: c.muted,
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                );
-                              },
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 220, height: 100,
-                                decoration: BoxDecoration(
-                                  color: c.muted,
-                                  borderRadius: BorderRadius.circular(12),
+                                  child: Icon(
+                                    Icons.broken_image_rounded,
+                                    color: c.mutedForeground,
+                                  ),
                                 ),
-                                child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
                               ),
                             ),
                           ),
-                        ),
 
-                      // File
-                      if (msg.isFile && msg.fileUrl != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.min, // Vital to prevent forcing bubble width expansion
-                          children: [
-                            Icon(Icons.insert_drive_file_rounded,
-                                size: 20, color: textColor.withOpacity(0.8)),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(msg.fileName ?? 'Файл',
-                                  style: TextStyle(
-                                      color: textColor, fontSize: 14,
-                                      decoration: TextDecoration.underline)),
-                            ),
-                          ],
-                        ),
-
-                      // Text & Time Shrink-Wrapping (For texts and files)
-                      if (!msg.isImage)
-                        Wrap(
-                          alignment: WrapAlignment.end,
-                          crossAxisAlignment: WrapCrossAlignment.end,
-                          children: [
-                            // Caption or Main Text
-                            if ((msg.isText || msg.medeelel.isNotEmpty) && msg.medeelel != msg.fileName)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: Text(msg.medeelel,
-                                    style: TextStyle(color: textColor, fontSize: 15)),
-                              ),
-                            // Time Stamp
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(time, style: TextStyle(fontSize: 10, color: timeColor)),
-                                  if (isMine) ...[
-                                    const SizedBox(width: 4),
-                                    if (msg.isLocal)
-                                      Icon(Icons.radio_button_unchecked_rounded, size: 12, color: timeColor)
-                                    else if (msg.unshsan.isNotEmpty)
-                                      Icon(Icons.done_all_rounded, size: 14, color: Colors.blueAccent.shade100)
-                                    else
-                                      Icon(Icons.check_circle_outline_rounded, size: 13, color: timeColor),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                      // Dedicated Layout for Image Captions & Timestamp
-                      if (msg.isImage)
-                        SizedBox(
-                          width: 220, // Forces constraints to precisely match the image size
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        // File
+                        if (msg.isFile && msg.fileUrl != null)
+                          Row(
+                            mainAxisSize: MainAxisSize
+                                .min, // Vital to prevent forcing bubble width expansion
                             children: [
-                              // Caption
-                              if (msg.medeelel.isNotEmpty && msg.medeelel != msg.fileName)
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 6, right: 8),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: bgColor,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(msg.medeelel, style: TextStyle(color: textColor, fontSize: 15)),
-                                    ),
-                                  ),
-                                )
-                              else
-                                const SizedBox.shrink(),
-
-                              // Overlay Time Pill
-                              Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(time, style: const TextStyle(fontSize: 10, color: Colors.white)),
-                                      if (isMine) ...[
-                                        const SizedBox(width: 4),
-                                        if (msg.isLocal)
-                                          const Icon(Icons.radio_button_unchecked_rounded, size: 12, color: Colors.white)
-                                        else if (msg.unshsan.isNotEmpty)
-                                          Icon(Icons.done_all_rounded, size: 14, color: Colors.blueAccent.shade100)
-                                        else
-                                          const Icon(Icons.check_circle_outline_rounded, size: 13, color: Colors.white),
-                                      ],
-                                    ],
+                              Icon(
+                                Icons.insert_drive_file_rounded,
+                                size: 20,
+                                color: textColor.withOpacity(0.8),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  msg.fileName ?? 'Файл',
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                    ],
+
+                        // Text & Time Shrink-Wrapping (For texts and files)
+                        if (!msg.isImage)
+                          Wrap(
+                            alignment: WrapAlignment.end,
+                            crossAxisAlignment: WrapCrossAlignment.end,
+                            children: [
+                              // Caption or Main Text
+                              if ((msg.isText || msg.medeelel.isNotEmpty) &&
+                                  msg.medeelel != msg.fileName)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: Text(
+                                    msg.medeelel,
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                              // Time Stamp
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      time,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: timeColor,
+                                      ),
+                                    ),
+                                    if (isMine) ...[
+                                      const SizedBox(width: 4),
+                                      if (msg.isLocal)
+                                        Icon(
+                                          Icons.radio_button_unchecked_rounded,
+                                          size: 12,
+                                          color: timeColor,
+                                        )
+                                      else if (msg.unshsan.isNotEmpty)
+                                        Icon(
+                                          Icons.done_all_rounded,
+                                          size: 14,
+                                          color: Colors.blueAccent.shade100,
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.check_circle_outline_rounded,
+                                          size: 13,
+                                          color: timeColor,
+                                        ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        // Dedicated Layout for Image Captions & Timestamp
+                        if (msg.isImage)
+                          SizedBox(
+                            width:
+                                220, // Forces constraints to precisely match the image size
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Caption
+                                if (msg.medeelel.isNotEmpty &&
+                                    msg.medeelel != msg.fileName)
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 6,
+                                        right: 8,
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: bgColor,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          msg.medeelel,
+                                          style: TextStyle(
+                                            color: textColor,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  const SizedBox.shrink(),
+
+                                // Overlay Time Pill
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          time,
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        if (isMine) ...[
+                                          const SizedBox(width: 4),
+                                          if (msg.isLocal)
+                                            const Icon(
+                                              Icons
+                                                  .radio_button_unchecked_rounded,
+                                              size: 12,
+                                              color: Colors.white,
+                                            )
+                                          else if (msg.unshsan.isNotEmpty)
+                                            Icon(
+                                              Icons.done_all_rounded,
+                                              size: 14,
+                                              color: Colors.blueAccent.shade100,
+                                            )
+                                          else
+                                            const Icon(
+                                              Icons
+                                                  .check_circle_outline_rounded,
+                                              size: 13,
+                                              color: Colors.white,
+                                            ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
           // Avatar for mine
           if (isMine) ...[
@@ -756,8 +979,15 @@ class _ChatScreenState extends State<ChatScreen> {
               radius: 14,
               backgroundColor: c.brandGreen,
               child: Text(
-                  msg.ajiltniiNer.isNotEmpty ? msg.ajiltniiNer[0].toUpperCase() : 'Б',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                msg.ajiltniiNer.isNotEmpty
+                    ? msg.ajiltniiNer[0].toUpperCase()
+                    : 'Б',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         ],
@@ -766,9 +996,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showSeenByInfo(ChatMessage msg) {
-    if (msg.isLocal) return; 
+    if (msg.isLocal) return;
     final c = context.colors;
-    
+
     final namesMap = <String, String>{};
     for (var m in _messages) {
       if (m.ajiltniiId.isNotEmpty && m.ajiltniiNer.isNotEmpty) {
@@ -776,7 +1006,9 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
 
-    final seenUserIds = msg.unshsan.where((id) => id != msg.ajiltniiId).toList();
+    final seenUserIds = msg.unshsan
+        .where((id) => id != msg.ajiltniiId)
+        .toList();
 
     showModalBottomSheet(
       context: context,
@@ -793,21 +1025,37 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Container(
               margin: const EdgeInsets.only(top: 12),
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: c.border, borderRadius: BorderRadius.circular(2)),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: c.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Text('Уншсан хүмүүс', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.primary)),
+              child: Text(
+                'Уншсан хүмүүс',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: c.primary,
+                ),
+              ),
             ),
             if (seenUserIds.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 40),
-                child: Text('Хэн ч уншаагүй байна', style: TextStyle(color: c.mutedForeground)),
+                child: Text(
+                  'Хэн ч уншаагүй байна',
+                  style: TextStyle(color: c.mutedForeground),
+                ),
               )
             else
               ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: seenUserIds.length,
@@ -818,10 +1066,24 @@ class _ChatScreenState extends State<ChatScreen> {
                       leading: CircleAvatar(
                         radius: 16,
                         backgroundColor: c.brandGreen.withOpacity(0.1),
-                        child: Text(name[0].toUpperCase(), style: TextStyle(color: c.brandGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          name[0].toUpperCase(),
+                          style: TextStyle(
+                            color: c.brandGreen,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                      title: Text(name, style: TextStyle(color: c.primary, fontSize: 14)),
-                      trailing: Icon(Icons.done_all_rounded, color: Colors.blueAccent.shade100, size: 18),
+                      title: Text(
+                        name,
+                        style: TextStyle(color: c.primary, fontSize: 14),
+                      ),
+                      trailing: Icon(
+                        Icons.done_all_rounded,
+                        color: Colors.blueAccent.shade100,
+                        size: 18,
+                      ),
                     );
                   },
                 ),
@@ -850,22 +1112,29 @@ class _AttachOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 56, height: 56,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: color, size: 28),
           ),
-          child: Icon(icon, color: color, size: 28),
-        ),
-        const SizedBox(height: 8),
-        Text(label,
+          const SizedBox(height: 8),
+          Text(
+            label,
             style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: context.colors.primary)),
-      ]),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: context.colors.primary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
