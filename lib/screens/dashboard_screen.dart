@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'dart:async';
 
 import '../models/cleaning_task.dart';
@@ -32,6 +33,7 @@ import '../services/walkthrough_service.dart';
 import '../services/shake_detection_service.dart';
 import '../services/fcm_service.dart';
 import '../services/task_status_service.dart';
+import '../services/version_service.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'faq_screen.dart';
@@ -55,6 +57,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   bool _tasksLoading = false;
   bool _faqModalOpen = false;
   Timer? _taskStatusTimer; // Timer for periodic task status updates
+  bool _checkedVersionOnce = false;
 
   // Walkthrough keys
   final GlobalKey _projectSelectorKey = GlobalKey();
@@ -80,12 +83,20 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     _loadProjects();
     _setupShakeDetection();
     _startTaskStatusChecker();
+    _checkForAppUpdate();
   }
 
   void _setupShakeDetection() {
     debugPrint('[Dashboard] Setting up shake detection');
     ShakeDetectionService.startListening(() {
       debugPrint('[Dashboard] Shake detected callback called');
+      // Haptic feedback when help modal will appear
+      try {
+        HapticFeedback.mediumImpact();
+        HapticFeedback.vibrate(); // Fallback for some Android devices
+      } catch (_) {
+        // Ignore haptic errors
+      }
       if (!mounted) {
         debugPrint('[Dashboard] Widget not mounted, skipping navigation');
         return;
@@ -435,7 +446,202 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         _refreshTasks();
       }
       _loadNotifications();
+      _checkForAppUpdate();
     }
+  }
+
+  Future<void> _checkForAppUpdate() async {
+    if (!mounted) return;
+
+    // Avoid spamming user: only check once per session
+    if (_checkedVersionOnce) return;
+    _checkedVersionOnce = true;
+
+    final latest = await VersionService.fetchLatest();
+    if (latest == null) return;
+
+    final latestVersion = (latest['latest'] ?? latest['version'])?.toString();
+    if (latestVersion == null || latestVersion.isEmpty) return;
+
+    final cmp = VersionService.compareVersions(
+      latestVersion,
+      VersionService.currentVersion,
+    );
+
+    if (cmp <= 0) {
+      // We are up-to-date or newer
+      return;
+    }
+
+    if (!mounted) return;
+
+    // Show update modal
+    _showUpdateModal(latestVersion, latest);
+  }
+
+  void _showUpdateModal(String latestVersion, Map<String, dynamic> info) {
+    final c = context.colors;
+    final androidUrl =
+        info['androidUrl']?.toString() ?? 'https://play.google.com/';
+    final iosUrl = info['iosUrl']?.toString() ?? 'https://apps.apple.com/';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isAndroid = Theme.of(ctx).platform == TargetPlatform.android;
+        final storeUrl = isAndroid ? androidUrl : iosUrl;
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+            ),
+            decoration: BoxDecoration(
+              color: c.background,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.system_update_rounded,
+                        color: c.brandGreen,
+                        size: 26,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Шинэ хувилбар гарсан байна',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: c.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Хувилбар: $latestVersion',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: c.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => Navigator.pop(ctx),
+                        color: c.mutedForeground,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      info['changelog']?.toString() ??
+                          'Шинэ боломжууд болон сайжруулалтууд нэмэгдсэн. Илүү туршлагатай ашиглахын тулд шинэчилнэ үү.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: c.mutedForeground,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: BorderSide(color: c.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Дараа',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: c.mutedForeground,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Open store URL via a platform channel (app side must implement)
+                            try {
+                              const channel = MethodChannel('app_launcher');
+                              await channel.invokeMethod('open', {
+                                'url': storeUrl,
+                              });
+                            } catch (e) {
+                              debugPrint(
+                                '[Dashboard] ❌ Failed to open store URL: $e',
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: c.brandGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            isAndroid
+                                ? 'Play Store руу очих'
+                                : 'App Store руу очих',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _syncWidget() {

@@ -10,15 +10,15 @@ class ShakeDetectionService {
   static VoidCallback? _onShake;
   static bool _isListening = false;
 
-  // Shake detection parameters - made more strict to avoid simple movements
+  // Shake detection parameters - tuned so typical strong shakes (17–25 magnitude)
+  // will reliably trigger the help modal.
   static const double _shakeThreshold =
-      18.0; // Acceleration threshold (increased from 10.0 to require stronger shakes)
+      17.0; // Acceleration threshold (slightly sensitive)
   static const int _shakeWindowMs =
-      800; // Time window for shake detection (increased from 500ms)
+      1200; // Time window for counting shakes (ms)
   static const int _minShakeCount =
-      4; // Minimum shakes in window (increased from 2 to 4)
-  static const int _debounceMs =
-      5000; // Debounce time between shake triggers (increased from 3 to 5 seconds)
+      2; // Require at least 2 strong shakes within the window
+  static const int _debounceMs = 4000; // Minimum time between triggers (ms)
 
   static DateTime? _lastShakeTime;
   static int _shakeCount = 0;

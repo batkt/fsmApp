@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-class FAQScreen extends StatelessWidget {
+class FAQScreen extends StatefulWidget {
   const FAQScreen({super.key});
+
+  @override
+  State<FAQScreen> createState() => _FAQScreenState();
+}
+
+class _FAQScreenState extends State<FAQScreen> {
+  String _query = '';
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final mediaQuery = MediaQuery.of(context);
     final safeAreaBottom = mediaQuery.padding.bottom;
+
+    // Filter FAQ items by search query
+    final lowerQuery = _query.toLowerCase();
+    final filteredItems = lowerQuery.isEmpty
+        ? _faqItems
+        : _faqItems.where((item) {
+            final q = item['question']!.toLowerCase();
+            final a = item['answer']!.toLowerCase();
+            return q.contains(lowerQuery) || a.contains(lowerQuery);
+          }).toList();
 
     return Container(
       constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.9),
@@ -60,11 +77,43 @@ class FAQScreen extends StatelessWidget {
               ),
             ),
             Divider(color: c.border, height: 1),
+
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Асуултаа хайх...',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  isDense: true,
+                  filled: true,
+                  fillColor: c.muted,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.brandGreen),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _query = value;
+                  });
+                },
+              ),
+            ),
+
             // Content
             Flexible(
               child: ListView(
                 shrinkWrap: true,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                 children: [
                   // Header card
                   Container(
@@ -110,8 +159,8 @@ class FAQScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // FAQ Items
-                  ..._faqItems.map(
+                  // FAQ Items (filtered)
+                  ...filteredItems.map(
                     (item) => _FAQItem(
                       question: item['question']!,
                       answer: item['answer']!,
