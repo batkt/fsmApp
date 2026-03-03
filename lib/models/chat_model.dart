@@ -12,6 +12,8 @@ class ChatMessage {
   final String barilgiinId;
   final String baiguullagiinId;
   final DateTime? createdAt;
+  final List<String> unshsan;
+  final bool isLocal;
 
   ChatMessage({
     required this.id,
@@ -26,6 +28,8 @@ class ChatMessage {
     required this.barilgiinId,
     required this.baiguullagiinId,
     this.createdAt,
+    this.unshsan = const [],
+    this.isLocal = false,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
@@ -36,13 +40,15 @@ class ChatMessage {
     ajiltniiNer: (j['ajiltniiNer'] ?? '').toString(),
     medeelel: (j['medeelel'] ?? '').toString(),
     turul: (j['turul'] ?? 'text').toString(),
-    fileUrl: j['fileUrl']?.toString(),
-    fileName: j['fileName']?.toString(),
+    fileUrl: (j['fileZam'] ?? j['fileUrl'])?.toString(),
+    fileName: (j['fileNer'] ?? j['fileName'])?.toString(),
     barilgiinId: (j['barilgiinId'] ?? '').toString(),
     baiguullagiinId: (j['baiguullagiinId'] ?? '').toString(),
     createdAt: j['createdAt'] != null
         ? DateTime.tryParse(j['createdAt'].toString())
         : null,
+    unshsan: (j['unshsan'] as List?)?.map((e) => e.toString()).toList() ?? [],
+    isLocal: false,
   );
 
   bool get isImage => turul == 'zurag';

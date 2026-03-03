@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'task_model.dart';
 
 enum TaskStatus { pending, inProgress, completed, overdue }
+
 enum TaskPriority { high, medium, low }
 
 class SubTask {
@@ -39,9 +40,15 @@ class CleaningTask {
     // Map API status → UI enum
     TaskStatus status;
     switch (t.tuluv) {
-      case 'khiigdej bui': status = TaskStatus.inProgress; break;
-      case 'duussan':       status = TaskStatus.completed;  break;
-      case 'shalga':        status = TaskStatus.inProgress; break;
+      case 'khiigdej bui':
+        status = TaskStatus.inProgress;
+        break;
+      case 'duussan':
+        status = TaskStatus.completed;
+        break;
+      case 'shalga':
+        status = TaskStatus.inProgress;
+        break;
       default:
         status = t.isOverdue ? TaskStatus.overdue : TaskStatus.pending;
     }
@@ -49,15 +56,22 @@ class CleaningTask {
     // Map API priority → UI enum
     TaskPriority prio;
     switch (t.zereglel) {
-      case 'nen yaraltai': prio = TaskPriority.high;   break;
-      case 'yaraltai':     prio = TaskPriority.high;   break;
-      case 'baga':         prio = TaskPriority.low;    break;
-      default:             prio = TaskPriority.medium;
+      case 'nen yaraltai':
+        prio = TaskPriority.high;
+        break;
+      case 'yaraltai':
+        prio = TaskPriority.high;
+        break;
+      case 'baga':
+        prio = TaskPriority.low;
+        break;
+      default:
+        prio = TaskPriority.medium;
     }
 
     // Extract time from DateTime or use defaults
     final start = t.ekhlekhTsag;
-    final end   = t.duusakhTsag;
+    final end = t.duusakhTsag;
     final startTime = start != null
         ? TimeOfDay(hour: start.hour, minute: start.minute)
         : const TimeOfDay(hour: 9, minute: 0);
@@ -86,7 +100,10 @@ class CleaningTask {
       subtasks: subs,
       hasPhoto: t.zurag.isNotEmpty,
       photoCount: t.zurag.length,
-      photoPaths: List<String>.from(t.zurag),
+      photoPaths: t.zurag
+          .map((z) => z.zamNer ?? z.fileNer ?? '')
+          .where((path) => path.isNotEmpty)
+          .toList(),
     );
   }
 

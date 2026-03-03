@@ -158,14 +158,31 @@ class _TaskCardState extends State<TaskCard> {
                           color: c.mutedForeground)),
                 ],
                 const Spacer(),
+                // Quick chat button (always active)
+                GestureDetector(
+                  onTap: widget.onChat,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: c.brandGreen.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.chat_bubble_rounded, size: 18, color: c.brandGreen),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 // Expand toggle
                 GestureDetector(
                   onTap: () => setState(() => _expanded = !_expanded),
                   child: AnimatedRotation(
                     turns: _expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(Icons.expand_more_rounded,
-                        color: c.mutedForeground, size: 24)),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(Icons.expand_more_rounded,
+                          color: c.mutedForeground, size: 24),
+                    ),
+                  ),
                 ),
               ]),
             ]),
@@ -252,15 +269,20 @@ class _TaskCardState extends State<TaskCard> {
                     // Action buttons
                     Row(children: [
                       Expanded(child: OutlinedButton.icon(
-                        onPressed: widget.onChat,
-                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                        label: const Text('Чат',
-                            style: TextStyle(fontSize: 12)),
+                        onPressed: done ? null : widget.onAttachPhoto,
+                        icon: Icon(t.hasPhoto
+                            ? Icons.verified_rounded
+                            : Icons.camera_alt_outlined, size: 16),
+                        label: Text(t.hasPhoto
+                            ? 'Баталгаажсан' : 'Зураг',
+                            style: const TextStyle(fontSize: 12)),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               vertical: 8),
-                          foregroundColor: c.primary,
-                          side: BorderSide(color: c.border),
+                          foregroundColor: t.hasPhoto
+                              ? c.success : c.brandGreen,
+                          side: BorderSide(color: t.hasPhoto
+                              ? c.success : c.border),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
                       )),

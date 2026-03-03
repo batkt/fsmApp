@@ -43,10 +43,24 @@ class WidgetService {
 
     String iconFor(NotifType type) {
       switch (type) {
-        case NotifType.task: return '📋';
-        case NotifType.alert: return '⚠️';
-        case NotifType.success: return '✅';
-        case NotifType.info: return '📢';
+        case NotifType.task:
+        case NotifType.taskCreated:
+        case NotifType.taskUpdated:
+        case NotifType.taskCompleted:
+          return '📋';
+        case NotifType.alert:
+        case NotifType.assignment:
+        case NotifType.reminder:
+          return '⚠️';
+        case NotifType.info:
+        case NotifType.projectCreated:
+        case NotifType.projectUpdated:
+        case NotifType.chatMessage:
+          return '📢';
+        case NotifType.success:
+          return '✅';
+        case NotifType.medegdel:
+          return '🔔';
       }
     }
 

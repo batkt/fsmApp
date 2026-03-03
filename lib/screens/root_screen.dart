@@ -97,7 +97,8 @@ class _HomeShellState extends State<_HomeShell> {
             projectId: activeProject.id,
             barilgiinId: activeProject.barilgiinId,
             baiguullagiinId: activeProject.baiguullagiinId,
-            title: '${activeProject.ner} - Чат',
+            title: '${activeProject.ner} Чат',
+            showBackButton: false,
           );
         },
       ),

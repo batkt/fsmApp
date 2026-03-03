@@ -16,8 +16,12 @@ class ChatService {
     required String projectId,
     String? taskId,
   }) async {
-    final query = <String, String>{'projectId': projectId};
-    if (taskId != null) query['taskId'] = taskId;
+    final user = AuthService.currentUser;
+    final query = <String, String>{
+      'projectId': projectId,
+      if (user?.baiguullagaId != null) 'baiguullagiinId': user!.baiguullagaId,
+    };
+    if (taskId != null && taskId.isNotEmpty) query['taskId'] = taskId;
 
     final res = await ApiService.get('/chats', query: query);
     if (!res.success) return [];
@@ -43,16 +47,18 @@ class ChatService {
     final user = AuthService.currentUser;
     if (user == null) return null;
 
-    final res = await ApiService.post('/chats', body: {
+    final payload = {
       'projectId': projectId,
-      if (taskId != null) 'taskId': taskId,
-      'medeelel': medeelel,
       'turul': 'text',
       'barilgiinId': barilgiinId,
       'baiguullagiinId': baiguullagiinId,
       'ajiltniiId': user.id,
       'ajiltniiNer': user.ner,
-    });
+    };
+    if (taskId != null && taskId.isNotEmpty) payload['taskId'] = taskId;
+    if (medeelel.isNotEmpty) payload['medeelel'] = medeelel;
+
+    final res = await ApiService.post('/chats', body: payload);
 
     if (!res.success) return null;
 
@@ -87,34 +93,45 @@ class ChatService {
 
       // File
       final file = File(filePath);
-      final mimeType = lookupMimeType(filePath) ?? 'application/octet-stream';
+      final mimeType = lookupMimeType(filePath) ?? 'image/jpeg';
       final parts = mimeType.split('/');
+      final fileName = filePath.split('/').last;
+      
       request.files.add(await http.MultipartFile.fromPath(
         'file',
         filePath,
-        contentType: MediaType(parts[0], parts[1]),
+        filename: fileName,
+        contentType: MediaType(parts[0], parts.length > 1 ? parts[1] : 'octet-stream'),
       ));
 
       // Fields
       request.fields['projectId'] = projectId;
-      if (taskId != null) request.fields['taskId'] = taskId;
+      if (taskId != null && taskId.isNotEmpty) request.fields['taskId'] = taskId;
       request.fields['barilgiinId'] = barilgiinId;
       request.fields['baiguullagiinId'] = baiguullagiinId;
       request.fields['ajiltniiId'] = user.id;
       request.fields['ajiltniiNer'] = user.ner;
-      if (caption != null) request.fields['medeelel'] = caption;
+      if (caption != null && caption.isNotEmpty) request.fields['medeelel'] = caption;
 
-      final streamed = await request.send().timeout(const Duration(seconds: 30));
+      final streamed = await request.send().timeout(const Duration(seconds: 60));
       final body = await streamed.stream.bytesToString();
-      final data = json.decode(body);
+      debugPrint('Upload response: ${streamed.statusCode} | body: $body');
+
+      Map<String, dynamic> data;
+      try {
+        data = json.decode(body);
+      } catch (_) {
+        debugPrint('Upload failed to parse JSON');
+        return null;
+      }
 
       if (streamed.statusCode >= 200 && streamed.statusCode < 300) {
-        final d = data is Map ? (data['data'] ?? data['result'] ?? data) : data;
+        final d = data['data'] ?? data['result'] ?? data;
         if (d is Map<String, dynamic>) return ChatMessage.fromJson(d);
       }
       return null;
     } catch (e) {
-      debugPrint('Upload error: $e');
+      debugPrint('Upload exception: $e');
       return null;
     }
   }
@@ -123,5 +140,25 @@ class ChatService {
   static Future<bool> delete(String id) async {
     final res = await ApiService.delete('/chats/$id');
     return res.success;
+  }
+
+  /// Mark multiple messages as read.
+  static Future<void> markAsRead({
+    required List<String> chatIds,
+    required String projectId,
+    String? taskId,
+  }) async {
+    if (chatIds.isEmpty) return;
+    final user = AuthService.currentUser;
+    if (user == null) return;
+
+    final payload = {
+      'chatIds': chatIds,
+      'projectId': projectId,
+      'ajiltniiId': user.id,
+    };
+    if (taskId != null && taskId.isNotEmpty) payload['taskId'] = taskId;
+
+    await ApiService.put('/chats/read', body: payload);
   }
 }
