@@ -1,10 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'screens/root_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/holiday_service.dart';
+import 'services/fcm_service.dart';
+
+// Background message handler (must be top-level)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  FCMService.firebaseMessagingBackgroundHandler(message);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp();
+    
+    // Set up background message handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    
+    // Initialize FCM
+    await FCMService.initialize();
+  } catch (e) {
+    debugPrint('[Main] Firebase initialization error: $e');
+    debugPrint('[Main] Continuing without Firebase - using local notifications only');
+    debugPrint('[Main] Note: To use Firebase, you need to add google-services.json (Android) and GoogleService-Info.plist (iOS)');
+  }
+  
   await HolidayService.init();
   runApp(const CleanerApp());
 }

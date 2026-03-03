@@ -29,6 +29,7 @@ import '../widgets/app_toast.dart';
 import '../widgets/walkthrough_wrapper.dart';
 import '../services/walkthrough_service.dart';
 import '../services/shake_detection_service.dart';
+import '../services/fcm_service.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'faq_screen.dart';
@@ -70,6 +71,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     _notifications = [];
 
     _initializePushNotifications();
+    _initializeFCM();
     _setupSocketListeners();
     _loadNotifications();
     _loadProjects();
@@ -162,6 +164,25 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     if (!hasPermission) {
       debugPrint(
         '[Dashboard] ⚠️ Notification permission not granted. User needs to enable it in settings.',
+      );
+    }
+  }
+
+  Future<void> _initializeFCM() async {
+    try {
+      await FCMService.initialize();
+      final token = FCMService.getToken();
+      if (token != null) {
+        debugPrint('[Dashboard] FCM Token: $token');
+        // Register token with backend if user is logged in
+        // This works even when user is not logged in - just needs ajiltniiId
+        // But we'll register it here after login to ensure it's registered
+        await FCMService.registerTokenWithBackend(token);
+      }
+    } catch (e) {
+      debugPrint('[Dashboard] FCM initialization error: $e');
+      debugPrint(
+        '[Dashboard] Continuing without FCM - using local notifications only',
       );
     }
   }

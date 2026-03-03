@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
 import '../services/project_service.dart';
+import '../services/fcm_service.dart';
 import '../models/project_model.dart';
 import '../theme/app_theme.dart';
 import 'chat_screen.dart';
@@ -45,6 +46,8 @@ class _RootScreenState extends State<RootScreen> {
 
   void _handleLogout() async {
     SocketService.disconnect();
+    // Deactivate FCM token before logout
+    await FCMService.deactivateToken();
     await AuthService.logout();
     if (mounted) setState(() => _isLoggedIn = false);
   }
@@ -78,7 +81,6 @@ class _HomeShellState extends State<_HomeShell> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final user = AuthService.currentUser;
     final pages = [
       CleanerDashboardScreen(onLogout: widget.onLogout),
       const HistoryScreen(),

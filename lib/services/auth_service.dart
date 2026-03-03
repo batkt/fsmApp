@@ -85,14 +85,13 @@ class AuthService {
   /// Login with username and password
   static Future<AuthResult> login(String nevtrekhNer, String nuutsUg) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'nevtrekhNer': nevtrekhNer,
-          'nuutsUg': nuutsUg,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'nevtrekhNer': nevtrekhNer, 'nuutsUg': nuutsUg}),
+          )
+          .timeout(const Duration(seconds: 10));
 
       final data = json.decode(response.body);
 
@@ -108,7 +107,9 @@ class AuthService {
           register: (result['register'] ?? '').toString(),
           utas: (result['utas'] ?? '').toString(),
           albanTushaal: (result['albanTushaal'] ?? '').toString(),
-          baiguullagaId: (result['baiguullagiinId'] ?? baiguullaga?['_id'] ?? '').toString(),
+          baiguullagaId:
+              (result['baiguullagiinId'] ?? baiguullaga?['_id'] ?? '')
+                  .toString(),
           baiguullagaNer: (baiguullaga?['ner'] ?? '').toString(),
           barilguud: List<String>.from(result['barilguud'] ?? []),
         );
@@ -125,8 +126,11 @@ class AuthService {
         return AuthResult.success(user);
       } else {
         // Server returned an error message. Translate if in English.
-        String msg = data['message'] ?? data['error'] ?? 'Нэвтрэх нэр эсвэл нууц үг буруу';
-        
+        String msg =
+            data['message'] ??
+            data['error'] ??
+            'Нэвтрэх нэр эсвэл нууц үг буруу';
+
         final lowerMsg = msg.toLowerCase();
         if (lowerMsg.contains('unauthorized')) {
           msg = 'Хандах эрхгүй эсвэл эрх хүчингүй байна';
@@ -145,21 +149,26 @@ class AuthService {
         } else if (lowerMsg.contains('connection')) {
           msg = 'Сервертэй холбогдож чадсангүй';
         }
-        
+
         return AuthResult.failure(msg);
       }
     } on http.ClientException {
-      return AuthResult.failure('Сервертэй холбогдож чадсангүй. Интернэт холболтоо шалгана уу.');
+      return AuthResult.failure(
+        'Сервертэй холбогдож чадсангүй. Интернэт холболтоо шалгана уу.',
+      );
     } catch (e) {
       debugPrint('Login error: $e');
       if (e.toString().toLowerCase().contains('timeout')) {
         return AuthResult.failure('Холболт амжилтгүй. Хугацаа дууслаа.');
       }
-      return AuthResult.failure('Сервертэй холбогдож чадсангүй. Дахин оролдоно уу.');
+      return AuthResult.failure(
+        'Сервертэй холбогдож чадсангүй. Дахин оролдоно уу.',
+      );
     }
   }
 
   /// Logout: clear all stored session data
+  /// Note: FCM token deactivation is handled in root_screen.dart to avoid circular dependency
   static Future<void> logout() async {
     _token = null;
     _currentUser = null;

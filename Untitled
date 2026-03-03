@@ -1,0 +1,744 @@
+# Frontend/Mobile App Integration Guide
+
+This guide explains how to integrate Firebase Cloud Messaging (FCM) push notifications into your frontend/mobile application to receive notifications even when users are not logged in or the app is closed.
+
+## 📋 Overview
+
+Your backend automatically sends push notifications when:
+- ✅ Tasks are created/updated/completed
+- ✅ Projects are created/updated
+- ✅ Chat messages are sent
+- ✅ Any notification is created
+
+**Key Feature:** Users can receive notifications even when **not logged in** - they just need to register their FCM token with their `ajiltniiId`.
+
+---
+
+## 🔧 Setup Steps
+
+### 1. Install Firebase SDK
+
+#### For Web (React/Vue/Angular/etc.)
+
+```bash
+npm install firebase
+# or
+yarn add firebase
+```
+
+#### For React Native
+
+```bash
+npm install @react-native-firebase/app @react-native-firebase/messaging
+# or
+yarn add @react-native-firebase/app @react-native-firebase/messaging
+```
+
+#### For Flutter
+
+```yaml
+dependencies:
+  firebase_core: ^2.24.0
+  firebase_messaging: ^14.7.0
+```
+
+---
+
+## 📱 Web Application Integration
+
+### Step 1: Initialize Firebase
+
+Create `firebase-config.js` or similar:
+
+```javascript
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
+// Your Firebase config (get from Firebase Console → Project Settings → General)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "fsmsys-a5fe3.firebaseapp.com",
+  projectId: "fsmsys-a5fe3",
+  storageBucket: "fsmsys-a5fe3.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Cloud Messaging
+let messaging = null;
+if (typeof window !== 'undefined') {
+  messaging = getMessaging(app);
+}
+
+export { messaging, getToken, onMessage };
+```
+
+### Step 2: Get VAPID Key
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project: **fsmsys-a5fe3**
+3. Go to **Project Settings** → **Cloud Messaging**
+4. Under **Web Push certificates**, copy the **Key pair** (VAPID key)
+5. Save it for use in your app
+
+### Step 3: Create Service Worker
+
+Create `public/firebase-messaging-sw.js`:
+
+```javascript
+// Import Firebase scripts
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+
+// Initialize Firebase
+firebase.initializeApp({
+  apiKey: "YOUR_API_KEY",
+  authDomain: "fsmsys-a5fe3.firebaseapp.com",
+  projectId: "fsmsys-a5fe3",
+  storageBucket: "fsmsys-a5fe3.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+});
+
+// Retrieve Firebase Messaging object
+const messaging = firebase.messaging();
+
+// Handle background messages
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/icon-192x192.png', // Your app icon
+    badge: '/badge-72x72.png',
+    data: payload.data
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+```
+
+### Step 4: Register FCM Token
+
+```javascript
+import { messaging, getToken } from './firebase-config';
+
+// Get user ID (from localStorage, token, or user input)
+const userId = getUserId(); // e.g., "695c57521a8a4aebc1d65b05"
+const backendUrl = 'http://localhost:8000'; // Your backend URL
+
+async function registerFCMToken() {
+  try {
+    // Request notification permission
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.warn('Notification permission denied');
+      return;
+    }
+
+    // Get FCM token
+    const vapidKey = 'YOUR_VAPID_KEY'; // From Firebase Console
+    const fcmToken = await getToken(messaging, { vapidKey });
+    
+    if (!fcmToken) {
+      console.warn('No FCM token available');
+      return;
+    }
+
+    console.log('FCM Token:', fcmToken);
+
+    // Register token with backend
+    const response = await fetch(`${backendUrl}/fcm/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ajiltniiId: userId, // User ID (works even if not logged in!)
+        token: fcmToken,
+        deviceType: 'web',
+        deviceId: getDeviceId(), // Optional: unique device ID
+        appVersion: '1.0.0', // Optional: your app version
+        baiguullagiinId: getCompanyId() // Optional: company ID
+      })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log('✅ FCM token registered successfully');
+    } else {
+      console.error('❌ Failed to register FCM token:', result.message);
+    }
+  } catch (error) {
+    console.error('❌ Error registering FCM token:', error);
+  }
+}
+
+// Call when app starts or user opens app
+registerFCMToken();
+```
+
+### Step 5: Handle Foreground Notifications
+
+```javascript
+import { onMessage } from './firebase-config';
+
+// Handle notifications when app is in foreground
+onMessage(messaging, (payload) => {
+  console.log('Message received in foreground:', payload);
+  
+  // Show notification
+  const notificationTitle = payload.notification?.title || 'New Notification';
+  const notificationBody = payload.notification?.body || '';
+  
+  // Show browser notification
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(notificationTitle, {
+      body: notificationBody,
+      icon: '/icon-192x192.png',
+      badge: '/badge-72x72.png',
+      data: payload.data
+    });
+  }
+  
+  // Or show in-app notification
+  showInAppNotification(payload);
+  
+  // Update notification badge/count
+  updateNotificationBadge();
+});
+```
+
+### Step 6: Handle Notification Click
+
+```javascript
+// In your service worker or main app
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+  
+  event.notification.close();
+  
+  // Get notification data
+  const notificationData = event.notification.data;
+  
+  // Navigate to relevant page
+  if (notificationData.projectId) {
+    event.waitUntil(
+      clients.openWindow(`/projects/${notificationData.projectId}`)
+    );
+  } else if (notificationData.taskId) {
+    event.waitUntil(
+      clients.openWindow(`/tasks/${notificationData.taskId}`)
+    );
+  } else {
+    event.waitUntil(
+      clients.openWindow('/notifications')
+    );
+  }
+});
+```
+
+---
+
+## 📱 React Native Integration
+
+### Step 1: Setup (iOS)
+
+1. Add to `ios/Podfile`:
+```ruby
+pod 'Firebase/Messaging'
+```
+
+2. Run:
+```bash
+cd ios && pod install
+```
+
+3. Enable Push Notifications in Xcode:
+   - Open `ios/YourApp.xcworkspace`
+   - Select your target → **Signing & Capabilities**
+   - Click **+ Capability** → **Push Notifications**
+
+### Step 2: Setup (Android)
+
+1. Add to `android/build.gradle`:
+```gradle
+dependencies {
+    classpath 'com.google.gms:google-services:4.3.15'
+}
+```
+
+2. Add to `android/app/build.gradle`:
+```gradle
+apply plugin: 'com.google.gms.google-services'
+
+dependencies {
+    implementation 'com.google.firebase:firebase-messaging:23.2.0'
+}
+```
+
+3. Add `google-services.json` to `android/app/` (download from Firebase Console)
+
+### Step 3: Register FCM Token
+
+```javascript
+import messaging from '@react-native-firebase/messaging';
+import { Platform } from 'react-native';
+
+async function registerFCMToken() {
+  try {
+    // Request permission (iOS)
+    if (Platform.OS === 'ios') {
+      const authStatus = await messaging().requestPermission();
+      if (authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL) {
+        console.log('Permission granted');
+      } else {
+        console.warn('Permission denied');
+        return;
+      }
+    }
+
+    // Get FCM token
+    const fcmToken = await messaging().getToken();
+    console.log('FCM Token:', fcmToken);
+
+    // Register with backend
+    const userId = getUserId(); // Get from AsyncStorage, token, etc.
+    const response = await fetch('http://localhost:8000/fcm/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ajiltniiId: userId,
+        token: fcmToken,
+        deviceType: Platform.OS, // 'ios' or 'android'
+        deviceId: getDeviceId(), // Optional
+        appVersion: '1.0.0' // Optional
+      })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log('✅ FCM token registered');
+    }
+  } catch (error) {
+    console.error('❌ Error:', error);
+  }
+}
+
+// Call on app start
+registerFCMToken();
+
+// Handle token refresh
+messaging().onTokenRefresh((token) => {
+  console.log('Token refreshed:', token);
+  registerFCMToken(); // Re-register with new token
+});
+```
+
+### Step 4: Handle Notifications
+
+```javascript
+import messaging from '@react-native-firebase/messaging';
+import { Alert } from 'react-native';
+
+// Handle foreground notifications
+messaging().onMessage(async (remoteMessage) => {
+  console.log('Foreground message:', remoteMessage);
+  
+  Alert.alert(
+    remoteMessage.notification?.title || 'Notification',
+    remoteMessage.notification?.body || '',
+    [{ text: 'OK' }]
+  );
+  
+  // Update notification badge
+  updateNotificationBadge();
+});
+
+// Handle background/quit state notifications
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  console.log('Background message:', remoteMessage);
+});
+
+// Handle notification opened from quit state
+messaging()
+  .getInitialNotification()
+  .then((remoteMessage) => {
+    if (remoteMessage) {
+      console.log('Notification opened app:', remoteMessage);
+      // Navigate to relevant screen
+      handleNotificationNavigation(remoteMessage.data);
+    }
+  });
+
+// Handle notification opened from background
+messaging().onNotificationOpenedApp((remoteMessage) => {
+  console.log('Notification opened app from background:', remoteMessage);
+  handleNotificationNavigation(remoteMessage.data);
+});
+```
+
+---
+
+## 📱 Flutter Integration
+
+### Step 1: Setup
+
+1. Add dependencies to `pubspec.yaml`:
+```yaml
+dependencies:
+  firebase_core: ^2.24.0
+  firebase_messaging: ^14.7.0
+```
+
+2. Run:
+```bash
+flutter pub get
+```
+
+3. Add `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) from Firebase Console
+
+### Step 2: Register FCM Token
+
+```dart
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+Future<void> registerFCMToken() async {
+  try {
+    // Request permission (iOS)
+    NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      // Get FCM token
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      
+      if (fcmToken != null) {
+        print('FCM Token: $fcmToken');
+        
+        // Register with backend
+        String userId = getUserId(); // Get from SharedPreferences, etc.
+        final response = await http.post(
+          Uri.parse('http://localhost:8000/fcm/register'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'ajiltniiId': userId,
+            'token': fcmToken,
+            'deviceType': Platform.isIOS ? 'ios' : 'android',
+            'appVersion': '1.0.0'
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          print('✅ FCM token registered');
+        }
+      }
+    }
+  } catch (e) {
+    print('❌ Error: $e');
+  }
+}
+
+// Call on app start
+registerFCMToken();
+
+// Handle token refresh
+FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+  print('Token refreshed: $newToken');
+  registerFCMToken(); // Re-register
+});
+```
+
+### Step 3: Handle Notifications
+
+```dart
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Handle foreground notifications
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('Background message: ${message.messageId}');
+}
+
+void main() {
+  // Initialize background handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  
+  runApp(MyApp());
+}
+
+// In your app widget
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Foreground message: ${message.notification?.title}');
+      
+      // Show local notification
+      showLocalNotification(
+        message.notification?.title ?? 'Notification',
+        message.notification?.body ?? '',
+      );
+    });
+
+    // Handle notification opened from background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('Notification opened: ${message.data}');
+      handleNotificationNavigation(message.data);
+    });
+
+    // Handle notification opened from quit state
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        handleNotificationNavigation(message.data);
+      }
+    });
+  }
+}
+```
+
+---
+
+## 🔑 Important Implementation Notes
+
+### 1. User ID Handling
+
+**Key Point:** FCM token registration works even when user is **not logged in**!
+
+```javascript
+// Option 1: Get from localStorage (if previously logged in)
+const userId = localStorage.getItem('userId');
+
+// Option 2: Get from JWT token (if logged in)
+const token = localStorage.getItem('token');
+const decoded = jwtDecode(token);
+const userId = decoded.id;
+
+// Option 3: User input (for first-time users)
+const userId = prompt('Enter your user ID:');
+
+// Option 4: From backend auth endpoint
+const response = await fetch('/api/auth/me');
+const user = await response.json();
+const userId = user.id;
+```
+
+### 2. Token Refresh Handling
+
+FCM tokens can refresh. Always re-register when token changes:
+
+```javascript
+// React Native
+messaging().onTokenRefresh((newToken) => {
+  registerFCMToken(newToken);
+});
+
+// Web
+// Token refresh is handled automatically by Firebase SDK
+```
+
+### 3. Multiple Devices
+
+Users can have multiple devices. Backend supports this - each device gets its own token.
+
+### 4. Deactivate Token on Logout
+
+```javascript
+async function logout() {
+  const fcmToken = await getFCMToken(); // Get current token
+  
+  // Deactivate token
+  await fetch('http://localhost:8000/fcm/deactivate', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: fcmToken })
+  });
+  
+  // Continue with logout...
+}
+```
+
+---
+
+## 📊 Testing
+
+### 1. Test Token Registration
+
+```javascript
+// Check if token is registered
+const response = await fetch(`http://localhost:8000/fcm/tokens?ajiltniiId=${userId}`);
+const { data } = await response.json();
+console.log('Registered tokens:', data);
+```
+
+### 2. Test Push Notification
+
+Create a test notification via API:
+
+```javascript
+await fetch('http://localhost:8000/medegdel', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    ajiltniiId: userId,
+    title: 'Test Notification',
+    message: 'This is a test',
+    turul: 'medegdel'
+  })
+});
+```
+
+### 3. Check Server Logs
+
+Look for:
+```
+[FCM] ✅ Push notification sent: 1 success, 0 failed
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Token Not Registering
+
+- ✅ Check backend URL is correct
+- ✅ Verify `ajiltniiId` is provided
+- ✅ Check network requests in browser DevTools
+- ✅ Verify backend is running
+
+### Notifications Not Received
+
+1. **Check token registration:**
+   ```bash
+   GET /fcm/tokens?ajiltniiId=USER_ID
+   ```
+
+2. **Check permissions:**
+   - Browser: `Notification.requestPermission()` must return 'granted'
+   - iOS: Check notification permissions in Settings
+   - Android: Check app notification settings
+
+3. **Check Firebase Console:**
+   - Verify Cloud Messaging API is enabled
+   - Check project settings are correct
+
+4. **Check service worker (Web):**
+   - Verify `firebase-messaging-sw.js` is in `public/` folder
+   - Check browser console for service worker errors
+
+### Background Notifications Not Working (Web)
+
+- ✅ Service worker must be registered
+- ✅ `firebase-messaging-sw.js` must be in `public/` folder
+- ✅ Check browser supports service workers
+- ✅ Verify HTTPS (required for service workers in production)
+
+---
+
+## 📝 Complete Example (React)
+
+```javascript
+// App.js
+import { useEffect } from 'react';
+import { messaging, getToken, onMessage } from './firebase-config';
+
+function App() {
+  useEffect(() => {
+    // Register FCM token
+    const registerToken = async () => {
+      const userId = localStorage.getItem('userId') || 'guest-user-id';
+      const vapidKey = 'YOUR_VAPID_KEY';
+      
+      try {
+        const fcmToken = await getToken(messaging, { vapidKey });
+        if (fcmToken) {
+          await fetch('http://localhost:8000/fcm/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ajiltniiId: userId,
+              token: fcmToken,
+              deviceType: 'web'
+            })
+          });
+        }
+      } catch (error) {
+        console.error('Error registering token:', error);
+      }
+    };
+
+    registerToken();
+
+    // Handle foreground notifications
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log('Foreground notification:', payload);
+      // Show notification UI
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return <div>Your App</div>;
+}
+```
+
+---
+
+## 🔗 API Endpoints Reference
+
+- **POST** `/fcm/register` - Register/update FCM token
+- **GET** `/fcm/tokens?ajiltniiId=USER_ID` - Get user's tokens
+- **PUT** `/fcm/deactivate` - Deactivate token
+- **DELETE** `/fcm/token/:token` - Remove token
+
+See [FCM_SETUP.md](./FCM_SETUP.md) for backend setup details.
+
+---
+
+## ✅ Checklist
+
+- [ ] Firebase SDK installed
+- [ ] Firebase project configured
+- [ ] VAPID key obtained (for web)
+- [ ] Service worker created (for web)
+- [ ] FCM token registration implemented
+- [ ] Foreground notification handler implemented
+- [ ] Background notification handler implemented
+- [ ] Notification click handler implemented
+- [ ] Token refresh handler implemented
+- [ ] Tested on device/emulator
+- [ ] Tested with backend
+
+---
+
+## 🎉 You're Done!
+
+Once implemented, users will receive push notifications automatically when:
+- Tasks are created/updated
+- Projects are created/updated
+- Chat messages are sent
+- Any notification is created
+
+**Even when the app is closed or user is not logged in!**
