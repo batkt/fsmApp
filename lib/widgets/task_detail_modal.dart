@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/cleaning_task.dart';
 import '../theme/app_theme.dart';
 import '../services/walkthrough_service.dart';
+import '../services/api_service.dart';
 import '../widgets/modal_walkthrough.dart';
 
 class TaskDetailModal extends StatefulWidget {
@@ -173,6 +174,56 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   File(path),
                   fit: BoxFit.contain,
                   width: double.infinity,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNetworkPhoto(BuildContext context, String url, AppColorScheme c) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: InteractiveViewer(
+                child: Image.network(
+                  url,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: double.infinity,
+                    height: 400,
+                    color: Colors.grey[900],
+                    child: const Center(
+                      child: Icon(
+                        Icons.broken_image_rounded,
+                        color: Colors.white70,
+                        size: 64,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -505,25 +556,222 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     ),
                   ],
 
-                  // Photos section
+                  // Photos section - Show both types of images separately
                   const SizedBox(height: 16),
                   Container(
                     key: _photosKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              '📸 Зураг',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: c.primary,
+                        // Original task images (hariutsagchZurag) - from task creator
+                        if (t.hariutsagchZurag.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.image_outlined,
+                                size: 18,
+                                color: c.info,
                               ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '📋 Анхны зураг (Хуваарилагчийн)',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.primary,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${t.hariutsagchZurag.length} зураг',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: c.mutedForeground,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                ...t.hariutsagchZurag.map((zurag) {
+                                  final imageUrl =
+                                      zurag.zamNer ?? zurag.fileNer ?? '';
+                                  if (imageUrl.isEmpty)
+                                    return const SizedBox.shrink();
+
+                                  // Build full URL if it's a relative path
+                                  final fullUrl = imageUrl.startsWith('http')
+                                      ? imageUrl
+                                      : '${ApiService.baseUrl}/$imageUrl';
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: GestureDetector(
+                                      onTap: () => _showNetworkPhoto(
+                                        context,
+                                        fullUrl,
+                                        c,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: c.info.withOpacity(0.3),
+                                              width: 2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          child: Image.network(
+                                            fullUrl,
+                                            width: 120,
+                                            height: 120,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
+                                                  width: 120,
+                                                  height: 120,
+                                                  color: c.muted,
+                                                  child: Icon(
+                                                    Icons.broken_image_rounded,
+                                                    color: c.mutedForeground,
+                                                    size: 36,
+                                                  ),
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ],
                             ),
-                            const Spacer(),
-                            if (t.photoPaths.isNotEmpty)
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Employee uploaded images (ajiltanZurag)
+                        if (t.ajiltanZurag.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.photo_camera_outlined,
+                                size: 18,
+                                color: c.brandGreen,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '📸 Ажилтны зураг',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.primary,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${t.ajiltanZurag.length} зураг',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: c.mutedForeground,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                ...t.ajiltanZurag.map((zurag) {
+                                  final imageUrl =
+                                      zurag.zamNer ?? zurag.fileNer ?? '';
+                                  if (imageUrl.isEmpty)
+                                    return const SizedBox.shrink();
+
+                                  // Build full URL if it's a relative path
+                                  final fullUrl = imageUrl.startsWith('http')
+                                      ? imageUrl
+                                      : '${ApiService.baseUrl}/$imageUrl';
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: GestureDetector(
+                                      onTap: () => _showNetworkPhoto(
+                                        context,
+                                        fullUrl,
+                                        c,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: c.brandGreen.withOpacity(
+                                                0.3,
+                                              ),
+                                              width: 2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          child: Image.network(
+                                            fullUrl,
+                                            width: 120,
+                                            height: 120,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
+                                                  width: 120,
+                                                  height: 120,
+                                                  color: c.muted,
+                                                  child: Icon(
+                                                    Icons.broken_image_rounded,
+                                                    color: c.mutedForeground,
+                                                    size: 36,
+                                                  ),
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Local photos (from photoPaths - employee-uploaded via app)
+                        if (t.photoPaths.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.photo_library_outlined,
+                                size: 18,
+                                color: c.brandGreen,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '📱 Одоогийн зураг',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.primary,
+                                ),
+                              ),
+                              const Spacer(),
                               Text(
                                 '${t.photoPaths.length} зураг',
                                 style: TextStyle(
@@ -531,128 +779,140 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   color: c.mutedForeground,
                                 ),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // Actual photos from local storage
-                              ...t.photoPaths.map((path) {
-                                final file = File(path);
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 10),
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        _showFullPhoto(context, path, c),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(14),
-                                      child: file.existsSync()
-                                          ? Image.file(
-                                              file,
-                                              width: 120,
-                                              height: 120,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : Container(
-                                              width: 120,
-                                              height: 120,
-                                              color: c.muted,
-                                              child: Icon(
-                                                Icons.broken_image_rounded,
-                                                color: c.mutedForeground,
-                                                size: 36,
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                              // Mock photos for completed tasks that don't have local paths
-                              if (t.photoPaths.isEmpty && t.hasPhoto)
-                                ...List.generate(
-                                  t.photoCount,
-                                  (i) => Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(14),
-                                      child: Container(
-                                        width: 120,
-                                        height: 120,
-                                        color: c.muted,
-                                        child: Stack(
-                                          children: [
-                                            Image.network(
-                                              'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=200&auto=format&fit=crop', // Cleaning mock
-                                              width: 120,
-                                              height: 120,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
-                                                  Center(
-                                                    child: Icon(
-                                                      Icons.image,
-                                                      color: c.mutedForeground,
-                                                    ),
-                                                  ),
-                                            ),
-                                            Container(color: Colors.black12),
-                                            const Center(
-                                              child: Icon(
-                                                Icons.verified_rounded,
-                                                color: Colors.white70,
-                                                size: 32,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              // Add photo button
-                              if (!done)
-                                InkWell(
-                                  onTap: () async {
-                                    await widget.onPhoto();
-                                    if (mounted) setState(() {});
-                                  },
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: c.brandGreen.withOpacity(0.08),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: c.brandGreen.withOpacity(0.2),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.add_a_photo_rounded,
-                                          color: c.brandGreen,
-                                          size: 30,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Нэмэх',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: c.brandGreen,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                // Actual photos from local storage
+                                ...t.photoPaths.map((path) {
+                                  final file = File(path);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          _showFullPhoto(context, path, c),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: file.existsSync()
+                                            ? Image.file(
+                                                file,
+                                                width: 120,
+                                                height: 120,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Container(
+                                                width: 120,
+                                                height: 120,
+                                                color: c.muted,
+                                                child: Icon(
+                                                  Icons.broken_image_rounded,
+                                                  color: c.mutedForeground,
+                                                  size: 36,
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                // Add photo button
+                                if (!done)
+                                  InkWell(
+                                    onTap: () async {
+                                      await widget.onPhoto();
+                                      if (mounted) setState(() {});
+                                    },
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Container(
+                                      width: 120,
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        color: c.brandGreen.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: c.brandGreen.withOpacity(0.2),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.add_a_photo_rounded,
+                                            color: c.brandGreen,
+                                            size: 30,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Нэмэх',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: c.brandGreen,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ] else if (!done) ...[
+                          // Show add photo button if no photos at all
+                          Row(
+                            children: [
+                              Text(
+                                '📸 Зураг',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: () async {
+                              await widget.onPhoto();
+                              if (mounted) setState(() {});
+                            },
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: c.brandGreen.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: c.brandGreen.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_a_photo_rounded,
+                                    color: c.brandGreen,
+                                    size: 30,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Нэмэх',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: c.brandGreen,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

@@ -3,15 +3,28 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
+}
+
+// Conditionally apply Google Services plugin if google-services.json exists and package matches
+val googleServicesFile = file("google-services.json")
+if (googleServicesFile.exists()) {
+    try {
+        val jsonContent = googleServicesFile.readText()
+        // Simple string check: if the JSON contains the current package name, apply the plugin
+        // This avoids JSON parsing complexity in Gradle Kotlin DSL
+        if (jsonContent.contains("\"package_name\":\"com.batkt.workease\"")) {
+            apply(plugin = "com.google.gms.google-services")
+        } else {
+            println("Warning: google-services.json exists but doesn't contain package 'com.batkt.workease'. Skipping Google Services plugin.")
+        }
+    } catch (e: Exception) {
+        // If reading fails, don't apply the plugin
+        println("Warning: Could not read google-services.json: ${e.message}")
+    }
 }
 
 android {
-<<<<<<< HEAD
-    namespace = "com.example.fsmapp"
-=======
     namespace = "com.batkt.workease"
->>>>>>> ce70a56 (a)
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -22,16 +35,12 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-<<<<<<< HEAD
-        applicationId = "com.example.fsmapp"
-=======
         applicationId = "com.batkt.workease"
->>>>>>> ce70a56 (a)
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

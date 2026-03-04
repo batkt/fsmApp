@@ -1,6 +1,6 @@
 {
-    "name": "fsmapp",
-    "short_name": "fsmapp",
+    "name": "workease",
+    "short_name": "workease",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

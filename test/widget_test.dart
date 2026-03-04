@@ -7,7 +7,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fsmapp/main.dart';
+import 'package:workease/main.dart';
 
 void main() {
   testWidgets('App builds login screen', (WidgetTester tester) async {

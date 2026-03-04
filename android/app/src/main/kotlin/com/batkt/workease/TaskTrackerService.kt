@@ -1,4 +1,4 @@
-package com.example.fsmapp
+package com.batkt.workease
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -46,7 +46,7 @@ class TaskTrackerService : Service() {
             context.startService(intent)
         }
 
-        private const val ACTION_UPDATE_PROGRESS = "com.example.fsmapp.UPDATE_PROGRESS"
+        private const val ACTION_UPDATE_PROGRESS = "com.batkt.workease.UPDATE_PROGRESS"
     }
 
     private var currentCode: String = ""

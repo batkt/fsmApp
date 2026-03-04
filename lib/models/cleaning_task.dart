@@ -37,6 +37,8 @@ class CleaningTask {
     this.ekhlekhTsag,
     this.duusakhTsag,
     this.startedAtLocal,
+    this.hariutsagchZurag = const [],
+    this.ajiltanZurag = const [],
   }) : photoPaths = photoPaths ?? [];
 
   /// Convert an API task to a CleaningTask for the UI.
@@ -120,12 +122,22 @@ class CleaningTask {
       taskCode: t.taskId,
       projectId: t.projectId,
       subtasks: subs,
-      hasPhoto: t.zurag.isNotEmpty,
-      photoCount: t.zurag.length,
+      // Combine all image types for hasPhoto check
+      hasPhoto:
+          t.zurag.isNotEmpty ||
+          t.hariutsagchZurag.isNotEmpty ||
+          t.ajiltanZurag.isNotEmpty,
+      // Total count of all images
+      photoCount:
+          t.zurag.length + t.hariutsagchZurag.length + t.ajiltanZurag.length,
+      // Legacy zurag field (for backward compatibility) - treat as employee photos
       photoPaths: t.zurag
           .map((z) => z.zamNer ?? z.fileNer ?? '')
           .where((path) => path.isNotEmpty)
           .toList(),
+      // Store separate image types
+      hariutsagchZurag: t.hariutsagchZurag,
+      ajiltanZurag: t.ajiltanZurag,
       // Store Mongolia time for start/end for duration & progress calculations
       ekhlekhTsag: start,
       duusakhTsag: end,
@@ -155,7 +167,9 @@ class CleaningTask {
   TaskStatus status;
   bool hasPhoto;
   int photoCount;
-  final List<String> photoPaths;
+  final List<String> photoPaths; // Employee-uploaded photos (local paths)
+  final List<TaskZurag> hariutsagchZurag; // Original images from task creator
+  final List<TaskZurag> ajiltanZurag; // Images uploaded by employees
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;

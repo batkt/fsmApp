@@ -5,8 +5,16 @@ class TaskZurag {
   final int? khemjee;
   final String? turul;
   final DateTime? ognoo;
+  final String? ajiltniiId; // Employee ID who uploaded the image
 
-  TaskZurag({this.zamNer, this.fileNer, this.khemjee, this.turul, this.ognoo});
+  TaskZurag({
+    this.zamNer,
+    this.fileNer,
+    this.khemjee,
+    this.turul,
+    this.ognoo,
+    this.ajiltniiId,
+  });
 
   factory TaskZurag.fromJson(Map<String, dynamic> j) => TaskZurag(
     zamNer: j['zamNer']?.toString(),
@@ -15,7 +23,10 @@ class TaskZurag {
         ? j['khemjee']
         : (j['khemjee'] != null ? int.tryParse(j['khemjee'].toString()) : null),
     turul: j['turul']?.toString(),
-    ognoo: _tryParse(j['ognoo']),
+    ognoo: _tryParse(
+      j['ognoo'] ?? j['ogno'],
+    ), // Support both 'ognoo' and 'ogno'
+    ajiltniiId: j['ajiltniiId']?.toString(),
   );
 
   static DateTime? _tryParse(dynamic v) {
@@ -40,7 +51,9 @@ class ApiTask {
   final int? ekhlekhMinute; // Start minute (0-1439, minutes from midnight)
   final int? duusakhMinute; // End minute (0-1439, minutes from midnight)
   final DateTime? khugatsaaDuusakhOgnoo;
-  final List<TaskZurag> zurag;
+  final List<TaskZurag> zurag; // Legacy field (for backward compatibility)
+  final List<TaskZurag> hariutsagchZurag; // Images from task creator/assigner
+  final List<TaskZurag> ajiltanZurag; // Images from employees
   final String baiguullagiinId;
   final String barilgiinId;
   final String? color;
@@ -64,6 +77,8 @@ class ApiTask {
     this.duusakhMinute,
     this.khugatsaaDuusakhOgnoo,
     this.zurag = const [],
+    this.hariutsagchZurag = const [],
+    this.ajiltanZurag = const [],
     required this.baiguullagiinId,
     required this.barilgiinId,
     this.color,
@@ -95,7 +110,15 @@ class ApiTask {
               ? int.tryParse(j['duusakhMinute'].toString())
               : null),
     khugatsaaDuusakhOgnoo: _tryParse(j['khugatsaaDuusakhOgnoo']),
+    // Legacy zurag field (for backward compatibility)
     zurag: (j['zurag'] as List<dynamic>? ?? [])
+        .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
+        .toList(),
+    // New separate fields for assigner and employee images
+    hariutsagchZurag: (j['hariutsagchZurag'] as List<dynamic>? ?? [])
+        .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
+        .toList(),
+    ajiltanZurag: (j['ajiltanZurag'] as List<dynamic>? ?? [])
         .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
         .toList(),
     baiguullagiinId: (j['baiguullagiinId'] ?? '').toString(),
