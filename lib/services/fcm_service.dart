@@ -1,5 +1,5 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform, debugPrint;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/notification_model.dart';
@@ -183,9 +183,9 @@ class FCMService {
       }
 
       // Get device type
-      final deviceType = Platform.isIOS
+      final deviceType = defaultTargetPlatform == TargetPlatform.iOS
           ? 'ios'
-          : Platform.isAndroid
+          : defaultTargetPlatform == TargetPlatform.android
           ? 'android'
           : 'unknown';
 

@@ -1448,18 +1448,15 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 ),
                 if (unread > 0)
                   Positioned(
-                    right: context.rSpacing(6),
-                    top: context.rSpacing(6),
+                    right: 4,
+                    top: 4,
                     child: Container(
-                      width: context.rIconSize(16),
-                      height: context.rIconSize(16),
+                      width: 18,
+                      height: 18,
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: c.background,
-                          width: context.rSpacing(2),
-                        ),
+                        border: Border.all(color: c.background, width: 1.5),
                       ),
                       child: Center(
                         child: Text(

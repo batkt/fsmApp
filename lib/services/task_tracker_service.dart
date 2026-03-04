@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/services.dart';
 
 /// Bridge to native Android foreground service and iOS Live Activity (Dynamic Island)
@@ -19,7 +20,7 @@ class TaskTrackerService {
     required String code,
     required String title,
   }) async {
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       try {
         await _channel.invokeMethod('start', {
           'taskId': taskId,
@@ -29,7 +30,7 @@ class TaskTrackerService {
       } catch (e) {
         // Ignore if not implemented
       }
-    } else if (Platform.isIOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       // Start Live Activity for Dynamic Island
       try {
         await _liveActivityChannel.invokeMethod('startTaskActivity', {
@@ -62,7 +63,7 @@ class TaskTrackerService {
     required int progress,
     required int elapsedSeconds,
   }) async {
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       try {
         await _channel.invokeMethod('updateLiveProgress', {
           'progress': progress.clamp(0, 100),
@@ -71,7 +72,7 @@ class TaskTrackerService {
       } catch (e) {
         // Ignore if not implemented
       }
-    } else if (Platform.isIOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       // Update Live Activity for Dynamic Island
       try {
         // Format elapsed time as HH:MM:SS
@@ -96,13 +97,13 @@ class TaskTrackerService {
 
   /// Stop tracking the current task.
   static Future<void> stopTask() async {
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       try {
         await _channel.invokeMethod('stop');
       } catch (e) {
         // Ignore if not implemented
       }
-    } else if (Platform.isIOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       // End Live Activity for Dynamic Island
       try {
         await _liveActivityChannel.invokeMethod('endTaskActivity');
@@ -114,7 +115,7 @@ class TaskTrackerService {
 
   /// Check if Live Activities are available (iOS 16.1+)
   static Future<bool> isLiveActivityAvailable() async {
-    if (!Platform.isIOS) return false;
+    if (defaultTargetPlatform != TargetPlatform.iOS) return false;
     try {
       final result = await _liveActivityChannel.invokeMethod('isAvailable');
       return result as bool? ?? false;

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'dart:io';
 import 'screens/root_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/holiday_service.dart';
 import 'services/fcm_service.dart';
+
+// Helper to check if platform is iOS (web-compatible)
+bool get _isIOS {
+  return defaultTargetPlatform == TargetPlatform.iOS;
+}
 
 // Background message handler (must be top-level)
 // This function must be top-level and cannot be a class method
@@ -76,32 +82,32 @@ class WorkEaseApp extends StatelessWidget {
           centerTitle: false,
           titleTextStyle: TextStyle(
             color: AppColorScheme.light.primary,
-            fontSize: Platform.isIOS ? 15 : 20, // Smaller on iOS
+            fontSize: _isIOS ? 15 : 20, // Smaller on iOS
             fontWeight: FontWeight.w600,
           ),
           iconTheme: IconThemeData(
-            size: Platform.isIOS ? 20 : 24, // Smaller icons on iOS
+            size: _isIOS ? 20 : 24, // Smaller icons on iOS
           ),
         ),
         textTheme: TextTheme(
-          bodyLarge: TextStyle(fontSize: Platform.isIOS ? 16 : 18),
-          bodyMedium: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
-          bodySmall: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
+          bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
+          bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
+          bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
           titleLarge: TextStyle(
-            fontSize: Platform.isIOS ? 21 : 24,
+            fontSize: _isIOS ? 18 : 24,
             fontWeight: FontWeight.bold,
           ),
           titleMedium: TextStyle(
-            fontSize: Platform.isIOS ? 18 : 20,
+            fontSize: _isIOS ? 16 : 20,
             fontWeight: FontWeight.w600,
           ),
           titleSmall: TextStyle(
-            fontSize: Platform.isIOS ? 16 : 18,
+            fontSize: _isIOS ? 14 : 18,
             fontWeight: FontWeight.w500,
           ),
-          labelLarge: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
-          labelMedium: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
-          labelSmall: TextStyle(fontSize: Platform.isIOS ? 12 : 13),
+          labelLarge: TextStyle(fontSize: _isIOS ? 13 : 16),
+          labelMedium: TextStyle(fontSize: _isIOS ? 11 : 14),
+          labelSmall: TextStyle(fontSize: _isIOS ? 10 : 13),
         ),
         dividerColor: AppColorScheme.light.border,
         cardColor: AppColorScheme.light.cardBackground,
@@ -142,32 +148,32 @@ class WorkEaseApp extends StatelessWidget {
           centerTitle: false,
           titleTextStyle: TextStyle(
             color: AppColorScheme.dark.primary,
-            fontSize: Platform.isIOS ? 15 : 20, // Smaller on iOS
+            fontSize: _isIOS ? 15 : 20, // Smaller on iOS
             fontWeight: FontWeight.w600,
           ),
           iconTheme: IconThemeData(
-            size: Platform.isIOS ? 20 : 24, // Smaller icons on iOS
+            size: _isIOS ? 20 : 24, // Smaller icons on iOS
           ),
         ),
         textTheme: TextTheme(
-          bodyLarge: TextStyle(fontSize: Platform.isIOS ? 14 : 18),
-          bodyMedium: TextStyle(fontSize: Platform.isIOS ? 13 : 16),
-          bodySmall: TextStyle(fontSize: Platform.isIOS ? 11 : 14),
+          bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
+          bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
+          bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
           titleLarge: TextStyle(
-            fontSize: Platform.isIOS ? 18 : 24,
+            fontSize: _isIOS ? 18 : 24,
             fontWeight: FontWeight.bold,
           ),
           titleMedium: TextStyle(
-            fontSize: Platform.isIOS ? 16 : 20,
+            fontSize: _isIOS ? 16 : 20,
             fontWeight: FontWeight.w600,
           ),
           titleSmall: TextStyle(
-            fontSize: Platform.isIOS ? 14 : 18,
+            fontSize: _isIOS ? 14 : 18,
             fontWeight: FontWeight.w500,
           ),
-          labelLarge: TextStyle(fontSize: Platform.isIOS ? 13 : 16),
-          labelMedium: TextStyle(fontSize: Platform.isIOS ? 11 : 14),
-          labelSmall: TextStyle(fontSize: Platform.isIOS ? 10 : 13),
+          labelLarge: TextStyle(fontSize: _isIOS ? 13 : 16),
+          labelMedium: TextStyle(fontSize: _isIOS ? 11 : 14),
+          labelSmall: TextStyle(fontSize: _isIOS ? 10 : 13),
         ),
         dividerColor: AppColorScheme.dark.border,
         cardColor: AppColorScheme.dark.cardBackground,

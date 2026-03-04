@@ -1,10 +1,14 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, debugPrint;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/cleaning_task.dart';
 import '../models/notification_model.dart';
+
+// Helper to check if platform is iOS (web-compatible)
+bool get _isIOS {
+  return defaultTargetPlatform == TargetPlatform.iOS;
+}
 
 class WidgetService {
   static const _channel = MethodChannel('com.batkt.workease/widget');
@@ -31,7 +35,7 @@ class WidgetService {
     }
 
     // On iOS, also write to App Group UserDefaults for widget access
-    if (Platform.isIOS) {
+    if (_isIOS) {
       await _writeToAppGroup(prefs);
     }
 
@@ -100,7 +104,7 @@ class WidgetService {
     }
 
     // On iOS, also write to App Group UserDefaults for widget access
-    if (Platform.isIOS) {
+    if (_isIOS) {
       await _writeToAppGroup(prefs);
     }
 

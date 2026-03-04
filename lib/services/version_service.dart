@@ -1,6 +1,5 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform, debugPrint;
 
 import 'api_service.dart';
 
@@ -17,7 +16,9 @@ class VersionService {
   /// Fetch latest version info from backend.
   static Future<Map<String, dynamic>?> fetchLatest() async {
     try {
-      final platform = Platform.isAndroid ? 'android' : 'ios';
+      final platform = defaultTargetPlatform == TargetPlatform.android
+          ? 'android'
+          : 'ios';
       final res = await ApiService.get(
         '/app/version',
         query: {'platform': platform},

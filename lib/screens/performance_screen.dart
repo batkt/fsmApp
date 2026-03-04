@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class PerformanceScreen extends StatelessWidget {
   const PerformanceScreen({super.key});
@@ -9,15 +10,27 @@ class PerformanceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Scaffold(
-      appBar: AppBar(title: const Text('Гүйцэтгэл',
-          style: TextStyle(fontWeight: FontWeight.w600))),
+      appBar: AppBar(
+        title: Text(
+          'Гүйцэтгэл',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: context.rFontSize(16),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          Text('Таны гүйцэтгэлийн тойм',
-              style: TextStyle(fontSize: 18, color: c.mutedForeground)),
-          const SizedBox(height: 20),
+          Text(
+            'Таны гүйцэтгэлийн тойм',
+            style: TextStyle(
+              fontSize: context.rFontSize(14),
+              color: c.mutedForeground,
+            ),
+          ),
+          SizedBox(height: context.rSpacing(16)),
 
           // ═══════════════════════════════════════════
           // 1. DAILY COMPLETION RING
@@ -295,13 +308,28 @@ class _Mini extends StatelessWidget {
   const _Mini(this.icon, this.label, this.value);
   final IconData icon; final String label, value;
   @override
-  Widget build(BuildContext _) => Column(children: [
-    Icon(icon, color: Colors.white70, size: 20),
-    const SizedBox(height: 4),
-    Text(value, style: const TextStyle(fontSize: 20,
-        fontWeight: FontWeight.bold, color: Colors.white)),
-    Text(label, style: const TextStyle(fontSize: 10,
-        color: Colors.white70)),
+  Widget build(BuildContext context) => Column(children: [
+    Icon(
+      icon,
+      color: Colors.white70,
+      size: context.rIconSize(18),
+    ),
+    SizedBox(height: context.rSpacing(4)),
+    Text(
+      value,
+      style: TextStyle(
+        fontSize: context.rFontSize(16),
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    ),
+    Text(
+      label,
+      style: TextStyle(
+        fontSize: context.rFontSize(9),
+        color: Colors.white70,
+      ),
+    ),
   ]);
 }
 
@@ -331,8 +359,9 @@ class _Card extends StatelessWidget {
   final Color iconColor; final String title;
   final Widget child; final Widget? bottom;
   @override
-  Widget build(BuildContext _) => Container(
-    width: double.infinity, padding: const EdgeInsets.all(20),
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: EdgeInsets.all(context.rSpacing(16)),
     decoration: BoxDecoration(
       color: c.cardBackground,
       borderRadius: BorderRadius.circular(20),
@@ -342,14 +371,27 @@ class _Card extends StatelessWidget {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
       Row(children: [
-        Icon(icon, color: iconColor, size: 22),
-        const SizedBox(width: 8),
-        Text(title, style: TextStyle(fontSize: 18,
-            fontWeight: FontWeight.w600, color: c.primary)),
+        Icon(
+          icon,
+          color: iconColor,
+          size: context.rIconSize(18),
+        ),
+        SizedBox(width: context.rSpacing(6)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: context.rFontSize(14),
+            fontWeight: FontWeight.w600,
+            color: c.primary,
+          ),
+        ),
       ]),
-      const SizedBox(height: 20), child,
+      SizedBox(height: context.rSpacing(16)),
+      child,
       if (bottom != null) ...[
-        const SizedBox(height: 12), Center(child: bottom!)],
+        SizedBox(height: context.rSpacing(10)),
+        Center(child: bottom!),
+      ],
     ]),
   );
 }
@@ -362,8 +404,8 @@ class _InfoCard extends StatelessWidget {
   final AppColorScheme c; final IconData icon;
   final Color iconColor; final String title, value, unit, subtitle;
   @override
-  Widget build(BuildContext _) => Container(
-    padding: const EdgeInsets.all(16),
+  Widget build(BuildContext context) => Container(
+    padding: EdgeInsets.all(context.rSpacing(12)),
     decoration: BoxDecoration(
       color: c.cardBackground,
       borderRadius: BorderRadius.circular(16),
@@ -372,26 +414,34 @@ class _InfoCard extends StatelessWidget {
           blurRadius: 8, offset: const Offset(0, 3))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-      Container(padding: const EdgeInsets.all(8),
+      Container(padding: EdgeInsets.all(context.rSpacing(6)),
         decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: iconColor, size: 22)),
-      const SizedBox(height: 12),
-      Text(title, style: TextStyle(fontSize: 13,
+        child: Icon(icon, color: iconColor,
+            size: context.rIconSize(18))),
+      SizedBox(height: context.rSpacing(8)),
+      Text(title, style: TextStyle(
+          fontSize: context.rFontSize(11),
           color: c.mutedForeground)),
-      const SizedBox(height: 4),
+      SizedBox(height: context.rSpacing(2)),
       Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(value, style: TextStyle(fontSize: 26,
-            fontWeight: FontWeight.bold, color: c.primary)),
+        Text(value, style: TextStyle(
+            fontSize: context.rFontSize(20),
+            fontWeight: FontWeight.bold,
+            color: c.primary)),
         if (unit.isNotEmpty) ...[
-          const SizedBox(width: 4),
-          Padding(padding: const EdgeInsets.only(bottom: 4),
-            child: Text(unit, style: TextStyle(fontSize: 14,
-                color: c.mutedForeground))),
+          SizedBox(width: context.rSpacing(4)),
+          Padding(
+            padding: EdgeInsets.only(bottom: context.rSpacing(2)),
+            child: Text(unit, style: TextStyle(
+                fontSize: context.rFontSize(11),
+                color: c.mutedForeground)),
+          ),
         ],
       ]),
-      const SizedBox(height: 4),
-      Text(subtitle, style: TextStyle(fontSize: 13,
+      SizedBox(height: context.rSpacing(2)),
+      Text(subtitle, style: TextStyle(
+          fontSize: context.rFontSize(11),
           color: c.mutedForeground)),
     ]),
   );
@@ -403,8 +453,8 @@ class _Tile extends StatelessWidget {
   final AppColorScheme c; final IconData icon; final Color ic;
   final String t, v, s;
   @override
-  Widget build(BuildContext _) => Container(
-    padding: const EdgeInsets.all(16),
+  Widget build(BuildContext context) => Container(
+    padding: EdgeInsets.all(context.rSpacing(12)),
     decoration: BoxDecoration(
       color: c.cardBackground,
       borderRadius: BorderRadius.circular(16),
@@ -413,20 +463,27 @@ class _Tile extends StatelessWidget {
           blurRadius: 8, offset: const Offset(0, 3))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-      Container(padding: const EdgeInsets.all(8),
+      Container(padding: EdgeInsets.all(context.rSpacing(6)),
         decoration: BoxDecoration(color: ic.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: ic, size: 20)),
-      const SizedBox(height: 12),
-      Text(t, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
-      const SizedBox(height: 4),
+        child: Icon(icon, color: ic, size: context.rIconSize(18))),
+      SizedBox(height: context.rSpacing(8)),
+      Text(t, style: TextStyle(
+          fontSize: context.rFontSize(11),
+          color: c.mutedForeground)),
+      SizedBox(height: context.rSpacing(2)),
       Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(v, style: TextStyle(fontSize: 24,
-            fontWeight: FontWeight.bold, color: c.primary)),
-        const SizedBox(width: 4),
-        Padding(padding: const EdgeInsets.only(bottom: 3),
-          child: Text(s, style: TextStyle(fontSize: 13,
-              color: c.mutedForeground))),
+        Text(v, style: TextStyle(
+            fontSize: context.rFontSize(20),
+            fontWeight: FontWeight.bold,
+            color: c.primary)),
+        SizedBox(width: context.rSpacing(4)),
+        Padding(
+          padding: EdgeInsets.only(bottom: context.rSpacing(2)),
+          child: Text(s, style: TextStyle(
+              fontSize: context.rFontSize(11),
+              color: c.mutedForeground)),
+        ),
       ]),
     ]),
   );
@@ -439,20 +496,23 @@ class _ProgressBar extends StatelessWidget {
   final AppColorScheme c; final String label, displayVal, expected;
   final double value; final Color color;
   @override
-  Widget build(BuildContext _) => Column(
+  Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
-      Text(label, style: TextStyle(fontSize: 15, color: c.primary,
+      Text(label, style: TextStyle(
+          fontSize: context.rFontSize(12),
+          color: c.primary,
           fontWeight: FontWeight.w500)),
       const Spacer(),
       Text('$displayVal / $expected', style: TextStyle(
-          fontSize: 14, color: c.mutedForeground)),
+          fontSize: context.rFontSize(11),
+          color: c.mutedForeground)),
     ]),
     const SizedBox(height: 8),
     ClipRRect(borderRadius: BorderRadius.circular(6),
       child: LinearProgressIndicator(
         value: value.clamp(0.0, 1.0),
-        minHeight: 8,
+        minHeight: 6,
         backgroundColor: c.muted,
         valueColor: AlwaysStoppedAnimation(color))),
   ]);
@@ -468,12 +528,26 @@ class _AreaRow extends StatelessWidget {
   Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
-      Expanded(child: Text(area, style: TextStyle(fontSize: 15,
-          color: c.primary), overflow: TextOverflow.ellipsis)),
-      Text('$count/$total', style: TextStyle(fontSize: 14,
-          fontWeight: FontWeight.w600, color: color)),
+      Expanded(
+        child: Text(
+          area,
+          style: TextStyle(
+            fontSize: context.rFontSize(12),
+            color: c.primary,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      Text(
+        '$count/$total',
+        style: TextStyle(
+          fontSize: context.rFontSize(11),
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     ]),
-    const SizedBox(height: 6),
+    SizedBox(height: context.rSpacing(4)),
     ClipRRect(borderRadius: BorderRadius.circular(4),
       child: LinearProgressIndicator(
         value: count / total,
@@ -488,17 +562,24 @@ class _RatingBar extends StatelessWidget {
       required this.val});
   final AppColorScheme c; final String label; final double val;
   @override
-  Widget build(BuildContext _) => Expanded(
+  Widget build(BuildContext context) => Expanded(
     child: Container(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(context.rSpacing(8)),
       decoration: BoxDecoration(
         color: c.muted,
         borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
-        Text(val.toString(), style: TextStyle(fontSize: 20,
-            fontWeight: FontWeight.bold, color: c.primary)),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 9,
+        Text(
+          val.toString(),
+          style: TextStyle(
+            fontSize: context.rFontSize(16),
+            fontWeight: FontWeight.bold,
+            color: c.primary,
+          ),
+        ),
+        SizedBox(height: context.rSpacing(2)),
+        Text(label, style: TextStyle(
+            fontSize: context.rFontSize(9),
             color: c.mutedForeground),
             textAlign: TextAlign.center, maxLines: 2),
       ]),
@@ -513,20 +594,32 @@ class _Badge extends StatelessWidget {
   final AppColorScheme c; final IconData icon;
   final Color color; final String title, desc;
   @override
-  Widget build(BuildContext _) => Row(children: [
-    Container(width: 42, height: 42,
+  Widget build(BuildContext context) => Row(children: [
+    Container(width: context.rIconSize(32), height: context.rIconSize(32),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12)),
-      child: Icon(icon, color: color, size: 22)),
-    const SizedBox(width: 12),
+      child: Icon(icon, color: color, size: context.rIconSize(18))),
+    SizedBox(width: context.rSpacing(8)),
     Expanded(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: TextStyle(fontSize: 16,
-          fontWeight: FontWeight.w600, color: c.primary)),
-      const SizedBox(height: 2),
-      Text(desc, style: TextStyle(fontSize: 14,
-          color: c.mutedForeground), maxLines: 2),
+      Text(
+        title,
+        style: TextStyle(
+          fontSize: context.rFontSize(13),
+          fontWeight: FontWeight.w600,
+          color: c.primary,
+        ),
+      ),
+      SizedBox(height: context.rSpacing(2)),
+      Text(
+        desc,
+        style: TextStyle(
+          fontSize: context.rFontSize(11),
+          color: c.mutedForeground,
+        ),
+        maxLines: 2,
+      ),
     ])),
   ]);
 }
@@ -538,17 +631,31 @@ class _CompareRow extends StatelessWidget {
   final AppColorScheme c; final String label, thisMonth, lastMonth;
   final bool isUp;
   @override
-  Widget build(BuildContext _) => Row(children: [
-    Expanded(child: Text(label, style: TextStyle(fontSize: 15,
-        color: c.primary))),
+  Widget build(BuildContext context) => Row(children: [
+    Expanded(
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: context.rFontSize(12),
+          color: c.primary,
+        ),
+      ),
+    ),
     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Text(thisMonth, style: TextStyle(fontSize: 18,
-          fontWeight: FontWeight.bold, color: c.primary)),
+      Text(
+        thisMonth,
+        style: TextStyle(
+          fontSize: context.rFontSize(14),
+          fontWeight: FontWeight.bold,
+          color: c.primary,
+        ),
+      ),
       Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward,
             size: 12, color: isUp ? c.success : c.destructive),
         const SizedBox(width: 2),
-        Text(lastMonth, style: TextStyle(fontSize: 13,
+        Text(lastMonth, style: TextStyle(
+            fontSize: context.rFontSize(11),
             color: c.mutedForeground)),
       ]),
     ]),
