@@ -37,9 +37,9 @@ class Responsive {
     if (isAndroid) return 1.0; // Android uses default sizes
 
     if (isCompactDevice(context)) {
-      return 0.85; // 15% smaller for compact iOS devices (iPhone 14 Pro, etc.)
+      return 0.75; // 25% smaller for compact iOS devices (iPhone 14 Pro, etc.)
     }
-    return 0.9; // 10% smaller for regular iOS devices
+    return 0.85; // 15% smaller for regular iOS devices
   }
 
   /// Get responsive icon size multiplier
@@ -47,9 +47,9 @@ class Responsive {
     if (isAndroid) return 1.0;
 
     if (isCompactDevice(context)) {
-      return 0.8; // 20% smaller icons for compact iOS
+      return 0.7; // 30% smaller icons for compact iOS
     }
-    return 0.85; // 15% smaller icons for regular iOS
+    return 0.8; // 20% smaller icons for regular iOS
   }
 
   /// Get responsive spacing multiplier
@@ -57,9 +57,9 @@ class Responsive {
     if (isAndroid) return 1.0;
 
     if (isCompactDevice(context)) {
-      return 0.85; // 15% less spacing for compact iOS
+      return 0.75; // 25% less spacing for compact iOS
     }
-    return 0.9; // 10% less spacing for regular iOS
+    return 0.85; // 15% less spacing for regular iOS
   }
 
   /// Get responsive font size

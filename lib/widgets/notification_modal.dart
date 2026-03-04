@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/notification_model.dart';
 import '../theme/app_theme.dart';
-import '../services/walkthrough_service.dart';
-import '../widgets/modal_walkthrough.dart';
+import '../utils/responsive.dart';
 
 class NotificationModal extends StatefulWidget {
   const NotificationModal({
@@ -22,51 +21,11 @@ class NotificationModal extends StatefulWidget {
 
 class _NotificationModalState extends State<NotificationModal> {
   late List<AppNotification> _notifs;
-  final GlobalKey _markAllReadKey = GlobalKey();
-  final GlobalKey _notificationListKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _notifs = List.from(widget.notifications);
-    _checkWalkthrough();
-  }
-
-  Future<void> _checkWalkthrough() async {
-    final completed = await WalkthroughService.isCompleted(
-      'notification_modal',
-    );
-    if (!completed && mounted) {
-      // Wait for widget to build, then show walkthrough
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ModalWalkthrough.show(
-            context,
-            WalkthroughConfig(
-              screenId: 'notification_modal',
-              title: 'Мэдэгдлийн цонх',
-              steps: [
-                WalkthroughStep(
-                  id: 'mark_all_read',
-                  title: 'Бүгд уншсан болгох',
-                  description: 'Энд дараад бүх мэдэгдлийг уншсан болгож болно.',
-                  targetKey: _markAllReadKey,
-                  position: WalkthroughPosition.bottom,
-                ),
-                WalkthroughStep(
-                  id: 'notification_list',
-                  title: 'Мэдэгдлийн жагсаалт',
-                  description:
-                      'Энд бүх мэдэгдлүүд байна. Мэдэгдэл дээр дараад дэлгэрэнгүй мэдээлэл харах боломжтой.',
-                  targetKey: _notificationListKey,
-                  position: WalkthroughPosition.top,
-                ),
-              ],
-            ),
-          );
-        }
-      });
-    }
   }
 
   void _markRead(int index) {
@@ -131,7 +90,7 @@ class _NotificationModalState extends State<NotificationModal> {
                   Text(
                     'Мэдэгдэл',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: context.rFontSize(20),
                       fontWeight: FontWeight.bold,
                       color: c.primary,
                     ),
@@ -153,7 +112,7 @@ class _NotificationModalState extends State<NotificationModal> {
                       child: Text(
                         '$unread шинэ',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: context.rFontSize(13),
                           fontWeight: FontWeight.w600,
                           color: c.destructive,
                         ),
@@ -162,12 +121,11 @@ class _NotificationModalState extends State<NotificationModal> {
                     const SizedBox(width: 8),
                   ],
                   TextButton(
-                    key: _markAllReadKey,
                     onPressed: unread > 0 ? _markAllRead : null,
                     child: Text(
                       'Бүгд уншсан',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: context.rFontSize(14),
                         color: unread > 0 ? c.brandGreen : c.mutedForeground,
                       ),
                     ),
@@ -199,7 +157,6 @@ class _NotificationModalState extends State<NotificationModal> {
                       ),
                     )
                   : ListView.separated(
-                      key: _notificationListKey,
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: _notifs.length,
@@ -297,7 +254,7 @@ class _NotifTile extends StatelessWidget {
                         child: Text(
                           notif.title,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: context.rFontSize(16),
                             fontWeight: notif.isRead
                                 ? FontWeight.w500
                                 : FontWeight.w700,
@@ -308,7 +265,7 @@ class _NotifTile extends StatelessWidget {
                       Text(
                         _timeAgo(notif.time),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: context.rFontSize(13),
                           color: c.mutedForeground,
                         ),
                       ),
@@ -318,7 +275,7 @@ class _NotifTile extends StatelessWidget {
                   Text(
                     notif.body,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: context.rFontSize(15),
                       color: c.mutedForeground,
                       height: 1.3,
                     ),

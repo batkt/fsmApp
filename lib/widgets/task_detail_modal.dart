@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/cleaning_task.dart';
 import '../theme/app_theme.dart';
-import '../services/walkthrough_service.dart';
 import '../services/api_service.dart';
-import '../widgets/modal_walkthrough.dart';
 
 class TaskDetailModal extends StatefulWidget {
   const TaskDetailModal({
@@ -28,15 +26,11 @@ class TaskDetailModal extends StatefulWidget {
 
 class _TaskDetailModalState extends State<TaskDetailModal> {
   CleaningTask get t => widget.task;
-  final GlobalKey _statusButtonKey = GlobalKey();
-  final GlobalKey _subtasksKey = GlobalKey();
-  final GlobalKey _photosKey = GlobalKey();
   Timer? _progressTimer;
 
   @override
   void initState() {
     super.initState();
-    _checkWalkthrough();
     _startProgressTimer();
   }
 
@@ -58,50 +52,6 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
         } else {
           timer.cancel();
           _progressTimer = null;
-        }
-      });
-    }
-  }
-
-  Future<void> _checkWalkthrough() async {
-    final completed = await WalkthroughService.isCompleted('task_detail_modal');
-    if (!completed && mounted) {
-      // Wait for widget to build, then show walkthrough
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ModalWalkthrough.show(
-            context,
-            WalkthroughConfig(
-              screenId: 'task_detail_modal',
-              title: 'Даалгаврын дэлгэрэнгүй',
-              steps: [
-                WalkthroughStep(
-                  id: 'status_button',
-                  title: 'Статус өөрчлөх',
-                  description:
-                      'Энд дараад даалгаврын статусыг өөрчлөх боломжтой. Эхлэх эсвэл Дуусгах.',
-                  targetKey: _statusButtonKey,
-                  position: WalkthroughPosition.top,
-                ),
-                WalkthroughStep(
-                  id: 'subtasks',
-                  title: 'Дэд даалгавар',
-                  description:
-                      'Энд дэд даалгаврууд байна. Дэд даалгавар дээр дараад тэмдэглэх боломжтой.',
-                  targetKey: _subtasksKey,
-                  position: WalkthroughPosition.bottom,
-                ),
-                WalkthroughStep(
-                  id: 'photos',
-                  title: 'Зураг нэмэх',
-                  description:
-                      'Энд дараад даалгаврын зураг авах боломжтой. Зураг нэмэх товч дээр дараад камер нээгдэнэ.',
-                  targetKey: _photosKey,
-                  position: WalkthroughPosition.top,
-                ),
-              ],
-            ),
-          );
         }
       });
     }
@@ -452,7 +402,6 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   if (t.subtasks.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
-                      key: _subtasksKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -559,7 +508,6 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   // Photos section - Show both types of images separately
                   const SizedBox(height: 16),
                   Container(
-                    key: _photosKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -76,11 +76,11 @@ class WorkEaseApp extends StatelessWidget {
           centerTitle: false,
           titleTextStyle: TextStyle(
             color: AppColorScheme.light.primary,
-            fontSize: Platform.isIOS ? 17 : 20, // Smaller on iOS
+            fontSize: Platform.isIOS ? 15 : 20, // Smaller on iOS
             fontWeight: FontWeight.w600,
           ),
           iconTheme: IconThemeData(
-            size: Platform.isIOS ? 22 : 24, // Smaller icons on iOS
+            size: Platform.isIOS ? 20 : 24, // Smaller icons on iOS
           ),
         ),
         textTheme: TextTheme(
@@ -142,32 +142,32 @@ class WorkEaseApp extends StatelessWidget {
           centerTitle: false,
           titleTextStyle: TextStyle(
             color: AppColorScheme.dark.primary,
-            fontSize: Platform.isIOS ? 17 : 20, // Smaller on iOS
+            fontSize: Platform.isIOS ? 15 : 20, // Smaller on iOS
             fontWeight: FontWeight.w600,
           ),
           iconTheme: IconThemeData(
-            size: Platform.isIOS ? 22 : 24, // Smaller icons on iOS
+            size: Platform.isIOS ? 20 : 24, // Smaller icons on iOS
           ),
         ),
         textTheme: TextTheme(
-          bodyLarge: TextStyle(fontSize: Platform.isIOS ? 16 : 18),
-          bodyMedium: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
-          bodySmall: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
+          bodyLarge: TextStyle(fontSize: Platform.isIOS ? 14 : 18),
+          bodyMedium: TextStyle(fontSize: Platform.isIOS ? 13 : 16),
+          bodySmall: TextStyle(fontSize: Platform.isIOS ? 11 : 14),
           titleLarge: TextStyle(
-            fontSize: Platform.isIOS ? 21 : 24,
+            fontSize: Platform.isIOS ? 18 : 24,
             fontWeight: FontWeight.bold,
           ),
           titleMedium: TextStyle(
-            fontSize: Platform.isIOS ? 18 : 20,
+            fontSize: Platform.isIOS ? 16 : 20,
             fontWeight: FontWeight.w600,
           ),
           titleSmall: TextStyle(
-            fontSize: Platform.isIOS ? 16 : 18,
+            fontSize: Platform.isIOS ? 14 : 18,
             fontWeight: FontWeight.w500,
           ),
-          labelLarge: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
-          labelMedium: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
-          labelSmall: TextStyle(fontSize: Platform.isIOS ? 12 : 13),
+          labelLarge: TextStyle(fontSize: Platform.isIOS ? 13 : 16),
+          labelMedium: TextStyle(fontSize: Platform.isIOS ? 11 : 14),
+          labelSmall: TextStyle(fontSize: Platform.isIOS ? 10 : 13),
         ),
         dividerColor: AppColorScheme.dark.border,
         cardColor: AppColorScheme.dark.cardBackground,
