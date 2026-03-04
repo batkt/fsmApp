@@ -1,4 +1,4 @@
-package com.example.fsmapp
+package com.batkt.workease
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -7,8 +7,12 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
+<<<<<<< HEAD:android/app/src/main/kotlin/com/example/fsmapp/MainActivity.kt
     private val WIDGET_CHANNEL = "com.example.fsmapp/widget"
     private val TASK_TRACKER_CHANNEL = "com.example.fsmapp/task_tracker"
+=======
+    private val CHANNEL = "com.batkt.workease/widget"
+>>>>>>> ce70a56 (a):android/app/src/main/kotlin/com/batkt/workease/MainActivity.kt
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

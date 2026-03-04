@@ -10,7 +10,7 @@
     <!-- Required for Live Update notifications to appear in Samsung Now Bar / status bar chips -->
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
     <application
-        android:label="fsm app"
+        android:label="workEase"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
@@ -53,9 +53,9 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.example.fsmapp.ACTION_START" />
-                <action android:name="com.example.fsmapp.ACTION_FINISH" />
-                <action android:name="com.example.fsmapp.ACTION_LIST_CLICK" />
+                <action android:name="com.batkt.workease.ACTION_START" />
+                <action android:name="com.batkt.workease.ACTION_FINISH" />
+                <action android:name="com.batkt.workease.ACTION_LIST_CLICK" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

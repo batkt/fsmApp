@@ -7,7 +7,7 @@ import '../models/cleaning_task.dart';
 import '../models/notification_model.dart';
 
 class WidgetService {
-  static const _channel = MethodChannel('com.example.fsmapp/widget');
+  static const _channel = MethodChannel('com.batkt.workease/widget');
 
   /// Update the task home screen widget with ALL tasks for today
   static Future<void> updateWidget(List<CleaningTask> tasks) async {

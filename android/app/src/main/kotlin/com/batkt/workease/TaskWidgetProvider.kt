@@ -1,4 +1,4 @@
-package com.example.fsmapp
+package com.batkt.workease
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -16,9 +16,9 @@ import java.util.Locale
 class TaskWidgetProvider : AppWidgetProvider() {
 
     companion object {
-        const val ACTION_START = "com.example.fsmapp.ACTION_START"
-        const val ACTION_FINISH = "com.example.fsmapp.ACTION_FINISH"
-        const val ACTION_LIST_CLICK = "com.example.fsmapp.ACTION_LIST_CLICK"
+        const val ACTION_START = "com.batkt.workease.ACTION_START"
+        const val ACTION_FINISH = "com.batkt.workease.ACTION_FINISH"
+        const val ACTION_LIST_CLICK = "com.batkt.workease.ACTION_LIST_CLICK"
         const val EXTRA_TASK_INDEX = "task_index"
 
         const val STATUS_PENDING = 0

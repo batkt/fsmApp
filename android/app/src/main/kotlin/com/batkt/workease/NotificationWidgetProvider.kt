@@ -1,4 +1,4 @@
-package com.example.fsmapp
+package com.batkt.workease
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager

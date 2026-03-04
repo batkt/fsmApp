@@ -45,16 +45,16 @@ void main() async {
   }
 
   await HolidayService.init();
-  runApp(const CleanerApp());
+  runApp(const WorkEaseApp());
 }
 
-class CleanerApp extends StatelessWidget {
-  const CleanerApp({super.key});
+class WorkEaseApp extends StatelessWidget {
+  const WorkEaseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Цэвэрлэгээний апп',
+      title: 'workEase',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system, // follows device setting
       // ── Light Theme ──
