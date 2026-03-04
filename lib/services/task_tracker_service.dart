@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 /// that tracks current task (Явц).
 class TaskTrackerService {
   static const MethodChannel _channel = MethodChannel(
-    'com.example.fsmapp/task_tracker',
+    'com.batkt.workease/task_tracker',
   );
 
   static const MethodChannel _liveActivityChannel = MethodChannel(
-    'com.example.fsmapp/live_activity',
+    'com.batkt.workease/live_activity',
   );
 
   /// Start tracking a task on Android (shows ongoing notification / Samsung chip)

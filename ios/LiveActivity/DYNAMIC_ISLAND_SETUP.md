@@ -40,13 +40,13 @@ This guide explains how to set up Dynamic Island (Live Activities) for iOS to sh
 1. Select **Runner** target
 2. Go to **Signing & Capabilities**
 3. Add **"App Groups"** capability (if not already added)
-4. Ensure `group.com.example.fsmapp` is checked
+4. Ensure `group.com.batkt.workease` is checked
 
 **For LiveActivity Target:**
 1. Select **LiveActivity** target
 2. Go to **Signing & Capabilities**
 3. Add **"App Groups"** capability
-4. Check `group.com.example.fsmapp`
+4. Check `group.com.batkt.workease`
 
 ## Step 4: Enable Live Activities Entitlement
 
@@ -113,7 +113,7 @@ The `AppDelegate.swift` already has the MethodChannel handler. You need to:
 **LiveActivity Target:**
 1. Select **LiveActivity** target
 2. Go to **General** tab
-3. Set **Bundle Identifier** to: `com.example.fsmapp.LiveActivity`
+3. Set **Bundle Identifier** to: `com.batkt.workease.LiveActivity`
 
 ## Step 8: Update Deployment Target
 
@@ -144,7 +144,7 @@ The `AppDelegate.swift` already has the MethodChannel handler. You need to:
 ### Data Flow
 
 1. **Flutter App** → `TaskTrackerService.startTask()` called
-2. **Flutter** → MethodChannel `com.example.fsmapp/live_activity`
+2. **Flutter** → MethodChannel `com.batkt.workease/live_activity`
 3. **iOS AppDelegate** → Calls `LiveActivityManager.startTaskActivity()`
 4. **ActivityKit** → Creates Live Activity with `TaskLiveActivityAttributes`
 5. **Dynamic Island** → Displays compact/minimal/expanded views

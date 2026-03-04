@@ -42,7 +42,7 @@ struct TaskProvider: TimelineProvider {
     }
     
     private func loadTaskData() -> TaskEntry {
-        let userDefaults = UserDefaults(suiteName: "group.com.example.fsmapp")
+        let userDefaults = UserDefaults(suiteName: "group.com.batkt.workease")
         
         let totalTasks = userDefaults?.integer(forKey: "widget_total_tasks") ?? 0
         let completedTasks = userDefaults?.integer(forKey: "widget_completed_tasks") ?? 0

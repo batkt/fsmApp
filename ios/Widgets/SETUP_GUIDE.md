@@ -45,7 +45,7 @@ iOS widgets have been implemented to match the Android widget functionality. The
 3. Click **"+ Capability"**
 4. Add **"App Groups"**
 5. Click **"+**" to add a new group
-6. Enter: `group.com.example.fsmapp`
+6. Enter: `group.com.batkt.workease`
 7. ✅ Check the box next to it
 
 **For Widgets Target:**
@@ -53,14 +53,14 @@ iOS widgets have been implemented to match the Android widget functionality. The
 2. Go to **Signing & Capabilities** tab
 3. Click **"+ Capability"**
 4. Add **"App Groups"**
-5. ✅ Check the box next to `group.com.example.fsmapp` (should appear automatically)
+5. ✅ Check the box next to `group.com.batkt.workease` (should appear automatically)
 
 ### Step 4: Update Bundle Identifiers
 
 **Widgets Target:**
 1. Select **Widgets** target
 2. Go to **General** tab
-3. Ensure **Bundle Identifier** is: `com.example.fsmapp.Widgets` (or match your app's bundle ID + `.Widgets`)
+3. Ensure **Bundle Identifier** is: `com.batkt.workease.Widgets` (or match your app's bundle ID + `.Widgets`)
 
 ### Step 5: Update Deployment Target
 
@@ -91,7 +91,7 @@ iOS widgets have been implemented to match the Android widget functionality. The
 
 1. **Flutter App** → `WidgetService.updateWidget()` writes data to `SharedPreferences`
 2. **Flutter App** → Calls `writeToAppGroup()` via MethodChannel
-3. **iOS AppDelegate** → Writes data to App Group `UserDefaults` (`group.com.example.fsmapp`)
+3. **iOS AppDelegate** → Writes data to App Group `UserDefaults` (`group.com.batkt.workease`)
 4. **Widget Extension** → Reads data from App Group `UserDefaults`
 5. **Widget Extension** → Displays data in SwiftUI views
 6. **WidgetKit** → Refreshes widget timeline every 15 minutes
@@ -120,7 +120,7 @@ iOS widgets have been implemented to match the Android widget functionality. The
 
 ### Widget Not Updating
 - Check that `WidgetService.updateWidget()` is being called
-- Verify App Group identifier matches: `group.com.example.fsmapp`
+- Verify App Group identifier matches: `group.com.batkt.workease`
 - Check Xcode console for errors
 
 ### Build Errors

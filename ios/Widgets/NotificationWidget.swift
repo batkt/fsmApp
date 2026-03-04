@@ -41,7 +41,7 @@ struct NotificationProvider: TimelineProvider {
     }
     
     private func loadNotificationData() -> NotificationEntry {
-        let userDefaults = UserDefaults(suiteName: "group.com.example.fsmapp")
+        let userDefaults = UserDefaults(suiteName: "group.com.batkt.workease")
         
         let unreadCount = userDefaults?.integer(forKey: "widget_notif_count") ?? 0
         let totalCount = userDefaults?.integer(forKey: "widget_notif_total") ?? 0

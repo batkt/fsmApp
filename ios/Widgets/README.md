@@ -19,7 +19,7 @@ This directory contains the iOS WidgetKit extension files. To complete the setup
 2. Go to "Signing & Capabilities"
 3. Click "+ Capability"
 4. Add "App Groups"
-5. Create/select group: `group.com.example.fsmapp`
+5. Create/select group: `group.com.batkt.workease`
 6. Repeat for the **Widgets** target
 
 ## 3. Replace Generated Files
@@ -32,7 +32,7 @@ Replace the auto-generated widget files with the files in this directory:
 ## 4. Update Bundle Identifier
 
 Ensure the Widget extension bundle identifier is:
-- `com.example.fsmapp.Widgets` (or match your app's bundle ID + `.Widgets`)
+- `com.batkt.workease.Widgets` (or match your app's bundle ID + `.Widgets`)
 
 ## 5. Build and Run
 
@@ -43,7 +43,7 @@ Ensure the Widget extension bundle identifier is:
 
 ## Notes
 
-- Widgets use App Groups (`group.com.example.fsmapp`) to share data with the main app
+- Widgets use App Groups (`group.com.batkt.workease`) to share data with the main app
 - Widgets refresh every 15 minutes automatically
 - Widgets can be manually refreshed by calling `WidgetCenter.shared.reloadTimelines()`
 - The Flutter `WidgetService` will trigger widget updates on iOS

@@ -17,13 +17,13 @@ import ActivityKit
     // Set up widget update channel
     let controller = window?.rootViewController as! FlutterViewController
     let widgetChannel = FlutterMethodChannel(
-      name: "com.example.fsmapp/widget",
+      name: "com.batkt.workease/widget",
       binaryMessenger: controller.binaryMessenger
     )
     
     // Set up live activity channel for Dynamic Island
     let liveActivityChannel = FlutterMethodChannel(
-      name: "com.example.fsmapp/live_activity",
+      name: "com.batkt.workease/live_activity",
       binaryMessenger: controller.binaryMessenger
     )
     
@@ -126,7 +126,7 @@ import ActivityKit
   }
   
   private func writeToAppGroup(data: [String: Any]) {
-    guard let userDefaults = UserDefaults(suiteName: "group.com.example.fsmapp") else {
+    guard let userDefaults = UserDefaults(suiteName: "group.com.batkt.workease") else {
       print("[AppDelegate] Failed to access App Group UserDefaults")
       return
     }
