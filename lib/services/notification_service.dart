@@ -78,20 +78,28 @@ class NotificationService {
   }
 
   /// Mark all notifications as read.
+  /// Uses PUT /medegdel/read-all with optional baiguullagiinId query parameter.
   static Future<int> markAllAsRead({
     String? ajiltniiId,
     String? baiguullagiinId,
   }) async {
+    // Build query parameters (baiguullagiinId goes in query string)
     final query = <String, String>{};
-    if (ajiltniiId != null) query['ajiltniiId'] = ajiltniiId;
-    if (baiguullagiinId != null) query['baiguullagiinId'] = baiguullagiinId;
+    if (baiguullagiinId != null) {
+      query['baiguullagiinId'] = baiguullagiinId;
+    }
 
+    // Body is optional - backend auto-fills ajiltniiId from token
+    // Only include ajiltniiId in body if explicitly provided
     final body = <String, dynamic>{};
-    if (ajiltniiId != null) body['ajiltniiId'] = ajiltniiId;
+    if (ajiltniiId != null) {
+      body['ajiltniiId'] = ajiltniiId;
+    }
 
     final res = await ApiService.put(
       '/medegdel/read-all',
-      body: body.isEmpty ? null : body,
+      query: query.isNotEmpty ? query : null,
+      body: body.isNotEmpty ? body : null,
     );
     if (!res.success) return 0;
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class TaskProgressBar extends StatelessWidget {
   final int completedCount;
@@ -17,16 +18,20 @@ class TaskProgressBar extends StatelessWidget {
 
     final c = context.colors;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: context.rPadding(all: 14),
       decoration: BoxDecoration(
         color: c.brandGreen.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(context.rRadius(14)),
         border: Border.all(color: c.brandGreen.withOpacity(0.12)),
       ),
       child: Row(
         children: [
-          Icon(Icons.pie_chart_rounded, size: 20, color: c.brandGreen),
-          const SizedBox(width: 10),
+          Icon(
+            Icons.pie_chart_rounded,
+            size: context.rIconSize(20),
+            color: c.brandGreen,
+          ),
+          context.rWidth(10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +41,7 @@ class TaskProgressBar extends StatelessWidget {
                     Text(
                       'Өнөөдрийн явц',
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: context.rFontSize(15),
                         fontWeight: FontWeight.w600,
                         color: c.primary,
                       ),
@@ -45,19 +50,19 @@ class TaskProgressBar extends StatelessWidget {
                     Text(
                       '$completedCount / $totalCount',
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: context.rFontSize(15),
                         fontWeight: FontWeight.bold,
                         color: c.brandGreen,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                context.rHeight(6),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(context.rRadius(4)),
                   child: LinearProgressIndicator(
                     value: totalCount > 0 ? completedCount / totalCount : 0,
-                    minHeight: 6,
+                    minHeight: context.rSpacing(6),
                     backgroundColor: c.muted,
                     valueColor: AlwaysStoppedAnimation(c.brandGreen),
                   ),

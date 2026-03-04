@@ -34,6 +34,8 @@ import '../services/shake_detection_service.dart';
 import '../services/fcm_service.dart';
 import '../services/task_status_service.dart';
 import '../services/version_service.dart';
+import '../services/task_tracker_service.dart';
+import '../utils/responsive.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'faq_screen.dart';
@@ -57,6 +59,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   bool _tasksLoading = false;
   bool _faqModalOpen = false;
   Timer? _taskStatusTimer; // Timer for periodic task status updates
+  Timer? _liveUpdateTimer; // Timer for live progress updates to notification
+  CleaningTask? _currentTrackingTask; // Currently tracked task for live updates
   bool _checkedVersionOnce = false;
 
   // Walkthrough keys
@@ -92,7 +96,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       debugPrint('[Dashboard] Shake detected callback called');
       // Haptic feedback when help modal will appear
       try {
-        HapticFeedback.mediumImpact();
+        // Use stronger patterns so it can be felt more clearly
+        HapticFeedback.heavyImpact();
+        HapticFeedback.selectionClick();
         HapticFeedback.vibrate(); // Fallback for some Android devices
       } catch (_) {
         // Ignore haptic errors
@@ -426,6 +432,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _taskStatusTimer?.cancel();
+    _liveUpdateTimer?.cancel();
     ShakeDetectionService.stopListening();
     WidgetsBinding.instance.removeObserver(this);
     // Clean up socket listeners
@@ -980,13 +987,54 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   void _handleStart(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
 
+    // Cancel any existing live update timer
+    _liveUpdateTimer?.cancel();
+    _liveUpdateTimer = null;
+
     // Optimistically update UI and reset local progress baseline
     setState(() {
       t.startedAtLocal = DateTime.now();
       t.status = TaskStatus.inProgress;
+      _currentTrackingTask = t;
     });
     _syncWidget();
     _snack('"${t.title}" даалгавар эхэлсэн');
+
+    // Start native foreground tracker (Android) for current task
+    TaskTrackerService.startTask(
+      taskId: t.id,
+      code: t.taskCode,
+      title: t.title,
+    );
+
+    // Start live update timer to update notification every second
+    _liveUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _currentTrackingTask == null) {
+        timer.cancel();
+        return;
+      }
+
+      final task = _currentTrackingTask!;
+
+      // Only update if task is still in progress
+      if (task.status != TaskStatus.inProgress) {
+        timer.cancel();
+        _liveUpdateTimer = null;
+        _currentTrackingTask = null;
+        return;
+      }
+
+      // Calculate progress and elapsed time
+      final progress = task.progressPercentage?.round() ?? 0;
+      final elapsedMinutes = task.elapsedMinutes ?? 0;
+      final elapsedSeconds = elapsedMinutes * 60;
+
+      // Update the notification with live progress
+      TaskTrackerService.updateLiveProgress(
+        progress: progress.clamp(0, 100),
+        elapsedSeconds: elapsedSeconds,
+      );
+    });
 
     // Update backend status via task-status controller (force khiigdej bui)
     TaskStatusService.updateTaskStatus(t.id, newStatus: 'khiigdej bui').then((
@@ -994,6 +1042,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     ) {
       if (!success && mounted) {
         // Revert on failure
+        _liveUpdateTimer?.cancel();
+        _liveUpdateTimer = null;
+        _currentTrackingTask = null;
         setState(() => t.status = TaskStatus.pending);
         _syncWidget();
         AppToast.show(
@@ -1015,10 +1066,18 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   void _handleFinish(CleaningTask t) {
     if (t.status == TaskStatus.completed) return;
 
+    // Cancel live update timer
+    _liveUpdateTimer?.cancel();
+    _liveUpdateTimer = null;
+    _currentTrackingTask = null;
+
     // Optimistically update UI
     setState(() => t.status = TaskStatus.completed);
     _syncWidget();
     _snack('"${t.title}" даалгавар дууссан');
+
+    // Stop native tracker
+    TaskTrackerService.stopTask();
 
     // Update backend status via task-status controller (force duussan)
     TaskStatusService.updateTaskStatus(t.id, newStatus: 'duussan').then((
@@ -1330,20 +1389,20 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                width: 32,
-                height: 32,
+                width: context.rIconSize(28),
+                height: context.rIconSize(28),
                 child: Image.asset(
                   'assets/images/zev_logo.png',
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(width: 8),
+              context.rWidth(6),
               Flexible(
                 child: Text(
                   'Өнөөдрийн цэвэрлэгээ',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                    fontSize: context.rFontSize(16),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1357,8 +1416,13 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 onPressed: () {
                   context.startWalkthrough();
                 },
-                icon: Icon(Icons.help_outline, color: c.primary),
+                icon: Icon(
+                  Icons.help_outline,
+                  color: c.primary,
+                  size: context.rIconSize(24),
+                ),
                 tooltip: 'Тусламж / Заавар',
+                iconSize: context.rIconSize(24),
               ),
             ),
             // Notification bell
@@ -1366,35 +1430,43 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
               key: _notificationKey,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(right: 4),
+                  margin: EdgeInsets.only(right: context.rSpacing(4)),
                   decoration: BoxDecoration(
                     color: c.muted,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(context.rRadius(12)),
                   ),
                   child: IconButton(
                     onPressed: _openNotifications,
-                    icon: Icon(Icons.notifications_outlined, color: c.primary),
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: c.primary,
+                      size: context.rIconSize(24),
+                    ),
                     tooltip: 'Мэдэгдэл',
+                    iconSize: context.rIconSize(24),
                   ),
                 ),
                 if (unread > 0)
                   Positioned(
-                    right: 6,
-                    top: 6,
+                    right: context.rSpacing(6),
+                    top: context.rSpacing(6),
                     child: Container(
-                      width: 18,
-                      height: 18,
+                      width: context.rIconSize(16),
+                      height: context.rIconSize(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444),
                         shape: BoxShape.circle,
-                        border: Border.all(color: c.background, width: 2),
+                        border: Border.all(
+                          color: c.background,
+                          width: context.rSpacing(2),
+                        ),
                       ),
                       child: Center(
                         child: Text(
                           '$unread',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 9,
+                            fontSize: context.rFontSize(9),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1406,15 +1478,20 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             // Profile
             Container(
               key: _profileKey,
-              margin: const EdgeInsets.only(right: 8),
+              margin: EdgeInsets.only(right: context.rSpacing(8)),
               decoration: BoxDecoration(
                 color: c.muted,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(context.rRadius(12)),
               ),
               child: IconButton(
                 onPressed: _openProfile,
-                icon: Icon(Icons.person_outline, color: c.primary),
+                icon: Icon(
+                  Icons.person_outline,
+                  color: c.primary,
+                  size: context.rIconSize(24),
+                ),
                 tooltip: 'Профайл',
+                iconSize: context.rIconSize(24),
               ),
             ),
           ],
@@ -1425,7 +1502,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             color: c.brandGreen,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: context.rSymmetricPadding(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1442,7 +1519,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                       },
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  context.rHeight(16),
                   FullCalendar(
                     key: _calendarKey,
                     selectedDay: _selectedDay,
@@ -1450,14 +1527,14 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                     onSelected: (d) =>
                         setState(() => _selectedDay = stripTime(d)),
                   ),
-                  const SizedBox(height: 16),
+                  context.rHeight(16),
                   if (totalCount > 0) ...[
                     TaskProgressBar(
                       key: _progressBarKey,
                       completedCount: completedCount,
                       totalCount: totalCount,
                     ),
-                    const SizedBox(height: 12),
+                    context.rHeight(12),
                   ],
                   TaskFilterChips(
                     key: _filterChipsKey,
@@ -1465,7 +1542,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                     onFilterChanged: (filter) =>
                         setState(() => _filter = filter),
                   ),
-                  const SizedBox(height: 12),
+                  context.rHeight(12),
                   TaskListSection(
                     key: _taskListKey,
                     isLoading: _tasksLoading,
@@ -1492,7 +1569,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  context.rHeight(20),
                 ],
               ),
             ),

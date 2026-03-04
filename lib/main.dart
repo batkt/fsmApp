@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:io';
 import 'screens/root_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/holiday_service.dart';
@@ -75,20 +76,32 @@ class CleanerApp extends StatelessWidget {
           centerTitle: false,
           titleTextStyle: TextStyle(
             color: AppColorScheme.light.primary,
-            fontSize: 20,
+            fontSize: Platform.isIOS ? 17 : 20, // Smaller on iOS
             fontWeight: FontWeight.w600,
           ),
+          iconTheme: IconThemeData(
+            size: Platform.isIOS ? 22 : 24, // Smaller icons on iOS
+          ),
         ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontSize: 18),
-          bodyMedium: TextStyle(fontSize: 16),
-          bodySmall: TextStyle(fontSize: 14),
-          titleLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          titleSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          labelLarge: TextStyle(fontSize: 16),
-          labelMedium: TextStyle(fontSize: 14),
-          labelSmall: TextStyle(fontSize: 13),
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(fontSize: Platform.isIOS ? 16 : 18),
+          bodyMedium: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
+          bodySmall: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
+          titleLarge: TextStyle(
+            fontSize: Platform.isIOS ? 21 : 24,
+            fontWeight: FontWeight.bold,
+          ),
+          titleMedium: TextStyle(
+            fontSize: Platform.isIOS ? 18 : 20,
+            fontWeight: FontWeight.w600,
+          ),
+          titleSmall: TextStyle(
+            fontSize: Platform.isIOS ? 16 : 18,
+            fontWeight: FontWeight.w500,
+          ),
+          labelLarge: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
+          labelMedium: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
+          labelSmall: TextStyle(fontSize: Platform.isIOS ? 12 : 13),
         ),
         dividerColor: AppColorScheme.light.border,
         cardColor: AppColorScheme.light.cardBackground,
@@ -129,20 +142,32 @@ class CleanerApp extends StatelessWidget {
           centerTitle: false,
           titleTextStyle: TextStyle(
             color: AppColorScheme.dark.primary,
-            fontSize: 20,
+            fontSize: Platform.isIOS ? 17 : 20, // Smaller on iOS
             fontWeight: FontWeight.w600,
           ),
+          iconTheme: IconThemeData(
+            size: Platform.isIOS ? 22 : 24, // Smaller icons on iOS
+          ),
         ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontSize: 18),
-          bodyMedium: TextStyle(fontSize: 16),
-          bodySmall: TextStyle(fontSize: 14),
-          titleLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          titleSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          labelLarge: TextStyle(fontSize: 16),
-          labelMedium: TextStyle(fontSize: 14),
-          labelSmall: TextStyle(fontSize: 13),
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(fontSize: Platform.isIOS ? 16 : 18),
+          bodyMedium: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
+          bodySmall: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
+          titleLarge: TextStyle(
+            fontSize: Platform.isIOS ? 21 : 24,
+            fontWeight: FontWeight.bold,
+          ),
+          titleMedium: TextStyle(
+            fontSize: Platform.isIOS ? 18 : 20,
+            fontWeight: FontWeight.w600,
+          ),
+          titleSmall: TextStyle(
+            fontSize: Platform.isIOS ? 16 : 18,
+            fontWeight: FontWeight.w500,
+          ),
+          labelLarge: TextStyle(fontSize: Platform.isIOS ? 15 : 16),
+          labelMedium: TextStyle(fontSize: Platform.isIOS ? 13 : 14),
+          labelSmall: TextStyle(fontSize: Platform.isIOS ? 12 : 13),
         ),
         dividerColor: AppColorScheme.dark.border,
         cardColor: AppColorScheme.dark.cardBackground,

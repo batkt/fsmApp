@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class TaskFilterChips extends StatelessWidget {
   final String selectedFilter;
@@ -23,7 +24,7 @@ class TaskFilterChips extends StatelessWidget {
           c: c,
           onTap: () => onFilterChanged('all'),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rSpacing(8)),
         _FilterChip(
           label: 'Хүлээгдэж буй',
           value: 'pending',
@@ -32,7 +33,7 @@ class TaskFilterChips extends StatelessWidget {
           color: c.warningOrange,
           onTap: () => onFilterChanged('pending'),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rSpacing(8)),
         _FilterChip(
           label: 'Явагдаж буй',
           value: 'inProgress',
@@ -41,7 +42,7 @@ class TaskFilterChips extends StatelessWidget {
           color: c.info,
           onTap: () => onFilterChanged('inProgress'),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rSpacing(8)),
         _FilterChip(
           label: 'Дууссан',
           value: 'completed',
@@ -81,10 +82,10 @@ class _FilterChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: context.rSymmetricPadding(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? activeColor : c.cardBackground,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(context.rRadius(10)),
           border: Border.all(
             color: isSelected ? activeColor : c.border,
             width: 1,
@@ -102,7 +103,7 @@ class _FilterChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: context.rFontSize(13),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             color: isSelected ? Colors.white : c.mutedForeground,
           ),

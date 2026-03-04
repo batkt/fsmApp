@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,9 +30,17 @@ class WidgetService {
       await prefs.setString('widget_task${i + 1}_id', t.id);
     }
 
+    // On iOS, also write to App Group UserDefaults for widget access
+    if (Platform.isIOS) {
+      await _writeToAppGroup(prefs);
+    }
+
     try {
       await _channel.invokeMethod('updateWidget');
-    } catch (_) {}
+    } catch (e) {
+      // Silently fail if platform doesn't support widgets
+      debugPrint('[WidgetService] Failed to update widget: $e');
+    }
   }
 
   /// Update the notification widget with ALL notifications
@@ -89,9 +99,17 @@ class WidgetService {
       await prefs.setString('widget_notif${i + 1}_time', timeAgo(n.time));
     }
 
+    // On iOS, also write to App Group UserDefaults for widget access
+    if (Platform.isIOS) {
+      await _writeToAppGroup(prefs);
+    }
+
     try {
       await _channel.invokeMethod('updateNotificationWidget');
-    } catch (_) {}
+    } catch (e) {
+      // Silently fail if platform doesn't support widgets
+      debugPrint('[WidgetService] Failed to update notification widget: $e');
+    }
   }
 
   /// Read back widget state changes (user tapped Start/Finish on widget)
@@ -114,5 +132,37 @@ class WidgetService {
     }
 
     return changes;
+  }
+  
+  /// Write SharedPreferences data to iOS App Group UserDefaults
+  /// This allows widgets to access the data
+  static Future<void> _writeToAppGroup(SharedPreferences prefs) async {
+    try {
+      // Use platform channel to write to App Group UserDefaults
+      await _channel.invokeMethod('writeToAppGroup', {
+        'keys': prefs.getKeys().toList(),
+        'data': _extractPreferencesData(prefs),
+      });
+    } catch (e) {
+      debugPrint('[WidgetService] Failed to write to App Group: $e');
+    }
+  }
+  
+  /// Extract all relevant widget data from SharedPreferences
+  static Map<String, dynamic> _extractPreferencesData(SharedPreferences prefs) {
+    final data = <String, dynamic>{};
+    final keys = prefs.getKeys();
+    
+    // Only copy widget-related keys
+    for (final key in keys) {
+      if (key.startsWith('widget_')) {
+        final value = prefs.get(key);
+        if (value != null) {
+          data[key] = value;
+        }
+      }
+    }
+    
+    return data;
   }
 }

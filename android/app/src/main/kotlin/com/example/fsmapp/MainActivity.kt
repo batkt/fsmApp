@@ -7,12 +7,14 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
-    private val CHANNEL = "com.example.fsmapp/widget"
+    private val WIDGET_CHANNEL = "com.example.fsmapp/widget"
+    private val TASK_TRACKER_CHANNEL = "com.example.fsmapp/task_tracker"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        // Existing widget update channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "updateWidget" -> {
@@ -21,6 +23,33 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                     "updateNotificationWidget" -> {
                         updateNotifWidget()
+                        result.success(true)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // New task tracker channel for foreground service
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, TASK_TRACKER_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "start" -> {
+                        val args = call.arguments as? Map<*, *>
+                        val taskId = args?.get("taskId") as? String ?: ""
+                        val code = args?.get("code") as? String ?: ""
+                        val title = args?.get("title") as? String ?: ""
+                        TaskTrackerService.start(this, taskId, code, title)
+                        result.success(true)
+                    }
+                    "updateLiveProgress" -> {
+                        val args = call.arguments as? Map<*, *>
+                        val progress = (args?.get("progress") as? Number)?.toInt() ?: 0
+                        val elapsedSeconds = (args?.get("elapsedSeconds") as? Number)?.toInt() ?: 0
+                        TaskTrackerService.updateProgress(this, progress, elapsedSeconds)
+                        result.success(true)
+                    }
+                    "stop" -> {
+                        TaskTrackerService.stop(this)
                         result.success(true)
                     }
                     else -> result.notImplemented()

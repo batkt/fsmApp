@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/cleaning_task.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../widgets/task_card.dart';
 
 class TaskListSection extends StatelessWidget {
@@ -34,7 +35,7 @@ class TaskListSection extends StatelessWidget {
     if (isLoading) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+          padding: context.rSymmetricPadding(vertical: 40),
           child: CircularProgressIndicator(
             color: c.brandGreen,
             strokeWidth: 2.5,
@@ -46,15 +47,22 @@ class TaskListSection extends StatelessWidget {
     if (tasks.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+          padding: context.rSymmetricPadding(vertical: 40),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.event_available, size: 48, color: c.border),
-              const SizedBox(height: 8),
+              Icon(
+                Icons.event_available,
+                size: context.rIconSize(48),
+                color: c.border,
+              ),
+              context.rHeight(8),
               Text(
                 'Даалгавар олдсонгүй.',
-                style: TextStyle(color: c.mutedForeground),
+                style: TextStyle(
+                  color: c.mutedForeground,
+                  fontSize: context.rFontSize(14),
+                ),
               ),
             ],
           ),
@@ -65,15 +73,18 @@ class TaskListSection extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: context.rPadding(left: 4, bottom: 8),
           child: Text(
             '${tasks.length} даалгавар',
-            style: TextStyle(fontSize: 13, color: c.mutedForeground),
+            style: TextStyle(
+              fontSize: context.rFontSize(13),
+              color: c.mutedForeground,
+            ),
           ),
         ),
         ...tasks.map(
           (t) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: context.rPadding(bottom: 12),
             child: TaskCard(
               task: t,
               statusColor: statusColor(t.status),

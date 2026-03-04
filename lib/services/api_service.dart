@@ -13,11 +13,15 @@ class ApiService {
 
   static Map<String, String> get _headers => {
     'Content-Type': 'application/json',
-    if (AuthService.token != null) 'Authorization': 'Bearer ${AuthService.token}',
+    if (AuthService.token != null)
+      'Authorization': 'Bearer ${AuthService.token}',
   };
 
   /// GET request → decoded JSON
-  static Future<ApiResult> get(String path, {Map<String, String>? query}) async {
+  static Future<ApiResult> get(
+    String path, {
+    Map<String, String>? query,
+  }) async {
     try {
       final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
       final res = await http.get(uri, headers: _headers).timeout(_timeout);
@@ -28,13 +32,18 @@ class ApiService {
   }
 
   /// POST request → decoded JSON
-  static Future<ApiResult> post(String path, {Map<String, dynamic>? body}) async {
+  static Future<ApiResult> post(
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl$path'),
-        headers: _headers,
-        body: body != null ? json.encode(body) : null,
-      ).timeout(_timeout);
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl$path'),
+            headers: _headers,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(_timeout);
       return _parse(res);
     } catch (e) {
       return ApiResult.error(_friendlyError(e));
@@ -42,13 +51,20 @@ class ApiService {
   }
 
   /// PUT request → decoded JSON
-  static Future<ApiResult> put(String path, {Map<String, dynamic>? body}) async {
+  static Future<ApiResult> put(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, String>? query,
+  }) async {
     try {
-      final res = await http.put(
-        Uri.parse('$baseUrl$path'),
-        headers: _headers,
-        body: body != null ? json.encode(body) : null,
-      ).timeout(_timeout);
+      final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
+      final res = await http
+          .put(
+            uri,
+            headers: _headers,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(_timeout);
       return _parse(res);
     } catch (e) {
       return ApiResult.error(_friendlyError(e));
@@ -58,10 +74,9 @@ class ApiService {
   /// DELETE request
   static Future<ApiResult> delete(String path) async {
     try {
-      final res = await http.delete(
-        Uri.parse('$baseUrl$path'),
-        headers: _headers,
-      ).timeout(_timeout);
+      final res = await http
+          .delete(Uri.parse('$baseUrl$path'), headers: _headers)
+          .timeout(_timeout);
       return _parse(res);
     } catch (e) {
       return ApiResult.error(_friendlyError(e));
@@ -102,8 +117,7 @@ class ApiResult {
 
   ApiResult._({required this.success, this.data, this.message});
 
-  factory ApiResult.ok(dynamic data) =>
-      ApiResult._(success: true, data: data);
+  factory ApiResult.ok(dynamic data) => ApiResult._(success: true, data: data);
 
   factory ApiResult.error(String msg) =>
       ApiResult._(success: false, message: msg);
