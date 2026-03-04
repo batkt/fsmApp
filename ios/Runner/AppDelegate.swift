@@ -58,18 +58,42 @@ import ActivityKit
       liveActivityChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
         switch call.method {
         case "startTaskActivity":
-          // Implementation requires Activity Extension with TaskLiveActivityAttributes
-          // See DYNAMIC_ISLAND_SETUP.md for complete setup
-          print("[LiveActivity] startTaskActivity called - requires Activity Extension")
-          result(false)
+          if let args = call.arguments as? [String: Any],
+             let taskId = args["taskId"] as? String,
+             let taskCode = args["taskCode"] as? String,
+             let taskTitle = args["taskTitle"] as? String {
+            let elapsedTime = args["elapsedTime"] as? String ?? "00:00:00"
+            let progress = args["progress"] as? Int ?? 0
+            let status = args["status"] as? String ?? "Явагдаж буй"
+            LiveActivityManager.shared.startTaskActivity(
+              taskId: taskId,
+              taskCode: taskCode,
+              taskTitle: taskTitle,
+              elapsedTime: elapsedTime,
+              progress: progress,
+              status: status
+            )
+            result(true)
+          } else {
+            result(false)
+          }
         case "updateTaskActivity":
-          // Implementation requires Activity Extension
-          print("[LiveActivity] updateTaskActivity called - requires Activity Extension")
-          result(false)
+          if let args = call.arguments as? [String: Any],
+             let elapsedTime = args["elapsedTime"] as? String,
+             let progress = args["progress"] as? Int {
+            let status = args["status"] as? String
+            LiveActivityManager.shared.updateTaskActivity(
+              elapsedTime: elapsedTime,
+              progress: progress,
+              status: status
+            )
+            result(true)
+          } else {
+            result(false)
+          }
         case "endTaskActivity":
-          // Implementation requires Activity Extension
-          print("[LiveActivity] endTaskActivity called - requires Activity Extension")
-          result(false)
+          LiveActivityManager.shared.endTaskActivity()
+          result(true)
         case "isAvailable":
           // Check if Live Activities are available
           result(ActivityAuthorizationInfo().areActivitiesEnabled)
