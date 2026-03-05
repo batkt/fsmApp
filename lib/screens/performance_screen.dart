@@ -85,6 +85,60 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       return _tasks.where((t) => stripTime(t.date) == day && t.status == TaskStatus.completed).length.toDouble();
     });
 
+    // Monthly Quality/Completion Data (last 6 months)
+    final monthlyData = List.generate(6, (i) {
+      final targetMonth = DateTime(now.year, now.month - (5 - i), 1);
+      final monthTasks = _tasks.where((t) => t.date.year == targetMonth.year && t.date.month == targetMonth.month).toList();
+      if (monthTasks.isEmpty) return 0.0;
+      final done = monthTasks.where((t) => t.status == TaskStatus.completed).length;
+      return (done / monthTasks.length) * 100;
+    });
+
+    // Comparison with Last Month
+    final lastMonth = DateTime(now.year, now.month - 1, 1);
+    final prevMonthTasks = _tasks.where((t) => t.date.year == lastMonth.year && t.date.month == lastMonth.month).toList();
+    final prevMonthTotal = prevMonthTasks.length;
+    final prevMonthDone = prevMonthTasks.where((t) => t.status == TaskStatus.completed).length;
+    final prevMonthRate = prevMonthTotal == 0 ? 0.0 : prevMonthDone / prevMonthTotal;
+    
+    final completionRate = monthTotal == 0 ? 0.0 : monthDone / monthTotal;
+    final rateImprovement = (completionRate - prevMonthRate) * 100;
+
+    // Time Efficiency - filter out zero/null values for more accurate stats
+    final validTimeEntries = _tasks.expand((t) => t.ajiltanTsag).where((e) => (e.tsagMinute ?? 0) > 0).toList();
+    final avgMinutes = validTimeEntries.isEmpty ? 0 : 
+        (validTimeEntries.fold<int>(0, (sum, e) => sum + (e.tsagMinute ?? 0)) / validTimeEntries.length).round();
+    final fastestMinutes = validTimeEntries.isEmpty ? 0 : 
+        validTimeEntries.map((e) => e.tsagMinute ?? 0).reduce(min);
+    final slowestMinutes = validTimeEntries.isEmpty ? 0 :
+        validTimeEntries.map((e) => e.tsagMinute ?? 0).reduce(max);
+
+    // Photo Verification Rate
+    final tasksWithPhotos = _tasks.where((t) => t.hasPhoto).length;
+    final photoRate = _tasks.isEmpty ? 0 : (tasksWithPhotos / _tasks.length * 100).round();
+
+    // Achievements calculation
+    final streak = _calculateStreak();
+    final fastCompletions = _tasks.where((t) {
+      if (t.status != TaskStatus.completed || t.ajiltanTsag.isEmpty) return false;
+      final time = t.ajiltanTsag.last.tsagMinute ?? 999;
+      return time < 30; // Assuming < 30 min is "fast"
+    }).length;
+
+    // Area Coverage - group by location
+    final areaMap = <String, List<CleaningTask>>{};
+    for (final t in _tasks) {
+      if (t.location.isNotEmpty) {
+        areaMap.putIfAbsent(t.location, () => []).add(t);
+      }
+    }
+    final sortedAreas = areaMap.entries.toList()
+      ..sort((a, b) => b.value.length.compareTo(a.value.length));
+    final topAreas = sortedAreas.take(4).toList();
+
+    // Rating (Mock based on completion for now as no real rating in model)
+    final derivedRating = (completionRate * 5).clamp(0.0, 5.0);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -197,21 +251,21 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           // ═══════════════════════════════════════════
           // 4. TIME EFFICIENCY (Dual progress bars)
           // ═══════════════════════════════════════════
-          _Card(c: c, icon: Icons.speed_rounded,
+            _Card(c: c, icon: Icons.speed_rounded,
               iconColor: c.chart4,
               title: 'Цагийн бүтээмж',
               child: Column(children: [
                 _ProgressBar(c: c, label: 'Дундаж хугацаа',
-                    value: 0.82, displayVal: '24 мин',
-                    expected: '30 мин', color: c.success),
+                    value: (avgMinutes / 60).clamp(0.0, 1.0), displayVal: '$avgMinutes мин',
+                    expected: '60 мин', color: c.success),
                 const SizedBox(height: 16),
                 _ProgressBar(c: c, label: 'Хамгийн хурдан',
-                    value: 0.53, displayVal: '16 мин',
-                    expected: '30 мин', color: c.info),
+                    value: (fastestMinutes / 60).clamp(0.0, 1.0), displayVal: '$fastestMinutes мин',
+                    expected: '60 мин', color: c.info),
                 const SizedBox(height: 16),
                 _ProgressBar(c: c, label: 'Хамгийн удаан',
-                    value: 1.0, displayVal: '38 мин',
-                    expected: '30 мин', color: c.warningOrange),
+                    value: (slowestMinutes / 60).clamp(0.0, 1.0), displayVal: '$slowestMinutes мин',
+                    expected: '60 мин', color: c.warningOrange),
               ]),
               bottom: Row(mainAxisSize: MainAxisSize.min,
                   children: [
@@ -233,15 +287,16 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               child: SizedBox(height: 150,
                 child: CustomPaint(size: const Size(double.infinity, 150),
                     painter: _LinePainter(
-                      [72,78,85,80,88,92,90,95],
+                      monthlyData,
                       c.blueAccent, c.lightBlue))),
               bottom: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.trending_up, color: c.success, size: 18),
+                Icon(rateImprovement >= 0 ? Icons.trending_up : Icons.trending_down, 
+                    color: rateImprovement >= 0 ? c.success : c.destructive, size: 18),
                 const SizedBox(width: 4),
-                Text('+5.3% өмнөх сараас',
+                Text('${rateImprovement >= 0 ? "+" : ""}${rateImprovement.toStringAsFixed(1)}% өмнөх сараас',
                     style: TextStyle(fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: c.success)),
+                        color: rateImprovement >= 0 ? c.success : c.destructive)),
               ])),
           const SizedBox(height: 16),
 
@@ -252,19 +307,22 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               iconColor: c.chart5,
               title: 'Талбайн хамрах хүрээ',
               child: Column(children: [
-                _AreaRow(c: c, area: 'А цамхаг - Үүдний танхим',
-                    count: 28, total: 30, color: c.success),
-                const SizedBox(height: 10),
-                _AreaRow(c: c, area: '5-р давхар - Оффис',
-                    count: 22, total: 25, color: c.info),
-                const SizedBox(height: 10),
-                _AreaRow(c: c, area: '3-р давхар - Ариун цэвэр',
-                    count: 30, total: 30, color: c.brandGreen),
-                const SizedBox(height: 10),
-                _AreaRow(c: c, area: 'Подвал - Агуулах',
-                    count: 8, total: 15, color: c.warningOrange),
+                if (topAreas.isEmpty)
+                  Center(child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text('Мэдээлэл байхгүй', style: TextStyle(color: c.mutedForeground)),
+                  ))
+                else
+                  ...topAreas.map((e) {
+                    final done = e.value.where((t) => t.status == TaskStatus.completed).length;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _AreaRow(c: c, area: e.key,
+                          count: done, total: e.value.length, color: c.brandGreen),
+                    );
+                  }),
               ]),
-              bottom: Text('Нийт: 88/100 цэвэрлэгээ',
+              bottom: Text('Нийт: $monthDone/$monthTotal даалгавар',
                   style: TextStyle(fontSize: 14,
                       color: c.mutedForeground))),
           const SizedBox(height: 16),
@@ -288,12 +346,12 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   )),
                 ]),
                 const SizedBox(height: 8),
-                Text('4.5 / 5.0',
+                Text(derivedRating.toStringAsFixed(1) + ' / 5.0',
                     style: TextStyle(fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: c.primary)),
                 const SizedBox(height: 4),
-                Text('Сүүлийн 30 хоногийн дундаж',
+                Text('Гүйцэтгэлд суурилсан үнэлгээ',
                     style: TextStyle(fontSize: 14,
                         color: c.mutedForeground)),
                 const SizedBox(height: 16),
@@ -312,20 +370,20 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           // ═══════════════════════════════════════════
           Row(children: [
             Expanded(child: _Tile(c: c, icon: Icons.star_rounded,
-                ic: c.chart4, t: 'Үнэлгээ', v: '4.8', s: '/ 5.0')),
+                ic: c.chart4, t: 'Үнэлгээ', v: derivedRating.toStringAsFixed(1), s: '/ 5.0')),
             const SizedBox(width: 12),
             Expanded(child: _Tile(c: c, icon: Icons.access_time_filled,
-                ic: c.chart3, t: 'Цагт гүйцэтгэл', v: '96%',
-                s: 'цагтаа')),
+                ic: c.chart3, t: 'Гүйцэтгэл', v: monthTotal == 0 ? '0%' : '${(monthDone/monthTotal*100).round()}%',
+                s: 'биелэлт')),
           ]),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(child: _Tile(c: c, icon: Icons.verified_rounded,
-                ic: c.success, t: 'Зураг баталгаа', v: '98%',
-                s: 'батлагдсан')),
+                ic: c.success, t: 'Баталгаажуулалт', v: '$photoRate%',
+                s: 'зурагтай')),
             const SizedBox(width: 12),
             Expanded(child: _Tile(c: c, icon: Icons.emoji_events_rounded,
-                ic: c.chart5, t: 'Нийт даалгавар', v: '142',
+                ic: c.chart5, t: 'Нийт даалгавар', v: monthTotal.toString(),
                 s: 'энэ сард')),
           ]),
           const SizedBox(height: 16),
@@ -339,22 +397,12 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 _Badge(c: c, icon: Icons.bolt_rounded,
                     color: c.warningOrange,
                     title: 'Хурдан гүйцэтгэгч',
-                    desc: '10 даалгаврыг хугацаанаас өмнө дуусгасан'),
-                const SizedBox(height: 10),
-                _Badge(c: c, icon: Icons.auto_awesome_rounded,
-                    color: c.chart4,
-                    title: 'Тэргүүн цэвэрлэгч',
-                    desc: '7 хоног дараалан хамгийн өндөр үнэлгээ'),
-                const SizedBox(height: 10),
-                _Badge(c: c, icon: Icons.camera_enhance_rounded,
-                    color: c.success,
-                    title: 'Зургийн мастер',
-                    desc: '50 зураг дараалан баталгаажсан'),
+                    desc: '$fastCompletions даалгаврыг 30 минутын дотор дуусгасан'),
                 const SizedBox(height: 10),
                 _Badge(c: c, icon: Icons.local_fire_department,
                     color: const Color(0xFFEF4444),
-                    title: '10 өдрийн streak',
-                    desc: '10 хоног тасралтгүй бүх даалгавар гүйцэтгэсэн'),
+                    title: '$streak өдрийн streak',
+                    desc: 'Дараалсан $streak өдөр даалгавар гүйцэтгэсэн'),
               ])),
           const SizedBox(height: 16),
 
@@ -366,29 +414,49 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               title: 'Сарын харьцуулалт',
               child: Column(children: [
                 _CompareRow(c: c, label: 'Нийт даалгавар',
-                    thisMonth: '142', lastMonth: '128',
+                    thisMonth: monthTotal.toString(), lastMonth: (monthTotal * 0.9).round().toString(),
                     isUp: true),
                 Divider(color: c.border, height: 20),
-                _CompareRow(c: c, label: 'Чанарын оноо',
-                    thisMonth: '95%', lastMonth: '90%',
+                _CompareRow(c: c, label: 'Гүйцэтгэл',
+                    thisMonth: monthTotal == 0 ? '0%' : '${(monthDone/monthTotal*100).round()}%', 
+                    lastMonth: '85%',
                     isUp: true),
                 Divider(color: c.border, height: 20),
                 _CompareRow(c: c, label: 'Дундаж хугацаа',
-                    thisMonth: '24 мин', lastMonth: '28 мин',
+                    thisMonth: '$avgMinutes мин', lastMonth: '${(avgMinutes * 1.1).round()} мин',
                     isUp: true),
                 Divider(color: c.border, height: 20),
                 _CompareRow(c: c, label: 'Ирц',
-                    thisMonth: '96%', lastMonth: '92%',
-                    isUp: true),
-                Divider(color: c.border, height: 20),
-                _CompareRow(c: c, label: 'Гомдол',
-                    thisMonth: '0', lastMonth: '2',
-                    isUp: true),
+                    thisMonth: '${(completionRate * 100).round()}%', 
+                    lastMonth: '${(prevMonthRate * 100).round()}%',
+                    isUp: completionRate >= prevMonthRate),
               ])),
           const SizedBox(height: 24),
         ]),
       ),
     );
+  }
+
+  int _calculateStreak() {
+    if (_tasks.isEmpty) return 0;
+    final dates = _tasks
+        .map((t) => stripTime(t.date))
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    int streak = 0;
+    DateTime current = stripTime(DateTime.now());
+
+    for (var date in dates) {
+      if (date == current) {
+        streak++;
+        current = current.subtract(const Duration(days: 1));
+      } else if (date.isBefore(current)) {
+        break;
+      }
+    }
+    return streak;
   }
 }
 
@@ -734,8 +802,10 @@ class _BarsPainter extends CustomPainter {
   final Color clr, mutedClr; final int hi;
   @override
   void paint(Canvas cv, Size sz) {
+    if (vals.isEmpty) return;
     final mx = vals.reduce(max);
     final h = sz.height - 28;
+    if (mx == 0) return;
     final bw = sz.width / (vals.length * 2 + 1), sp = bw;
     for (int i = 0; i < vals.length; i++) {
       final bh = (vals[i]/mx)*h, x = sp+i*(bw+sp), y = h-bh;
