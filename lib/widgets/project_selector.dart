@@ -34,7 +34,7 @@ class ProjectSelector extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final name = currentProject?.ner ?? 'Төсөл';
+    final name = selectedProjectId == 'all' ? 'Бүх төсөл' : (currentProject?.ner ?? 'Төсөл');
 
     return GestureDetector(
       onTap: () => _showProjectModal(context, c),
@@ -150,6 +150,104 @@ class ProjectSelector extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  // "All Projects" option
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          onProjectSelected('all');
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selectedProjectId == 'all'
+                                ? mc.brandGreen.withOpacity(0.08)
+                                : mc.muted.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: selectedProjectId == 'all'
+                                  ? mc.brandGreen.withOpacity(0.4)
+                                  : mc.border.withOpacity(0.3),
+                              width: selectedProjectId == 'all' ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: selectedProjectId == 'all'
+                                      ? mc.brandGreen.withOpacity(0.15)
+                                      : mc.muted,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.all_inbox_rounded,
+                                  size: 22,
+                                  color: selectedProjectId == 'all'
+                                      ? mc.brandGreen
+                                      : mc.mutedForeground,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Бүх төсөл',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: selectedProjectId == 'all'
+                                            ? mc.brandGreen
+                                            : mc.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      selectedProjectId == 'all'
+                                          ? 'Одоо сонгогдсон'
+                                          : 'Нийт даалгаврыг харах',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: selectedProjectId == 'all'
+                                            ? mc.brandGreen.withOpacity(0.7)
+                                            : mc.mutedForeground,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (selectedProjectId == 'all')
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: mc.brandGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   ...projects.map((project) {
                     final isSelected = project.id == selectedProjectId;
                     return Padding(

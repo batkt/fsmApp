@@ -1547,8 +1547,12 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                       onProjectSelected: (projectId) {
                         setState(() => _selectedProjectId = projectId);
                         // Update global active project
-                        final p = _apiProjects.firstWhere((p) => p.id == projectId);
-                        ProjectService.activeProject.value = p;
+                        if (projectId == 'all') {
+                          ProjectService.activeProject.value = null;
+                        } else {
+                          final p = _apiProjects.firstWhere((p) => p.id == projectId);
+                          ProjectService.activeProject.value = p;
+                        }
                         _loadTasks(projectId);
                       },
                     ),
@@ -1634,7 +1638,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   Future<void> _loadTasks(String projectId) async {
     setState(() => _tasksLoading = true);
-    final apiTasks = await TaskService.byProject(projectId);
+    final apiTasks = projectId == 'all'
+        ? await TaskService.myTasks()
+        : await TaskService.byProject(projectId);
     if (!mounted) return;
 
     // Fetch subtasks for each task if not already included
@@ -1714,7 +1720,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   }
 
   Project? get _currentProject {
-    if (_selectedProjectId == null || _apiProjects.isEmpty) return null;
+    if (_selectedProjectId == null || _selectedProjectId == 'all' || _apiProjects.isEmpty) {
+      return null;
+    }
     try {
       return _apiProjects.firstWhere((p) => p.id == _selectedProjectId);
     } catch (_) {

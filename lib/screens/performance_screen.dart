@@ -38,12 +38,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   Future<void> _loadData() async {
     setState(() => _loading = true);
     final activeProjectId = ProjectService.activeProject.value?.id;
-    if (activeProjectId == null) {
-      setState(() => _loading = false);
-      return;
-    }
-
-    final apiTasks = await TaskService.byProject(activeProjectId);
+    final apiTasks = activeProjectId != null
+        ? await TaskService.byProject(activeProjectId)
+        : await TaskService.myTasks();
     if (mounted) {
       setState(() {
         _tasks = apiTasks.map((t) => CleaningTask.fromApi(t)).toList();
@@ -54,9 +51,15 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final activeProject = ProjectService.activeProject.value;
+    final title = activeProject?.ner ?? 'Бүх төсөл';
+
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Гүйцэтгэл')),
+        appBar: AppBar(
+          title: Text('$title - Гүйцэтгэл',
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }

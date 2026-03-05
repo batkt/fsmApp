@@ -166,10 +166,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final inProgressCount = _allTasks.where(
         (t) => t.status == TaskStatus.inProgress).length;
 
+    final activeProject = ProjectService.activeProject.value;
+    final title = activeProject?.ner ?? 'Бүх төсөл';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Даалгаврын түүх',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: Text('$title - Түүх',
+            style: const TextStyle(fontWeight: FontWeight.w600)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

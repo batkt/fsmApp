@@ -25,13 +25,7 @@ class TaskService {
     final allTasks = <ApiTask>[];
     for (final p in projects) {
       final pTasks = await byProject(p.id);
-      
-      // 3. Keep tasks where the user is specifically assigned
-      final filteredTasks = pTasks.where((t) => 
-        t.hariutsagchId == user.id || t.ajiltnuud.contains(user.id)
-      ).toList();
-      
-      allTasks.addAll(filteredTasks);
+      allTasks.addAll(pTasks);
     }
     
     return allTasks;
