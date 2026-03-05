@@ -1428,42 +1428,40 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             // Notification bell
             Stack(
               key: _notificationKey,
+              clipBehavior: Clip.none,
               children: [
-                Container(
-                  margin: EdgeInsets.only(right: context.rSpacing(4)),
-                  decoration: BoxDecoration(
-                    color: c.muted,
-                    borderRadius: BorderRadius.circular(context.rRadius(12)),
+                IconButton(
+                  onPressed: _openNotifications,
+                  icon: Icon(
+                    Icons.notifications_outlined,
+                    color: c.primary,
+                    size: context.rIconSize(24),
                   ),
-                  child: IconButton(
-                    onPressed: _openNotifications,
-                    icon: Icon(
-                      Icons.notifications_outlined,
-                      color: c.primary,
-                      size: context.rIconSize(24),
-                    ),
-                    tooltip: 'Мэдэгдэл',
-                    iconSize: context.rIconSize(24),
-                  ),
+                  tooltip: 'Мэдэгдэл',
+                  padding: EdgeInsets.all(context.rSpacing(8)),
+                  constraints: const BoxConstraints(),
                 ),
                 if (unread > 0)
                   Positioned(
-                    right: 4,
-                    top: 4,
+                    right: context.rSpacing(6),
+                    top: context.rSpacing(6),
                     child: Container(
-                      width: 18,
-                      height: 18,
+                      width: context.rIconSize(16),
+                      height: context.rIconSize(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444),
                         shape: BoxShape.circle,
-                        border: Border.all(color: c.background, width: 1.5),
+                        border: Border.all(
+                          color: c.background,
+                          width: context.rSpacing(2),
+                        ),
                       ),
                       child: Center(
                         child: Text(
-                          '$unread',
+                          unread > 99 ? '99+' : '$unread',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: context.rFontSize(9),
+                            fontSize: context.rFontSize(8),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1473,23 +1471,16 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
               ],
             ),
             // Profile
-            Container(
+            IconButton(
               key: _profileKey,
-              margin: EdgeInsets.only(right: context.rSpacing(8)),
-              decoration: BoxDecoration(
-                color: c.muted,
-                borderRadius: BorderRadius.circular(context.rRadius(12)),
+              onPressed: _openProfile,
+              icon: Icon(
+                Icons.person_outline,
+                color: c.primary,
+                size: context.rIconSize(24),
               ),
-              child: IconButton(
-                onPressed: _openProfile,
-                icon: Icon(
-                  Icons.person_outline,
-                  color: c.primary,
-                  size: context.rIconSize(24),
-                ),
-                tooltip: 'Профайл',
-                iconSize: context.rIconSize(24),
-              ),
+              tooltip: 'Профайл',
+              iconSize: context.rIconSize(24),
             ),
           ],
         ),

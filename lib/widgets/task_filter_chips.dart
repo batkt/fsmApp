@@ -15,43 +15,46 @@ class TaskFilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Row(
-      children: [
-        _FilterChip(
-          label: 'Бүгд',
-          value: 'all',
-          selected: selectedFilter,
-          c: c,
-          onTap: () => onFilterChanged('all'),
-        ),
-        SizedBox(width: context.rSpacing(8)),
-        _FilterChip(
-          label: 'Хүлээгдэж буй',
-          value: 'pending',
-          selected: selectedFilter,
-          c: c,
-          color: c.warningOrange,
-          onTap: () => onFilterChanged('pending'),
-        ),
-        SizedBox(width: context.rSpacing(8)),
-        _FilterChip(
-          label: 'Явагдаж буй',
-          value: 'inProgress',
-          selected: selectedFilter,
-          c: c,
-          color: c.info,
-          onTap: () => onFilterChanged('inProgress'),
-        ),
-        SizedBox(width: context.rSpacing(8)),
-        _FilterChip(
-          label: 'Дууссан',
-          value: 'completed',
-          selected: selectedFilter,
-          c: c,
-          color: c.success,
-          onTap: () => onFilterChanged('completed'),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _FilterChip(
+            label: 'Бүгд',
+            value: 'all',
+            selected: selectedFilter,
+            c: c,
+            onTap: () => onFilterChanged('all'),
+          ),
+          SizedBox(width: context.rSpacing(8)),
+          _FilterChip(
+            label: 'Хүлээгдэж буй',
+            value: 'pending',
+            selected: selectedFilter,
+            c: c,
+            color: c.warningOrange,
+            onTap: () => onFilterChanged('pending'),
+          ),
+          SizedBox(width: context.rSpacing(8)),
+          _FilterChip(
+            label: 'Явагдаж буй',
+            value: 'inProgress',
+            selected: selectedFilter,
+            c: c,
+            color: c.info,
+            onTap: () => onFilterChanged('inProgress'),
+          ),
+          SizedBox(width: context.rSpacing(8)),
+          _FilterChip(
+            label: 'Дууссан',
+            value: 'completed',
+            selected: selectedFilter,
+            c: c,
+            color: c.success,
+            onTap: () => onFilterChanged('completed'),
+          ),
+        ],
+      ),
     );
   }
 }

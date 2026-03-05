@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 import 'package:local_auth_darwin/local_auth_darwin.dart';
@@ -49,8 +50,9 @@ class BiometricService {
   /// Authenticate with biometrics — fully Mongolian prompts
   Future<bool> authenticate() async {
     try {
+      final isIOS = Platform.isIOS;
       return await _auth.authenticate(
-        localizedReason: 'Хурууны хээгээр нэвтэрнэ үү',
+        localizedReason: isIOS ? 'Face ID-аар нэвтэрнэ үү' : 'Хурууны хээгээр нэвтэрнэ үү',
         authMessages: const [
           AndroidAuthMessages(
             biometricHint: 'Хурууны хээгээр баталгаажуулна уу',
@@ -67,8 +69,8 @@ class BiometricService {
           IOSAuthMessages(
             cancelButton: 'Болих',
             goToSettingsButton: 'Тохиргоо руу очих',
-            goToSettingsDescription: 'Хурууны хээ тохируулагдаагүй байна.',
-            lockOut: 'Хурууны хээ түгжигдсэн. Дахин оролдохын тулд төхөөрөмжийн нууц үг оруулна уу.',
+            goToSettingsDescription: 'Face ID тохируулагдаагүй байна.',
+            lockOut: 'Face ID түгжигдсэн. Дахин оролдохын тулд төхөөрөмжийн нууц үг оруулна уу.',
             localizedFallbackTitle: 'Нууц үг оруулах',
           ),
         ],

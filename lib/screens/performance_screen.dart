@@ -40,17 +40,26 @@ class PerformanceScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 18,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 20),
-            SizedBox(width: 150, height: 150,
+            SizedBox(
+              width: context.rSpacing(200),
+              height: context.rSpacing(200),
               child: CustomPaint(
-                painter: _RingPainter(0.75, 12,
+                painter: _RingPainter(0.75, context.rSpacing(16),
                     Colors.white24, Colors.white),
-                child: const Center(child: Column(
-                    mainAxisSize: MainAxisSize.min, children: [
-                  Text('75%', style: TextStyle(fontSize: 32,
-                      fontWeight: FontWeight.bold, color: Colors.white)),
-                  Text('6/8 даалгавар', style: TextStyle(
-                      fontSize: 14, color: Colors.white70)),
-                ])))),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('75%', style: TextStyle(
+                          fontSize: context.rFontSize(42),
+                          fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('6/8 даалгавар', style: TextStyle(
+                          fontSize: context.rFontSize(16), color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -360,17 +369,22 @@ class _Card extends StatelessWidget {
   final Widget child; final Widget? bottom;
   @override
   Widget build(BuildContext context) => Container(
+<<<<<<< HEAD
     width: double.infinity,
     padding: EdgeInsets.all(context.rSpacing(16)),
+=======
+    width: double.infinity, padding: context.rPadding(all: 20),
+>>>>>>> d08e7f5 (a)
     decoration: BoxDecoration(
       color: c.cardBackground,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(context.rRadius(20)),
       border: Border.all(color: c.border),
       boxShadow: [BoxShadow(color: c.primary.withOpacity(0.04),
           blurRadius: 10, offset: const Offset(0, 4))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
       Row(children: [
+<<<<<<< HEAD
         Icon(
           icon,
           color: iconColor,
@@ -392,6 +406,19 @@ class _Card extends StatelessWidget {
         SizedBox(height: context.rSpacing(10)),
         Center(child: bottom!),
       ],
+=======
+        Icon(icon, color: iconColor, size: context.rIconSize(22)),
+        SizedBox(width: context.rSpacing(8)),
+        Expanded(
+          child: Text(title, style: TextStyle(fontSize: context.rFontSize(18),
+              fontWeight: FontWeight.w600, color: c.primary),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+      ]),
+      SizedBox(height: context.rSpacing(20)), child,
+      if (bottom != null) ...[
+        SizedBox(height: context.rSpacing(12)), Center(child: bottom!)],
+>>>>>>> d08e7f5 (a)
     ]),
   );
 }
@@ -405,15 +432,20 @@ class _InfoCard extends StatelessWidget {
   final Color iconColor; final String title, value, unit, subtitle;
   @override
   Widget build(BuildContext context) => Container(
+<<<<<<< HEAD
     padding: EdgeInsets.all(context.rSpacing(12)),
+=======
+    padding: context.rPadding(all: 16),
+>>>>>>> d08e7f5 (a)
     decoration: BoxDecoration(
       color: c.cardBackground,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(context.rRadius(16)),
       border: Border.all(color: c.border),
       boxShadow: [BoxShadow(color: c.primary.withOpacity(0.03),
           blurRadius: 8, offset: const Offset(0, 3))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+<<<<<<< HEAD
       Container(padding: EdgeInsets.all(context.rSpacing(6)),
         decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10)),
@@ -443,6 +475,35 @@ class _InfoCard extends StatelessWidget {
       Text(subtitle, style: TextStyle(
           fontSize: context.rFontSize(11),
           color: c.mutedForeground)),
+=======
+      Container(padding: context.rPadding(all: 8),
+        decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(context.rRadius(10))),
+        child: Icon(icon, color: iconColor, size: context.rIconSize(22))),
+      SizedBox(height: context.rSpacing(12)),
+      Text(title, 
+          style: TextStyle(fontSize: context.rFontSize(13), color: c.mutedForeground),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis),
+      SizedBox(height: context.rSpacing(4)),
+      Wrap(
+        crossAxisAlignment: WrapCrossAlignment.end,
+        spacing: 4,
+        children: [
+          Text(value, style: TextStyle(fontSize: context.rFontSize(26),
+              fontWeight: FontWeight.bold, color: c.primary)),
+          if (unit.isNotEmpty) 
+            Padding(padding: EdgeInsets.only(bottom: context.rSpacing(4)),
+              child: Text(unit, style: TextStyle(fontSize: context.rFontSize(14),
+                  color: c.mutedForeground))),
+        ],
+      ),
+      SizedBox(height: context.rSpacing(4)),
+      Text(subtitle, 
+          style: TextStyle(fontSize: context.rFontSize(13), color: c.mutedForeground),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis),
+>>>>>>> d08e7f5 (a)
     ]),
   );
 }
@@ -454,15 +515,20 @@ class _Tile extends StatelessWidget {
   final String t, v, s;
   @override
   Widget build(BuildContext context) => Container(
+<<<<<<< HEAD
     padding: EdgeInsets.all(context.rSpacing(12)),
+=======
+    padding: context.rPadding(all: 16),
+>>>>>>> d08e7f5 (a)
     decoration: BoxDecoration(
       color: c.cardBackground,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(context.rRadius(16)),
       border: Border.all(color: c.border),
       boxShadow: [BoxShadow(color: c.primary.withOpacity(0.03),
           blurRadius: 8, offset: const Offset(0, 3))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+<<<<<<< HEAD
       Container(padding: EdgeInsets.all(context.rSpacing(6)),
         decoration: BoxDecoration(color: ic.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10)),
@@ -485,6 +551,34 @@ class _Tile extends StatelessWidget {
               color: c.mutedForeground)),
         ),
       ]),
+=======
+      Container(padding: context.rPadding(all: 8),
+        decoration: BoxDecoration(color: ic.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(context.rRadius(10))),
+        child: Icon(icon, color: ic, size: context.rIconSize(20))),
+      SizedBox(height: context.rSpacing(12)),
+      Text(t, 
+          style: TextStyle(fontSize: context.rFontSize(13), color: c.mutedForeground),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis),
+      SizedBox(height: context.rSpacing(4)),
+      Wrap(
+        crossAxisAlignment: WrapCrossAlignment.end,
+        spacing: 4,
+        children: [
+          Text(v, style: TextStyle(fontSize: context.rFontSize(24),
+              fontWeight: FontWeight.bold, color: c.primary)),
+          Padding(
+            padding: EdgeInsets.only(bottom: context.rSpacing(3)),
+            child: Text(s, 
+                style: TextStyle(fontSize: context.rFontSize(13),
+                    color: c.mutedForeground),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+>>>>>>> d08e7f5 (a)
     ]),
   );
 }
@@ -499,6 +593,7 @@ class _ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
+<<<<<<< HEAD
       Text(label, style: TextStyle(
           fontSize: context.rFontSize(12),
           color: c.primary,
@@ -507,12 +602,26 @@ class _ProgressBar extends StatelessWidget {
       Text('$displayVal / $expected', style: TextStyle(
           fontSize: context.rFontSize(11),
           color: c.mutedForeground)),
+=======
+      Expanded(
+        child: Text(label, style: TextStyle(fontSize: context.rFontSize(15), color: c.primary,
+            fontWeight: FontWeight.w500),
+            maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
+      SizedBox(width: context.rSpacing(8)),
+      Text('$displayVal / $expected', style: TextStyle(
+          fontSize: context.rFontSize(14), color: c.mutedForeground)),
+>>>>>>> d08e7f5 (a)
     ]),
-    const SizedBox(height: 8),
-    ClipRRect(borderRadius: BorderRadius.circular(6),
+    SizedBox(height: context.rSpacing(8)),
+    ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(6)),
       child: LinearProgressIndicator(
         value: value.clamp(0.0, 1.0),
+<<<<<<< HEAD
         minHeight: 6,
+=======
+        minHeight: context.rSpacing(8),
+>>>>>>> d08e7f5 (a)
         backgroundColor: c.muted,
         valueColor: AlwaysStoppedAnimation(color))),
   ]);
@@ -528,6 +637,7 @@ class _AreaRow extends StatelessWidget {
   Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
+<<<<<<< HEAD
       Expanded(
         child: Text(
           area,
@@ -549,9 +659,18 @@ class _AreaRow extends StatelessWidget {
     ]),
     SizedBox(height: context.rSpacing(4)),
     ClipRRect(borderRadius: BorderRadius.circular(4),
+=======
+      Expanded(child: Text(area, style: TextStyle(fontSize: context.rFontSize(15),
+          color: c.primary), overflow: TextOverflow.ellipsis)),
+      Text('$count/$total', style: TextStyle(fontSize: context.rFontSize(14),
+          fontWeight: FontWeight.w600, color: color)),
+    ]),
+    SizedBox(height: context.rSpacing(6)),
+    ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(4)),
+>>>>>>> d08e7f5 (a)
       child: LinearProgressIndicator(
         value: count / total,
-        minHeight: 6,
+        minHeight: context.rSpacing(6),
         backgroundColor: c.muted,
         valueColor: AlwaysStoppedAnimation(color))),
   ]);
@@ -564,11 +683,16 @@ class _RatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Expanded(
     child: Container(
+<<<<<<< HEAD
       padding: EdgeInsets.all(context.rSpacing(8)),
+=======
+      padding: context.rPadding(all: 10),
+>>>>>>> d08e7f5 (a)
       decoration: BoxDecoration(
         color: c.muted,
-        borderRadius: BorderRadius.circular(12)),
+        borderRadius: BorderRadius.circular(context.rRadius(12))),
       child: Column(children: [
+<<<<<<< HEAD
         Text(
           val.toString(),
           style: TextStyle(
@@ -580,6 +704,12 @@ class _RatingBar extends StatelessWidget {
         SizedBox(height: context.rSpacing(2)),
         Text(label, style: TextStyle(
             fontSize: context.rFontSize(9),
+=======
+        Text(val.toString(), style: TextStyle(fontSize: context.rFontSize(20),
+            fontWeight: FontWeight.bold, color: c.primary)),
+        SizedBox(height: context.rSpacing(2)),
+        Text(label, style: TextStyle(fontSize: context.rFontSize(9),
+>>>>>>> d08e7f5 (a)
             color: c.mutedForeground),
             textAlign: TextAlign.center, maxLines: 2),
       ]),
@@ -595,6 +725,7 @@ class _Badge extends StatelessWidget {
   final Color color; final String title, desc;
   @override
   Widget build(BuildContext context) => Row(children: [
+<<<<<<< HEAD
     Container(width: context.rIconSize(32), height: context.rIconSize(32),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
@@ -620,6 +751,23 @@ class _Badge extends StatelessWidget {
         ),
         maxLines: 2,
       ),
+=======
+    Container(
+      width: context.rSpacing(42),
+      height: context.rSpacing(42),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(context.rRadius(12))),
+      child: Icon(icon, color: color, size: context.rIconSize(22))),
+    SizedBox(width: context.rSpacing(12)),
+    Expanded(child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, style: TextStyle(fontSize: context.rFontSize(16),
+          fontWeight: FontWeight.w600, color: c.primary)),
+      SizedBox(height: context.rSpacing(2)),
+      Text(desc, style: TextStyle(fontSize: context.rFontSize(14),
+          color: c.mutedForeground), maxLines: 2),
+>>>>>>> d08e7f5 (a)
     ])),
   ]);
 }
@@ -632,6 +780,7 @@ class _CompareRow extends StatelessWidget {
   final bool isUp;
   @override
   Widget build(BuildContext context) => Row(children: [
+<<<<<<< HEAD
     Expanded(
       child: Text(
         label,
@@ -656,6 +805,18 @@ class _CompareRow extends StatelessWidget {
         const SizedBox(width: 2),
         Text(lastMonth, style: TextStyle(
             fontSize: context.rFontSize(11),
+=======
+    Expanded(child: Text(label, style: TextStyle(fontSize: context.rFontSize(15),
+        color: c.primary))),
+    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Text(thisMonth, style: TextStyle(fontSize: context.rFontSize(18),
+          fontWeight: FontWeight.bold, color: c.primary)),
+      Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward,
+            size: context.rIconSize(12), color: isUp ? c.success : c.destructive),
+        SizedBox(width: context.rSpacing(2)),
+        Text(lastMonth, style: TextStyle(fontSize: context.rFontSize(13),
+>>>>>>> d08e7f5 (a)
             color: c.mutedForeground)),
       ]),
     ]),

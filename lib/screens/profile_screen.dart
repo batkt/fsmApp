@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -39,10 +40,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _bioEnabled = value);
 
     final c = context.colors;
+    final String bioType = Platform.isIOS ? 'Face ID' : 'Хурууны хээ';
     AppToast.show(
       context,
-      value ? 'Хурууны хээ идэвхжүүлсэн' : 'Хурууны хээ идэвхгүй болсон',
-      icon: Icons.fingerprint,
+      value ? '$bioType идэвхжүүлсэн' : '$bioType идэвхгүй болсон',
+      icon: Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint,
       color: value ? c.brandGreen : c.mutedForeground,
     );
   }
@@ -239,7 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        Icons.fingerprint,
+                        Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint,
                         color: c.brandGreen,
                         size: 22,
                       ),
@@ -250,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Хурууны хээ',
+                            Platform.isIOS ? 'Face ID' : 'Хурууны хээ',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w600,
@@ -258,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           Text(
-                            'Хурууны хээгээр нэвтрэх',
+                            Platform.isIOS ? 'Face ID-р нэвтрэх' : 'Хурууны хээгээр нэвтрэх',
                             style: TextStyle(
                               fontSize: 14,
                               color: c.mutedForeground,
@@ -286,11 +288,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.fingerprint, color: c.mutedForeground, size: 22),
+                    Icon(
+                      Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint,
+                      color: c.mutedForeground,
+                      size: 22,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Энэ төхөөрөмж хурууны хээг дэмжихгүй байна.',
+                        Platform.isIOS
+                            ? 'Энэ төхөөрөмж Face ID дэмжихгүй байна.'
+                            : 'Энэ төхөөрөмж хурууны хээг дэмжихгүй байна.',
                         style: TextStyle(
                           fontSize: 15,
                           color: c.mutedForeground,

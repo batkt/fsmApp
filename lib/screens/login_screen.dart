@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -142,10 +143,10 @@ class _LoginScreenState extends State<LoginScreen>
               decoration: BoxDecoration(
                 color: c.brandGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12)),
-              child: Icon(Icons.fingerprint,
+              child: Icon(Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint,
                   color: c.brandGreen, size: 28)),
             const SizedBox(width: 12),
-            Expanded(child: Text('Хурууны хээ',
+            Expanded(child: Text(Platform.isIOS ? 'Face ID' : 'Хурууны хээ',
                 style: TextStyle(fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: c.primary))),
@@ -154,12 +155,16 @@ class _LoginScreenState extends State<LoginScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Дараагийн удаа хурууны хээгээр нэвтрэхийг идэвхжүүлэх үү?',
+                Platform.isIOS 
+                  ? 'Дараагийн удаа Face ID-аар нэвтрэхийг идэвхжүүлэх үү?'
+                  : 'Дараагийн удаа хурууны хээгээр нэвтрэхийг идэвхжүүлэх үү?',
                 style: TextStyle(fontSize: 14, color: c.primary,
                     height: 1.4)),
               const SizedBox(height: 8),
               Text(
-                'Та дараа нь Профайл → Хурууны хээ дээрээс өөрчлөх боломжтой.',
+                Platform.isIOS
+                  ? 'Та дараа нь Профайл → Face ID дээрээс өөрчлөх боломжтой.'
+                  : 'Та дараа нь Профайл → Хурууны хээ дээрээс өөрчлөх боломжтой.',
                 style: TextStyle(fontSize: 12,
                     color: c.mutedForeground, height: 1.3)),
             ],
@@ -172,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(ctx, true),
-              icon: const Icon(Icons.fingerprint, size: 18),
+              icon: Icon(Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint, size: 18),
               label: const Text('Идэвхжүүлэх'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.brandGreen,
@@ -199,7 +204,8 @@ class _LoginScreenState extends State<LoginScreen>
     final size = MediaQuery.of(context).size;
     final isLandscape = size.width > size.height;
     final isTablet = size.shortestSide > 600;
-    final maxFormWidth = isTablet ? 480.0 : 400.0;
+    final isShortScreen = size.height < 750; // Increased threshold for iPhone 11 compact feel
+    final maxFormWidth = isTablet ? 480.0 : 380.0; // Slightly smaller max width for mobile
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -246,25 +252,26 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: isTablet ? 40 : 16),
-                      _buildBranding(c, isCompact: false),
-                      SizedBox(height: isTablet ? 40 : 24),
+                      SizedBox(height: isTablet ? 40 : (isShortScreen ? 12 : 20)),
+                      _buildBranding(c, isCompact: false, isShort: isShortScreen),
+                      SizedBox(height: isTablet ? 40 : (isShortScreen ? 16 : 24)),
                       Padding(
                         padding: EdgeInsets.symmetric(
-                            horizontal: isTablet ? 60 : 20),
-                        child: _buildFormCard(c, maxFormWidth),
+                            horizontal: isTablet ? 60 : 12),
+                        child: _buildFormCard(c, maxFormWidth, isShort: isShortScreen),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       // Footer
                       Text('© ${DateTime.now().year} Zevtabs LLC',
-                          style: TextStyle(fontSize: 12,
+                          style: TextStyle(fontSize: 11,
                               color: c.mutedForeground.withOpacity(0.5))),
-                      const SizedBox(height: 4),
-                      if (_appVersion.isNotEmpty)
+                      if (_appVersion.isNotEmpty) ...[
+                        const SizedBox(height: 2),
                         Text('v$_appVersion',
-                            style: TextStyle(fontSize: 11,
+                            style: TextStyle(fontSize: 10,
                                 color: c.mutedForeground.withOpacity(0.35))),
-                      const SizedBox(height: 16),
+                      ],
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
@@ -279,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen>
   // ══════════════════════════════════════════
   //  Branding Section
   // ══════════════════════════════════════════
-  Widget _buildBranding(AppColorScheme c, {required bool isCompact}) {
+  Widget _buildBranding(AppColorScheme c, {required bool isCompact, bool isShort = false}) {
     return FadeTransition(
       opacity: _fadeAnim,
       child: Column(
@@ -300,12 +307,12 @@ class _LoginScreenState extends State<LoginScreen>
               ],
             ),
             child: Image.asset('assets/images/zev_logo.png',
-                height: isCompact ? 60 : 80),
+                height: isCompact ? 48 : (isShort ? 56 : 64)),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Text('Цэвэрлэгээний апп',
               style: TextStyle(
-                fontSize: isCompact ? 22 : 28,
+                fontSize: isCompact ? 18 : (isShort ? 22 : 24),
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 letterSpacing: 0.5,
@@ -315,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen>
             'Даалгавруудаа удирдаж, хянаж ажиллана уу',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: isCompact ? 13 : 15,
+              fontSize: isCompact ? 12 : (isShort ? 12 : 13),
               color: Colors.white.withOpacity(0.7),
               height: 1.4,
             ),
@@ -328,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen>
   // ══════════════════════════════════════════
   //  Form Card
   // ══════════════════════════════════════════
-  Widget _buildFormCard(AppColorScheme c, double maxWidth) {
+  Widget _buildFormCard(AppColorScheme c, double maxWidth, {bool isShort = false}) {
     return SlideTransition(
       position: _slideAnim,
       child: FadeTransition(
@@ -337,10 +344,10 @@ class _LoginScreenState extends State<LoginScreen>
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Container(
-              padding: const EdgeInsets.all(28),
+              padding: EdgeInsets.all(isShort ? 16 : 20),
               decoration: BoxDecoration(
                 color: c.cardBackground,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: c.border.withOpacity(0.5)),
                 boxShadow: [
                   BoxShadow(
@@ -365,23 +372,35 @@ class _LoginScreenState extends State<LoginScreen>
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(Icons.login_rounded,
-                            color: c.brandGreen, size: 24),
+                            color: c.brandGreen, size: isShort ? 18 : 22),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Нэвтрэх',
-                              style: TextStyle(fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: c.primary)),
-                          Text('Бүртгэлтэй мэдээллээ оруулна уу',
-                              style: TextStyle(fontSize: 13,
-                                  color: c.mutedForeground)),
-                        ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Нэвтрэх',
+                              style: TextStyle(
+                                fontSize: isShort ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: c.primary,
+                              ),
+                            ),
+                            Text(
+                              'Бүртгэлтэй мэдээллээ оруулна уу',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: c.mutedForeground,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ]),
-                    const SizedBox(height: 24),
+                    SizedBox(height: isShort ? 16 : 24),
 
                     // Username field
                     Text('Нэвтрэх нэр', style: TextStyle(fontSize: 13,
@@ -397,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen>
                       validator: (v) => (v == null || v.isEmpty)
                           ? 'Нэвтрэх нэрээ оруулна уу' : null,
                     ),
-                    const SizedBox(height: 18),
+                    SizedBox(height: isShort ? 14 : 18),
 
                     // Password field
                     Text('Нууц үг', style: TextStyle(fontSize: 13,
@@ -441,19 +460,19 @@ class _LoginScreenState extends State<LoginScreen>
                                 fontWeight: FontWeight.w500)),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isShort ? 12 : 16),
 
                     // ── Login button ──
                     SizedBox(
                       width: double.infinity,
-                      height: 52,
+                      height: isShort ? 48 : 52,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: c.brandGreen,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                              borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
                         child: _isLoading
@@ -484,20 +503,33 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton.icon(
+                        height: isShort ? 44 : 48,
+                        child: OutlinedButton(
                           onPressed: _handleBiometricLogin,
-                          icon: Icon(Icons.fingerprint,
-                              color: c.brandGreen, size: 24),
-                          label: Text('Хурууны хээгээр нэвтрэх',
-                              style: TextStyle(fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.brandGreen)),
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
                                 color: c.brandGreen.withOpacity(0.3)),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint,
+                                  color: c.brandGreen, size: 22),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  Platform.isIOS ? 'Face ID-аар нэвтрэх' : 'Хурууны хээгээр нэвтрэх',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: c.brandGreen),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -517,23 +549,23 @@ class _LoginScreenState extends State<LoginScreen>
     return InputDecoration(
       hintText: hint,
       hintStyle: TextStyle(color: c.mutedForeground.withOpacity(0.6),
-          fontSize: 15),
+          fontSize: 14),
       prefixIcon: Icon(icon, color: c.mutedForeground, size: 20),
       filled: true,
       fillColor: c.muted,
       contentPadding: const EdgeInsets.symmetric(
-          vertical: 16, horizontal: 16),
+          vertical: 14, horizontal: 16),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: c.inputBorder)),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: c.inputBorder)),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: c.brandGreen, width: 2)),
       errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: c.destructive)),
     );
   }
@@ -579,7 +611,7 @@ class _BgPainter extends CustomPainter {
     // Wave separator
     final wavePaint = Paint()..color = c.loginBackground;
     final wavePath = Path();
-    final waveY = size.height * 0.42;
+    final waveY = size.height * 0.38;
     wavePath.moveTo(0, waveY);
     wavePath.quadraticBezierTo(
         size.width * 0.25, waveY + 30,
