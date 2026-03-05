@@ -1443,26 +1443,40 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 ),
                 if (unread > 0)
                   Positioned(
-                    right: context.rSpacing(6),
-                    top: context.rSpacing(6),
+                    right: context.rSpacing(4),
+                    top: context.rSpacing(4),
                     child: Container(
-                      width: context.rIconSize(16),
-                      height: context.rIconSize(16),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.rSpacing(4),
+                        vertical: context.rSpacing(2),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: context.rSpacing(18),
+                        minHeight: context.rSpacing(18),
+                      ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444),
-                        shape: BoxShape.circle,
+                        color: const Color(0xFFF43F5E), // Rose 500
+                        borderRadius: BorderRadius.circular(context.rRadius(10)),
                         border: Border.all(
-                          color: c.background,
+                          color: Colors.white,
                           width: context.rSpacing(2),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFF43F5E).withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Center(
                         child: Text(
                           unread > 99 ? '99+' : '$unread',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: context.rFontSize(8),
-                            fontWeight: FontWeight.bold,
+                            fontSize: context.rFontSize(9),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ),

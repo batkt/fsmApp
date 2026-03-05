@@ -40,25 +40,32 @@ class PerformanceScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 18,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 20),
-            SizedBox(
-              width: context.rSpacing(200),
-              height: context.rSpacing(200),
-              child: CustomPaint(
-                painter: _RingPainter(0.75, context.rSpacing(16),
-                    Colors.white24, Colors.white),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('75%', style: TextStyle(
-                          fontSize: context.rFontSize(42),
-                          fontWeight: FontWeight.bold, color: Colors.white)),
-                      Text('6/8 даалгавар', style: TextStyle(
-                          fontSize: context.rFontSize(16), color: Colors.white70)),
-                    ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final size = min(constraints.maxWidth, context.rSpacing(220));
+                return SizedBox(
+                  width: size,
+                  height: size,
+                  child: CustomPaint(
+                    painter: _RingPainter(0.75, context.rSpacing(18),
+                        Colors.white.withOpacity(0.15), Colors.white),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('75%', style: TextStyle(
+                              fontSize: context.rFontSize(48),
+                              fontWeight: FontWeight.w900, color: Colors.white,
+                              letterSpacing: -1)),
+                          Text('6/8 даалгавар', style: TextStyle(
+                              fontSize: context.rFontSize(14), color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              }
             ),
             const SizedBox(height: 16),
             const Row(
@@ -470,19 +477,26 @@ class _Tile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis),
       SizedBox(height: context.rSpacing(4)),
-      Wrap(
-        crossAxisAlignment: WrapCrossAlignment.end,
-        spacing: 4,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(v, style: TextStyle(fontSize: context.rFontSize(24),
-              fontWeight: FontWeight.bold, color: c.primary)),
-          Padding(
-            padding: EdgeInsets.only(bottom: context.rSpacing(3)),
-            child: Text(s, 
-                style: TextStyle(fontSize: context.rFontSize(13),
-                    color: c.mutedForeground),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
+          Text(v, style: TextStyle(
+            fontSize: context.rFontSize(22),
+            fontWeight: FontWeight.w800,
+            color: c.primary,
+            letterSpacing: -0.5,
+          )),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: context.rSpacing(3)),
+              child: Text(s, 
+                  style: TextStyle(fontSize: context.rFontSize(11),
+                      color: c.mutedForeground,
+                      fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            ),
           ),
         ],
       ),

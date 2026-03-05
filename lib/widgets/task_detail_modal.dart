@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/cleaning_task.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import '../utils/responsive.dart';
 
 class TaskDetailModal extends StatefulWidget {
   const TaskDetailModal({
@@ -71,9 +72,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
   String _prioLabel(TaskPriority p) {
     switch (p) {
       case TaskPriority.high:
-        return 'Өндөр';
+        return 'Яаралтай';
       case TaskPriority.medium:
-        return 'Дунд';
+        return 'Хэвийн';
       case TaskPriority.low:
         return 'Бага';
     }
@@ -113,12 +114,12 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       context: context,
       builder: (_) => Dialog(
         backgroundColor: Colors.black,
-        insetPadding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: EdgeInsets.all(context.rSpacing(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.rRadius(16))),
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(context.rRadius(16)),
               child: InteractiveViewer(
                 child: Image.file(
                   File(path),
@@ -128,16 +129,19 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
+              top: context.rSpacing(8),
+              right: context.rSpacing(8),
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.close_rounded,
                   color: Colors.white,
-                  size: 28,
+                  size: context.rIconSize(28),
                 ),
-                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black54,
+                  padding: EdgeInsets.all(context.rSpacing(8)),
+                ),
               ),
             ),
           ],
@@ -151,12 +155,12 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       context: context,
       builder: (_) => Dialog(
         backgroundColor: Colors.black,
-        insetPadding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: EdgeInsets.all(context.rSpacing(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.rRadius(16))),
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(context.rRadius(16)),
               child: InteractiveViewer(
                 child: Image.network(
                   url,
@@ -164,13 +168,13 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   width: double.infinity,
                   errorBuilder: (_, __, ___) => Container(
                     width: double.infinity,
-                    height: 400,
+                    height: context.rSpacing(400),
                     color: Colors.grey[900],
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.broken_image_rounded,
                         color: Colors.white70,
-                        size: 64,
+                        size: context.rIconSize(64),
                       ),
                     ),
                   ),
@@ -178,16 +182,19 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
+              top: context.rSpacing(8),
+              right: context.rSpacing(8),
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.close_rounded,
                   color: Colors.white,
-                  size: 28,
+                  size: context.rIconSize(28),
                 ),
-                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black54,
+                  padding: EdgeInsets.all(context.rSpacing(8)),
+                ),
               ),
             ),
           ],
@@ -209,41 +216,50 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       ),
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(context.rRadius(24))),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle
           Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+            margin: EdgeInsets.only(top: context.rSpacing(12)),
+            width: context.rSpacing(40),
+            height: context.rSpacing(4),
             decoration: BoxDecoration(
               color: c.border,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(context.rRadius(2)),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            padding: EdgeInsets.fromLTRB(
+              context.rSpacing(20),
+              context.rSpacing(16),
+              context.rSpacing(20),
+              0,
+            ),
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: context.rSpacing(54),
+                  height: context.rSpacing(54),
                   decoration: BoxDecoration(
-                    color: c.brandGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      colors: [c.brandGreen.withOpacity(0.15), c.brandGreen.withOpacity(0.05)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(context.rRadius(16)),
                   ),
                   child: Icon(
                     Icons.cleaning_services_rounded,
                     color: c.brandGreen,
-                    size: 24,
+                    size: context.rIconSize(28),
                   ),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: context.rSpacing(16)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,50 +267,65 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       Text(
                         t.title,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: context.rFontSize(18),
                           fontWeight: FontWeight.bold,
                           color: c.primary,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
+                      SizedBox(height: context.rSpacing(4)),
+                      Wrap(
+                        spacing: context.rSpacing(8),
+                        runSpacing: context.rSpacing(8),
                         children: [
                           Container(
-                            width: 110,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.rSpacing(10),
+                              vertical: context.rSpacing(4),
                             ),
                             decoration: BoxDecoration(
-                              color: sc,
-                              borderRadius: BorderRadius.circular(6),
+                              color: sc.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(context.rRadius(20)),
+                              border: Border.all(color: sc.withOpacity(0.3)),
                             ),
-                            child: Text(
-                              _statusLabel(t.status),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: context.rSpacing(6),
+                                  height: context.rSpacing(6),
+                                  decoration: BoxDecoration(
+                                    color: sc,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                SizedBox(width: context.rSpacing(6)),
+                                Text(
+                                  _statusLabel(t.status),
+                                  style: TextStyle(
+                                    fontSize: context.rFontSize(11),
+                                    fontWeight: FontWeight.w700,
+                                    color: sc,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.rSpacing(10),
+                              vertical: context.rSpacing(4),
                             ),
                             decoration: BoxDecoration(
                               color: pc.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(context.rRadius(20)),
                               border: Border.all(color: pc.withOpacity(0.2)),
                             ),
                             child: Text(
                               _prioLabel(t.priority),
                               style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontSize: context.rFontSize(11),
+                                fontWeight: FontWeight.w700,
                                 color: pc,
                               ),
                             ),
@@ -313,178 +344,224 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
           // Scrollable body
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: context.rSpacing(20)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info grid
+                  // Info Grid
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    width: double.infinity,
+                    padding: EdgeInsets.all(context.rSpacing(16)),
                     decoration: BoxDecoration(
-                      color: c.muted,
-                      borderRadius: BorderRadius.circular(14),
+                      color: c.cardBackground,
+                      borderRadius: BorderRadius.circular(context.rRadius(16)),
+                      border: Border.all(color: c.border.withOpacity(0.5)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
                         _InfoRow(
                           c: c,
-                          icon: Icons.place_outlined,
-                          label: 'Байршил',
+                          icon: Icons.place_rounded,
+                          label: 'БАЙРШИЛ',
                           value: t.location,
                         ),
-                        const SizedBox(height: 10),
+                        Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
                         _InfoRow(
                           c: c,
-                          icon: Icons.layers_outlined,
-                          label: 'Давхар',
+                          icon: Icons.layers_rounded,
+                          label: 'ДАВХАР',
                           value: t.floor,
                         ),
-                        const SizedBox(height: 10),
+                        Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
                         _InfoRow(
                           c: c,
-                          icon: Icons.schedule_outlined,
-                          label: 'Цаг',
+                          icon: Icons.access_time_filled_rounded,
+                          label: 'ХУГАЦАА',
                           value: '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
                         ),
-                        const SizedBox(height: 10),
-                        // Progress indicator with elapsed time
+                        Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
                         _ProgressRow(task: t, c: c),
-                        const SizedBox(height: 10),
-                        _InfoRow(
-                          c: c,
-                          icon: Icons.calculate_outlined,
-                          label: 'Тооцоолох',
-                          value: t.formattedDuration,
-                        ),
-                        const SizedBox(height: 10),
-                        _InfoRow(
-                          c: c,
-                          icon: Icons.person_outline,
-                          label: 'Удирдагч',
-                          value: t.supervisor,
-                        ),
                       ],
                     ),
                   ),
 
                   // Notes
                   if (t.notes.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      '📝 Тэмдэглэл',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: c.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: context.rSpacing(24)),
                     Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(context.rSpacing(16)),
                       decoration: BoxDecoration(
-                        color: c.chart4.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: c.chart4.withOpacity(0.15)),
+                        color: c.cardBackground,
+                        borderRadius: BorderRadius.circular(context.rRadius(16)),
+                        border: Border.all(color: c.border.withOpacity(0.5)),
                       ),
-                      child: Text(
-                        t.notes,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: c.primary,
-                          height: 1.4,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(context.rSpacing(6)),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.description_rounded,
+                                  size: context.rIconSize(16),
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              SizedBox(width: context.rSpacing(10)),
+                              Text(
+                                'ТАЙЛБАР',
+                                style: TextStyle(
+                                  fontSize: context.rFontSize(12),
+                                  fontWeight: FontWeight.w700,
+                                  color: c.mutedForeground,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: context.rSpacing(12)),
+                          Text(
+                            t.notes,
+                            style: TextStyle(
+                              fontSize: context.rFontSize(14),
+                              color: c.primary,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
 
                   // Subtasks
                   if (t.subtasks.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                    SizedBox(height: context.rSpacing(24)),
                     Container(
+                      padding: EdgeInsets.all(context.rSpacing(16)),
+                      decoration: BoxDecoration(
+                        color: c.cardBackground,
+                        borderRadius: BorderRadius.circular(context.rRadius(16)),
+                        border: Border.all(color: c.border.withOpacity(0.5)),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
+                              Container(
+                                padding: EdgeInsets.all(context.rSpacing(6)),
+                                decoration: BoxDecoration(
+                                  color: c.brandGreen.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.checklist_rtl_rounded,
+                                  size: context.rIconSize(16),
+                                  color: c.brandGreen,
+                                ),
+                              ),
+                              SizedBox(width: context.rSpacing(10)),
                               Text(
-                                '☑ Дэд даалгавар',
+                                'ДЭД ДААЛГАВАРУУД',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.primary,
+                                  fontSize: context.rFontSize(12),
+                                  fontWeight: FontWeight.w700,
+                                  color: c.mutedForeground,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                               const Spacer(),
-                              Text(
-                                '${t.subtasksDone}/${t.subtasks.length}',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.brandGreen,
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: context.rSpacing(8), vertical: context.rSpacing(2)),
+                                decoration: BoxDecoration(
+                                  color: c.brandGreen.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(context.rRadius(10)),
+                                ),
+                                child: Text(
+                                  '${t.subtasksDone}/${t.subtasks.length}',
+                                  style: TextStyle(
+                                    fontSize: context.rFontSize(12),
+                                    fontWeight: FontWeight.bold,
+                                    color: c.brandGreen,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          // progress
+                          SizedBox(height: context.rSpacing(16)),
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(context.rRadius(10)),
                             child: LinearProgressIndicator(
                               value: t.subtaskProgress,
-                              minHeight: 6,
+                              minHeight: context.rSpacing(8),
                               backgroundColor: c.muted,
                               valueColor: AlwaysStoppedAnimation(c.brandGreen),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: context.rSpacing(16)),
                           ...List.generate(t.subtasks.length, (i) {
                             final st = t.subtasks[i];
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
+                              padding: EdgeInsets.only(bottom: context.rSpacing(8)),
                               child: InkWell(
                                 onTap: done
                                     ? null
                                     : () async {
-                                        // Optimistically update UI
                                         setState(() => st.isDone = !st.isDone);
-                                        // Then sync with backend
                                         await widget.onSubtaskToggle(i);
                                       },
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(context.rRadius(12)),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
+                                  padding: EdgeInsets.all(context.rSpacing(12)),
                                   decoration: BoxDecoration(
                                     color: st.isDone
-                                        ? c.success.withOpacity(0.06)
-                                        : c.cardBackground,
-                                    borderRadius: BorderRadius.circular(10),
+                                        ? c.success.withOpacity(0.04)
+                                        : c.secondary.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(context.rRadius(12)),
                                     border: Border.all(
                                       color: st.isDone
-                                          ? c.success.withOpacity(0.15)
-                                          : c.border,
+                                          ? c.success.withOpacity(0.2)
+                                          : Colors.transparent,
                                     ),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(
-                                        st.isDone
-                                            ? Icons.check_circle_rounded
-                                            : Icons.radio_button_unchecked,
-                                        color: st.isDone
-                                            ? c.success
-                                            : c.mutedForeground,
-                                        size: 20,
+                                      AnimatedContainer(
+                                        duration: const Duration(milliseconds: 300),
+                                        padding: EdgeInsets.all(context.rSpacing(2)),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: st.isDone ? c.success : Colors.transparent,
+                                          border: Border.all(
+                                            color: st.isDone ? c.success : c.mutedForeground.withOpacity(0.5),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.check,
+                                          size: context.rIconSize(14),
+                                          color: st.isDone ? Colors.white : Colors.transparent,
+                                        ),
                                       ),
-                                      const SizedBox(width: 10),
+                                      SizedBox(width: context.rSpacing(12)),
                                       Expanded(
                                         child: Text(
                                           st.title,
                                           style: TextStyle(
-                                            fontSize: 15,
+                                            fontSize: context.rFontSize(14),
+                                            fontWeight: st.isDone ? FontWeight.w500 : FontWeight.w400,
                                             color: st.isDone
                                                 ? c.mutedForeground
                                                 : c.primary,
@@ -506,361 +583,328 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   ],
 
                   // Photos section - Show both types of images separately
-                  const SizedBox(height: 16),
+                  SizedBox(height: context.rSpacing(16)),
                   Container(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Original task images (hariutsagchZurag) - from task creator
+                        // Original task images
                         if (t.hariutsagchZurag.isNotEmpty) ...[
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.image_outlined,
-                                size: 18,
-                                color: c.info,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '📋 Анхны зураг (Хуваарилагчийн)',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.primary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                '${t.hariutsagchZurag.length} зураг',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: c.mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                ...t.hariutsagchZurag.map((zurag) {
-                                  final imageUrl =
-                                      zurag.zamNer ?? zurag.fileNer ?? '';
-                                  if (imageUrl.isEmpty)
-                                    return const SizedBox.shrink();
-
-                                  // Build full URL if it's a relative path
-                                  final fullUrl = imageUrl.startsWith('http')
-                                      ? imageUrl
-                                      : '${ApiService.baseUrl}/$imageUrl';
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: GestureDetector(
-                                      onTap: () => _showNetworkPhoto(
-                                        context,
-                                        fullUrl,
-                                        c,
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: Container(
-                                          width: 120,
-                                          height: 120,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: c.info.withOpacity(0.3),
-                                              width: 2,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              14,
-                                            ),
-                                          ),
-                                          child: Image.network(
-                                            fullUrl,
-                                            width: 120,
-                                            height: 120,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                Container(
-                                                  width: 120,
-                                                  height: 120,
-                                                  color: c.muted,
-                                                  child: Icon(
-                                                    Icons.broken_image_rounded,
-                                                    color: c.mutedForeground,
-                                                    size: 36,
-                                                  ),
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Employee uploaded images (ajiltanZurag)
-                        if (t.ajiltanZurag.isNotEmpty) ...[
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.photo_camera_outlined,
-                                size: 18,
-                                color: c.brandGreen,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '📸 Ажилтны зураг',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.primary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                '${t.ajiltanZurag.length} зураг',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: c.mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                ...t.ajiltanZurag.map((zurag) {
-                                  final imageUrl =
-                                      zurag.zamNer ?? zurag.fileNer ?? '';
-                                  if (imageUrl.isEmpty)
-                                    return const SizedBox.shrink();
-
-                                  // Build full URL if it's a relative path
-                                  final fullUrl = imageUrl.startsWith('http')
-                                      ? imageUrl
-                                      : '${ApiService.baseUrl}/$imageUrl';
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: GestureDetector(
-                                      onTap: () => _showNetworkPhoto(
-                                        context,
-                                        fullUrl,
-                                        c,
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: Container(
-                                          width: 120,
-                                          height: 120,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: c.brandGreen.withOpacity(
-                                                0.3,
-                                              ),
-                                              width: 2,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              14,
-                                            ),
-                                          ),
-                                          child: Image.network(
-                                            fullUrl,
-                                            width: 120,
-                                            height: 120,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                Container(
-                                                  width: 120,
-                                                  height: 120,
-                                                  color: c.muted,
-                                                  child: Icon(
-                                                    Icons.broken_image_rounded,
-                                                    color: c.mutedForeground,
-                                                    size: 36,
-                                                  ),
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Local photos (from photoPaths - employee-uploaded via app)
-                        if (t.photoPaths.isNotEmpty) ...[
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.photo_library_outlined,
-                                size: 18,
-                                color: c.brandGreen,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '📱 Одоогийн зураг',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.primary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                '${t.photoPaths.length} зураг',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: c.mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                // Actual photos from local storage
-                                ...t.photoPaths.map((path) {
-                                  final file = File(path);
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: GestureDetector(
-                                      onTap: () =>
-                                          _showFullPhoto(context, path, c),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: file.existsSync()
-                                            ? Image.file(
-                                                file,
-                                                width: 120,
-                                                height: 120,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Container(
-                                                width: 120,
-                                                height: 120,
-                                                color: c.muted,
-                                                child: Icon(
-                                                  Icons.broken_image_rounded,
-                                                  color: c.mutedForeground,
-                                                  size: 36,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                                // Add photo button
-                                if (!done)
-                                  InkWell(
-                                    onTap: () async {
-                                      await widget.onPhoto();
-                                      if (mounted) setState(() {});
-                                    },
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Container(
-                                      width: 120,
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        color: c.brandGreen.withOpacity(0.08),
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: c.brandGreen.withOpacity(0.2),
-                                        ),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.add_a_photo_rounded,
-                                            color: c.brandGreen,
-                                            size: 30,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Нэмэх',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: c.brandGreen,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ] else if (!done) ...[
-                          // Show add photo button if no photos at all
-                          Row(
-                            children: [
-                              Text(
-                                '📸 Зураг',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () async {
-                              await widget.onPhoto();
-                              if (mounted) setState(() {});
-                            },
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: c.brandGreen.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: c.brandGreen.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              Row(
                                 children: [
                                   Icon(
-                                    Icons.add_a_photo_rounded,
-                                    color: c.brandGreen,
-                                    size: 30,
+                                    Icons.photo_library_rounded,
+                                    size: context.rIconSize(18),
+                                    color: c.info,
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(width: context.rSpacing(8)),
                                   Text(
-                                    'Нэмэх',
+                                    'АНХНЫ ЗУРГУУД',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      color: c.brandGreen,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: context.rFontSize(12),
+                                      fontWeight: FontWeight.w700,
+                                      color: c.mutedForeground,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${t.hariutsagchZurag.length}',
+                                    style: TextStyle(
+                                      fontSize: context.rFontSize(12),
+                                      fontWeight: FontWeight.bold,
+                                      color: c.info,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
+                              SizedBox(height: context.rSpacing(12)),
+                              SizedBox(
+                                height: context.rSpacing(120),
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  itemCount: t.hariutsagchZurag.length,
+                                  separatorBuilder: (_, __) => SizedBox(width: context.rSpacing(12)),
+                                  itemBuilder: (ctx, i) {
+                                    final zurag = t.hariutsagchZurag[i];
+                                    final imageUrl = zurag.zamNer ?? zurag.fileNer ?? '';
+                                    if (imageUrl.isEmpty) return const SizedBox.shrink();
+
+                                    final fullUrl = imageUrl.startsWith('http')
+                                        ? imageUrl
+                                        : '${ApiService.baseUrl}/$imageUrl';
+
+                                    return GestureDetector(
+                                      onTap: () => _showNetworkPhoto(context, fullUrl, c),
+                                      child: Hero(
+                                        tag: 'network_$fullUrl',
+                                        child: Container(
+                                          width: context.rSpacing(120),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                            child: Image.network(
+                                              fullUrl,
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child, progress) {
+                                                if (progress == null) return child;
+                                                return Container(
+                                                  color: c.muted,
+                                                  child: Center(
+                                                    child: CircularProgressIndicator(
+                                                      value: progress.expectedTotalBytes != null
+                                                          ? progress.cumulativeBytesLoaded /
+                                                              progress.expectedTotalBytes!
+                                                          : null,
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              errorBuilder: (_, __, ___) => Container(
+                                                color: c.muted,
+                                                child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
+                          SizedBox(height: context.rSpacing(24)),
                         ],
+
+                        // Employee uploaded images
+                        if (t.ajiltanZurag.isNotEmpty) ...[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.photo_camera_rounded,
+                                    size: context.rIconSize(18),
+                                    color: c.brandGreen,
+                                  ),
+                                  SizedBox(width: context.rSpacing(8)),
+                                  Text(
+                                    'АЖИЛТНЫ ЗУРГУУД',
+                                    style: TextStyle(
+                                      fontSize: context.rFontSize(12),
+                                      fontWeight: FontWeight.w700,
+                                      color: c.mutedForeground,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${t.ajiltanZurag.length}',
+                                    style: TextStyle(
+                                      fontSize: context.rFontSize(12),
+                                      fontWeight: FontWeight.bold,
+                                      color: c.brandGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: context.rSpacing(12)),
+                              SizedBox(
+                                height: context.rSpacing(120),
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  itemCount: t.ajiltanZurag.length,
+                                  separatorBuilder: (_, __) => SizedBox(width: context.rSpacing(12)),
+                                  itemBuilder: (ctx, i) {
+                                    final zurag = t.ajiltanZurag[i];
+                                    final imageUrl = zurag.zamNer ?? zurag.fileNer ?? '';
+                                    if (imageUrl.isEmpty) return const SizedBox.shrink();
+
+                                    final fullUrl = imageUrl.startsWith('http')
+                                        ? imageUrl
+                                        : '${ApiService.baseUrl}/$imageUrl';
+
+                                    return GestureDetector(
+                                      onTap: () => _showNetworkPhoto(context, fullUrl, c),
+                                      child: Hero(
+                                        tag: 'employee_$fullUrl',
+                                        child: Container(
+                                          width: context.rSpacing(120),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                            child: Image.network(
+                                              fullUrl,
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child, progress) {
+                                                if (progress == null) return child;
+                                                return Container(
+                                                  color: c.muted,
+                                                  child: Center(
+                                                    child: CircularProgressIndicator(
+                                                      value: progress.expectedTotalBytes != null
+                                                          ? progress.cumulativeBytesLoaded /
+                                                              progress.expectedTotalBytes!
+                                                          : null,
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              errorBuilder: (_, __, ___) => Container(
+                                                color: c.muted,
+                                                child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: context.rSpacing(24)),
+                        ],
+
+                        // Local photos
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.photo_library_rounded,
+                                  size: context.rIconSize(18),
+                                  color: c.brandGreen,
+                                ),
+                                SizedBox(width: context.rSpacing(8)),
+                                Text(
+                                  'ОДООГИЙН ЗУРГУУД',
+                                  style: TextStyle(
+                                    fontSize: context.rFontSize(12),
+                                    fontWeight: FontWeight.w700,
+                                    color: c.mutedForeground,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '${t.photoPaths.length}',
+                                  style: TextStyle(
+                                    fontSize: context.rFontSize(12),
+                                    fontWeight: FontWeight.bold,
+                                    color: c.brandGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: context.rSpacing(12)),
+                            SizedBox(
+                              height: context.rSpacing(120),
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: t.photoPaths.length + (done ? 0 : 1),
+                                separatorBuilder: (_, __) => SizedBox(width: context.rSpacing(12)),
+                                itemBuilder: (ctx, i) {
+                                  if (i == t.photoPaths.length) {
+                                    return GestureDetector(
+                                      onTap: () async {
+                                        await widget.onPhoto();
+                                        if (mounted) setState(() {});
+                                      },
+                                      child: Container(
+                                        width: context.rSpacing(120),
+                                        decoration: BoxDecoration(
+                                          color: c.brandGreen.withOpacity(0.05),
+                                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                          border: Border.all(
+                                            color: c.brandGreen.withOpacity(0.2),
+                                            style: BorderStyle.solid,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.add_a_photo_rounded, color: c.brandGreen, size: context.rIconSize(28)),
+                                            SizedBox(height: context.rSpacing(4)),
+                                            Text(
+                                              'Нэмэх',
+                                              style: TextStyle(
+                                                fontSize: context.rFontSize(12),
+                                                fontWeight: FontWeight.bold,
+                                                color: c.brandGreen,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  final path = t.photoPaths[i];
+                                  final file = File(path);
+                                  return GestureDetector(
+                                    onTap: () => _showFullPhoto(context, path, c),
+                                    child: Hero(
+                                      tag: 'local_$path',
+                                      child: Container(
+                                        width: context.rSpacing(120),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                          child: file.existsSync()
+                                              ? Image.file(file, fit: BoxFit.cover)
+                                              : Container(
+                                                  color: c.muted,
+                                                  child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -871,82 +915,113 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             ),
           ),
 
-          // Bottom actions
+          // Bottom Actions
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            padding: EdgeInsets.fromLTRB(
+              context.rSpacing(20),
+              context.rSpacing(16),
+              context.rSpacing(20),
+              context.rSpacing(24),
+            ),
             decoration: BoxDecoration(
               color: c.cardBackground,
-              border: Border(top: BorderSide(color: c.border)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (!done &&
-                    (t.status == TaskStatus.pending ||
-                        t.status == TaskStatus.overdue))
-                  Expanded(
-                    child: ElevatedButton.icon(
+                if (!done)
+                  SizedBox(
+                    width: double.infinity,
+                    height: context.rSpacing(54),
+                    child: ElevatedButton(
                       onPressed: () {
                         widget.onStatusChange();
                         Navigator.pop(context);
                       },
-                      icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                      label: const Text('Эхлэх'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: c.info,
+                        backgroundColor: t.status == TaskStatus.inProgress
+                            ? c.brandGreen
+                            : c.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                         elevation: 0,
-                      ),
-                    ),
-                  ),
-                if (!done && t.status == TaskStatus.inProgress)
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        widget.onStatusChange();
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(Icons.check_rounded, size: 20),
-                      label: const Text('Дуусгах'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: c.brandGreen,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(context.rRadius(16)),
                         ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                if (done)
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: c.success.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: c.success.withOpacity(0.2)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle, color: c.success, size: 20),
-                          const SizedBox(width: 8),
+                          Icon(
+                            t.status == TaskStatus.inProgress
+                                ? Icons.check_circle_rounded
+                                : Icons.play_arrow_rounded,
+                            size: context.rIconSize(24),
+                          ),
+                          SizedBox(width: context.rSpacing(12)),
                           Text(
-                            'Даалгавар дууссан',
+                            t.status == TaskStatus.inProgress ? 'ДУУСГАХ' : 'ЭХЛЭХ',
                             style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: c.success,
+                              fontSize: context.rFontSize(16),
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ],
                       ),
                     ),
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: context.rSpacing(16)),
+                    decoration: BoxDecoration(
+                      color: c.success.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(context.rRadius(16)),
+                      border: Border.all(color: c.success.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.verified_rounded, color: c.success, size: context.rIconSize(22)),
+                        SizedBox(width: context.rSpacing(12)),
+                        Text(
+                          'ДААЛГАВАР ДУУССАН',
+                          style: TextStyle(
+                            fontSize: context.rFontSize(14),
+                            fontWeight: FontWeight.w800,
+                            color: c.success,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                SizedBox(height: context.rSpacing(12)),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    minimumSize: Size(double.infinity, context.rSpacing(48)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(context.rRadius(16)),
+                    ),
+                  ),
+                  child: Text(
+                    'ХААХ',
+                    style: TextStyle(
+                      fontSize: context.rFontSize(14),
+                      fontWeight: FontWeight.w700,
+                      color: c.mutedForeground,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -967,28 +1042,45 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label, value;
   @override
-  Widget build(BuildContext _) => Row(
-    children: [
-      Icon(icon, size: 18, color: c.mutedForeground),
-      const SizedBox(width: 8),
-      SizedBox(
-        width: 80,
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 14, color: c.mutedForeground),
-        ),
-      ),
-      Expanded(
-        child: Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: c.primary,
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.symmetric(vertical: context.rSpacing(2)),
+    child: Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(context.rSpacing(8)),
+          decoration: BoxDecoration(
+            color: c.primary.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(context.rRadius(10)),
           ),
+          child: Icon(icon, size: context.rIconSize(18), color: c.mutedForeground),
         ),
-      ),
-    ],
+        SizedBox(width: context.rSpacing(12)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: context.rFontSize(11),
+                color: c.mutedForeground,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: context.rSpacing(2)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: context.rFontSize(14),
+                fontWeight: FontWeight.w600,
+                color: c.primary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ],
+    ),
   );
 }
 
@@ -1003,7 +1095,6 @@ class _ProgressRow extends StatelessWidget {
     final elapsed = task.formattedElapsedTime;
     final total = task.formattedDuration;
 
-    // Determine color based on status
     Color progressColor;
     Color textColor;
     IconData icon;
@@ -1012,12 +1103,12 @@ class _ProgressRow extends StatelessWidget {
       case TaskStatus.overdue:
         progressColor = c.destructive;
         textColor = c.destructive;
-        icon = Icons.schedule_rounded;
+        icon = Icons.error_outline_rounded;
         break;
       case TaskStatus.completed:
         progressColor = c.success;
         textColor = c.success;
-        icon = Icons.check_circle_rounded;
+        icon = Icons.check_circle_outline_rounded;
         break;
       case TaskStatus.inProgress:
         progressColor = c.info;
@@ -1035,62 +1126,99 @@ class _ProgressRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, size: 18, color: textColor),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 80,
-              child: Text(
-                'Явц',
-                style: TextStyle(fontSize: 14, color: c.mutedForeground),
+            Container(
+              padding: EdgeInsets.all(context.rSpacing(8)),
+              decoration: BoxDecoration(
+                color: textColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(context.rRadius(10)),
               ),
+              child: Icon(icon, size: context.rIconSize(18), color: textColor),
             ),
+            SizedBox(width: context.rSpacing(12)),
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    elapsed,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: textColor,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'ЯВЦ',
+                        style: TextStyle(
+                          fontSize: context.rFontSize(11),
+                          fontWeight: FontWeight.w600,
+                          color: c.mutedForeground,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      if (progress != null)
+                        Text(
+                          '${(progress * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: context.rFontSize(12),
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                    ],
                   ),
-                  if (total != 'Тооцоолох боломжгүй') ...[
-                    Text(
-                      ' / $total',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: c.mutedForeground,
+                  SizedBox(height: context.rSpacing(4)),
+                  Row(
+                    children: [
+                      Text(
+                        elapsed,
+                        style: TextStyle(
+                          fontSize: context.rFontSize(14),
+                          fontWeight: FontWeight.w600,
+                          color: c.primary,
+                        ),
                       ),
-                    ),
-                  ],
-                  if (progress != null) ...[
-                    const Spacer(),
-                    Text(
-                      '${(progress * 100).toInt()}%',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: textColor,
-                      ),
-                    ),
-                  ],
+                      if (total != 'Тооцоолох боломжгүй') ...[
+                        Text(
+                          ' / $total',
+                          style: TextStyle(
+                            fontSize: context.rFontSize(13),
+                            color: c.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),
           ],
         ),
         if (progress != null) ...[
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: c.muted,
-              valueColor: AlwaysStoppedAnimation(progressColor),
-            ),
+          SizedBox(height: context.rSpacing(12)),
+          Stack(
+            children: [
+              Container(
+                height: context.rSpacing(10),
+                decoration: BoxDecoration(
+                  color: c.muted,
+                  borderRadius: BorderRadius.circular(context.rRadius(10)),
+                ),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                width: MediaQuery.of(context).size.width * (progress > 1.0 ? 1.0 : progress),
+                height: context.rSpacing(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [progressColor, progressColor.withOpacity(0.7)],
+                  ),
+                  borderRadius: BorderRadius.circular(context.rRadius(10)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: progressColor.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ],
