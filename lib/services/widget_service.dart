@@ -12,6 +12,7 @@ bool get _isIOS {
 
 class WidgetService {
   static const _channel = MethodChannel('com.batkt.workease/widget');
+  static const _liveActivityChannel = MethodChannel('com.batkt.workease/live_activity');
 
   /// Update the task home screen widget with ALL tasks for today
   static Future<void> updateWidget(List<CleaningTask> tasks) async {
@@ -113,6 +114,47 @@ class WidgetService {
     } catch (e) {
       // Silently fail if platform doesn't support widgets
       debugPrint('[WidgetService] Failed to update notification widget: $e');
+    }
+  }
+
+  /// Start Live Activity for a task
+  static Future<void> startTaskActivity(CleaningTask task) async {
+    if (!_isIOS) return;
+    try {
+      await _liveActivityChannel.invokeMethod('startTaskActivity', {
+        'taskId': task.id,
+        'taskCode': task.taskCode,
+        'taskTitle': task.title,
+        'elapsedTime': task.formattedElapsedTime,
+        'progress': (task.progressPercentage ?? 0 * 100).toInt(),
+        'status': 'Явагдаж буй',
+      });
+    } catch (e) {
+      debugPrint('[WidgetService] Error starting Live Activity: $e');
+    }
+  }
+
+  /// Update Live Activity progress
+  static Future<void> updateTaskActivity(CleaningTask task) async {
+    if (!_isIOS) return;
+    try {
+      await _liveActivityChannel.invokeMethod('updateTaskActivity', {
+        'elapsedTime': task.formattedElapsedTime,
+        'progress': (task.progressPercentage ?? 0 * 100).toInt(),
+        'status': task.status == TaskStatus.completed ? 'Дууссан' : 'Явагдаж буй',
+      });
+    } catch (e) {
+      debugPrint('[WidgetService] Error updating Live Activity: $e');
+    }
+  }
+
+  /// End Live Activity
+  static Future<void> endTaskActivity() async {
+    if (!_isIOS) return;
+    try {
+      await _liveActivityChannel.invokeMethod('endTaskActivity');
+    } catch (e) {
+      debugPrint('[WidgetService] Error ending Live Activity: $e');
     }
   }
 

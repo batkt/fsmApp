@@ -35,6 +35,45 @@ class TaskZurag {
   }
 }
 
+/// Time tracking model for task employees
+class AjiltanTsag {
+  final String ajiltniiId;
+  final DateTime ekhlekhTsag;
+  final DateTime? duusakhTsag;
+  final int? tsagMinute;
+  final String? tailbar;
+  final DateTime? ognoo;
+
+  AjiltanTsag({
+    required this.ajiltniiId,
+    required this.ekhlekhTsag,
+    this.duusakhTsag,
+    this.tsagMinute,
+    this.tailbar,
+    this.ognoo,
+  });
+
+  factory AjiltanTsag.fromJson(Map<String, dynamic> j) => AjiltanTsag(
+    ajiltniiId: (j['ajiltniiId'] ?? '').toString(),
+    ekhlekhTsag: TaskZurag._tryParse(j['ekhlekhTsag']) ?? DateTime.now(),
+    duusakhTsag: TaskZurag._tryParse(j['duusakhTsag']),
+    tsagMinute: j['tsagMinute'] is int
+        ? j['tsagMinute']
+        : (j['tsagMinute'] != null ? int.tryParse(j['tsagMinute'].toString()) : null),
+    tailbar: j['tailbar']?.toString(),
+    ognoo: TaskZurag._tryParse(j['ognoo']),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'ajiltniiId': ajiltniiId,
+    if (ekhlekhTsag != null) 'ekhlekhTsag': ekhlekhTsag.toIso8601String(),
+    if (duusakhTsag != null) 'duusakhTsag': duusakhTsag!.toIso8601String(),
+    if (tsagMinute != null) 'tsagMinute': tsagMinute,
+    if (tailbar != null) 'tailbar': tailbar,
+    if (ognoo != null) 'ognoo': ognoo!.toIso8601String(),
+  };
+}
+
 /// Task data model — maps to the API's /tasks response.
 class ApiTask {
   final String id;
@@ -58,6 +97,7 @@ class ApiTask {
   final String barilgiinId;
   final String? color;
   final List<ApiSubTask> subTasks;
+  final List<AjiltanTsag> ajiltanTsag;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -83,53 +123,64 @@ class ApiTask {
     required this.barilgiinId,
     this.color,
     this.subTasks = const [],
+    this.ajiltanTsag = const [],
     this.createdAt,
     this.updatedAt,
   });
 
-  factory ApiTask.fromJson(Map<String, dynamic> j) => ApiTask(
-    id: (j['_id'] ?? j['id'] ?? '').toString(),
-    projectId: (j['projectId'] ?? '').toString(),
-    taskId: (j['taskId'] ?? '').toString(),
-    ner: (j['ner'] ?? '').toString(),
-    tailbar: (j['tailbar'] ?? '').toString(),
-    zereglel: (j['zereglel'] ?? 'engiin').toString(),
-    tuluv: (j['tuluv'] ?? 'shine').toString(),
-    hariutsagchId: (j['hariutsagchId'] ?? '').toString(),
-    ajiltnuud: List<String>.from(j['ajiltnuud'] ?? []),
-    ekhlekhTsag: _tryParse(j['ekhlekhTsag']),
-    duusakhTsag: _tryParse(j['duusakhTsag']),
-    ekhlekhMinute: j['ekhlekhMinute'] is int
-        ? j['ekhlekhMinute']
-        : (j['ekhlekhMinute'] != null
-              ? int.tryParse(j['ekhlekhMinute'].toString())
-              : null),
-    duusakhMinute: j['duusakhMinute'] is int
-        ? j['duusakhMinute']
-        : (j['duusakhMinute'] != null
-              ? int.tryParse(j['duusakhMinute'].toString())
-              : null),
-    khugatsaaDuusakhOgnoo: _tryParse(j['khugatsaaDuusakhOgnoo']),
-    // Legacy zurag field (for backward compatibility)
-    zurag: (j['zurag'] as List<dynamic>? ?? [])
-        .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
-        .toList(),
-    // New separate fields for assigner and employee images
-    hariutsagchZurag: (j['hariutsagchZurag'] as List<dynamic>? ?? [])
-        .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
-        .toList(),
-    ajiltanZurag: (j['ajiltanZurag'] as List<dynamic>? ?? [])
-        .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
-        .toList(),
-    baiguullagiinId: (j['baiguullagiinId'] ?? '').toString(),
-    barilgiinId: (j['barilgiinId'] ?? '').toString(),
-    color: j['color']?.toString(),
-    subTasks: (j['subTasks'] as List<dynamic>? ?? [])
-        .map((s) => ApiSubTask.fromJson(s is Map<String, dynamic> ? s : {}))
-        .toList(),
-    createdAt: _tryParse(j['createdAt']),
-    updatedAt: _tryParse(j['updatedAt']),
-  );
+  factory ApiTask.fromJson(Map<String, dynamic> j) {
+    String extractId(dynamic val) {
+      if (val is Map) return (val['_id'] ?? val['id'] ?? '').toString();
+      return (val ?? '').toString();
+    }
+    
+    return ApiTask(
+      id: extractId(j['_id'] ?? j['id']),
+      projectId: extractId(j['projectId']),
+      taskId: (j['taskId'] ?? '').toString(),
+      ner: (j['ner'] ?? '').toString(),
+      tailbar: (j['tailbar'] ?? '').toString(),
+      zereglel: (j['zereglel'] ?? 'engiin').toString(),
+      tuluv: (j['tuluv'] ?? 'shine').toString(),
+      hariutsagchId: extractId(j['hariutsagchId']),
+      ajiltnuud: (j['ajiltnuud'] as List?)?.map(extractId).where((e) => e.isNotEmpty).toList() ?? [],
+      ekhlekhTsag: _tryParse(j['ekhlekhTsag']),
+      duusakhTsag: _tryParse(j['duusakhTsag']),
+      ekhlekhMinute: j['ekhlekhMinute'] is int
+          ? j['ekhlekhMinute']
+          : (j['ekhlekhMinute'] != null
+                ? int.tryParse(j['ekhlekhMinute'].toString())
+                : null),
+      duusakhMinute: j['duusakhMinute'] is int
+          ? j['duusakhMinute']
+          : (j['duusakhMinute'] != null
+                ? int.tryParse(j['duusakhMinute'].toString())
+                : null),
+      khugatsaaDuusakhOgnoo: _tryParse(j['khugatsaaDuusakhOgnoo']),
+      // Legacy zurag field (for backward compatibility)
+      zurag: (j['zurag'] as List<dynamic>? ?? [])
+          .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
+          .toList(),
+      // New separate fields for assigner and employee images
+      hariutsagchZurag: (j['hariutsagchZurag'] as List<dynamic>? ?? [])
+          .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
+          .toList(),
+      ajiltanZurag: (j['ajiltanZurag'] as List<dynamic>? ?? [])
+          .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
+          .toList(),
+      baiguullagiinId: extractId(j['baiguullagiinId']),
+      barilgiinId: extractId(j['barilgiinId']),
+      color: j['color']?.toString(),
+      subTasks: (j['subTasks'] as List<dynamic>? ?? [])
+          .map((s) => ApiSubTask.fromJson(s is Map<String, dynamic> ? s : {}))
+          .toList(),
+      ajiltanTsag: (j['ajiltanTsag'] as List<dynamic>? ?? [])
+          .map((a) => AjiltanTsag.fromJson(a is Map<String, dynamic> ? a : {}))
+          .toList(),
+      createdAt: _tryParse(j['createdAt']),
+      updatedAt: _tryParse(j['updatedAt']),
+    );
+  }
 
   static DateTime? _tryParse(dynamic v) {
     if (v == null) return null;

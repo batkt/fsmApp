@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import '../services/settings_service.dart';
 
 /// Responsive design utilities for iOS and Android
 /// Scales text, icons, and spacing based on screen size and platform
@@ -35,13 +36,11 @@ class Responsive {
   /// Get responsive font size multiplier
   /// iOS devices get smaller base sizes, especially compact devices
   static double fontSizeMultiplier(BuildContext context) {
-    if (isAndroid) return 1.0; // Android uses default sizes
-
-    if (isCompactDevice(context)) {
-      // Make text noticeably smaller on compact iPhones (e.g. iPhone 14 Pro)
-      return 0.65; // 35% smaller for compact iOS devices
+    double baseMultiplier = 1.0;
+    if (isIOS) {
+       baseMultiplier = isCompactDevice(context) ? 0.65 : 0.8;
     }
-    return 0.8; // 20% smaller for regular iOS devices
+    return baseMultiplier * SettingsService().fontSizeFactor;
   }
 
   /// Get responsive icon size multiplier

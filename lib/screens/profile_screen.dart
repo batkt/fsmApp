@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
+import '../services/settings_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
+import '../utils/responsive.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.onLogout});
@@ -324,6 +326,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.dark_mode_rounded,
               title: 'Загвар',
               subtitle: 'Системийн тохиргоо',
+            ),
+            const SizedBox(height: 12),
+            
+            // ── Dynamic Font Size ──
+            ListenableBuilder(
+              listenable: SettingsService(),
+              builder: (context, _) {
+                final factor = SettingsService().fontSizeFactor;
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: c.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: c.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.format_size_rounded, color: c.mutedForeground, size: context.rIconSize(20)),
+                          const SizedBox(width: 12),
+                          Text('Үсгийн хэмжээ', style: TextStyle(
+                            fontSize: context.rFontSize(16), 
+                            color: c.primary,
+                            fontWeight: FontWeight.w500,
+                          )),
+                          const Spacer(),
+                          Text('${(factor * 100).toInt()}%', style: TextStyle(
+                            fontSize: context.rFontSize(14),
+                            color: c.brandGreen,
+                            fontWeight: FontWeight.bold,
+                          )),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 4,
+                          activeTrackColor: c.brandGreen,
+                          inactiveTrackColor: c.brandGreen.withOpacity(0.1),
+                          thumbColor: c.brandGreen,
+                          overlayColor: c.brandGreen.withOpacity(0.1),
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                        ),
+                        child: Slider(
+                          value: factor,
+                          min: 0.8,
+                          max: 1.5,
+                          divisions: 7,
+                          onChanged: (val) => SettingsService().setFontSizeFactor(val),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Жижиг', style: TextStyle(fontSize: 12, color: c.mutedForeground)),
+                          Text('Том', style: TextStyle(fontSize: 12, color: c.mutedForeground)),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 8),
             _SettingTile(

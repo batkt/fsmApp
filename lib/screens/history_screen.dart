@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/cleaning_task.dart';
 import '../models/task_model.dart';
 import '../services/image_service.dart';
+import '../services/project_service.dart';
 import '../services/task_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_detail_modal.dart';
@@ -25,10 +26,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void initState() {
     super.initState();
     _loadTasks();
+    ProjectService.activeProject.addListener(_onProjectChanged);
+  }
+
+  @override
+  void dispose() {
+    ProjectService.activeProject.removeListener(_onProjectChanged);
+    super.dispose();
+  }
+
+  void _onProjectChanged() {
+    if (mounted) {
+      _loadTasks();
+    }
   }
 
   Future<void> _loadTasks() async {
-    final apiTasks = await TaskService.myTasks();
+    setState(() => _loading = true);
+    final activeProjectId = ProjectService.activeProject.value?.id;
+    
+    final apiTasks = activeProjectId != null 
+        ? await TaskService.byProject(activeProjectId)
+        : await TaskService.myTasks();
     if (!mounted) return;
 
     final today = stripTime(DateTime.now());

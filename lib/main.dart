@@ -7,6 +7,7 @@ import 'screens/root_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/holiday_service.dart';
 import 'services/fcm_service.dart';
+import 'services/settings_service.dart';
 
 // Helper to check if platform is iOS (web-compatible)
 bool get _isIOS {
@@ -51,6 +52,7 @@ void main() async {
   }
 
   await HolidayService.init();
+  await SettingsService().init();
   runApp(const WorkEaseApp());
 }
 
@@ -59,141 +61,146 @@ class WorkEaseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'workEase',
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system, // follows device setting
-      // ── Light Theme ──
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColorScheme.light.brandGreen,
-          primary: AppColorScheme.light.brandGreen,
-          secondary: AppColorScheme.light.secondary,
-          error: AppColorScheme.light.destructive,
-          surface: AppColorScheme.light.background,
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: AppColorScheme.light.background,
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColorScheme.light.background,
-          foregroundColor: AppColorScheme.light.primary,
-          elevation: 0,
-          centerTitle: false,
-          titleTextStyle: TextStyle(
-            color: AppColorScheme.light.primary,
-            fontSize: _isIOS ? 15 : 20, // Smaller on iOS
-            fontWeight: FontWeight.w600,
+    return ListenableBuilder(
+      listenable: SettingsService(),
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'workEase',
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeMode.system, // follows device setting
+          // ── Light Theme ──
+          theme: ThemeData(
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColorScheme.light.brandGreen,
+              primary: AppColorScheme.light.brandGreen,
+              secondary: AppColorScheme.light.secondary,
+              error: AppColorScheme.light.destructive,
+              surface: AppColorScheme.light.background,
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: AppColorScheme.light.background,
+            appBarTheme: AppBarTheme(
+              backgroundColor: AppColorScheme.light.background,
+              foregroundColor: AppColorScheme.light.primary,
+              elevation: 0,
+              centerTitle: false,
+              titleTextStyle: TextStyle(
+                color: AppColorScheme.light.primary,
+                fontSize: _isIOS ? 15 : 20, // Smaller on iOS
+                fontWeight: FontWeight.w600,
+              ),
+              iconTheme: IconThemeData(
+                size: _isIOS ? 20 : 24, // Smaller icons on iOS
+              ),
+            ),
+            textTheme: TextTheme(
+              bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
+              bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
+              bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
+              titleLarge: TextStyle(
+                fontSize: _isIOS ? 18 : 24,
+                fontWeight: FontWeight.bold,
+              ),
+              titleMedium: TextStyle(
+                fontSize: _isIOS ? 16 : 20,
+                fontWeight: FontWeight.w600,
+              ),
+              titleSmall: TextStyle(
+                fontSize: _isIOS ? 14 : 18,
+                fontWeight: FontWeight.w500,
+              ),
+              labelLarge: TextStyle(fontSize: _isIOS ? 13 : 16),
+              labelMedium: TextStyle(fontSize: _isIOS ? 11 : 14),
+              labelSmall: TextStyle(fontSize: _isIOS ? 10 : 13),
+            ),
+            dividerColor: AppColorScheme.light.border,
+            cardColor: AppColorScheme.light.cardBackground,
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              backgroundColor: AppColorScheme.light.background,
+              selectedItemColor: AppColorScheme.light.brandGreen,
+              unselectedItemColor: AppColorScheme.light.mutedForeground,
+            ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: AppColorScheme.light.primary,
+              contentTextStyle: TextStyle(
+                color: AppColorScheme.light.primaryForeground,
+              ),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            useMaterial3: true,
+            extensions: const [AppColorScheme.light],
           ),
-          iconTheme: IconThemeData(
-            size: _isIOS ? 20 : 24, // Smaller icons on iOS
+          // ── Dark Theme ──
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColorScheme.dark.brandGreen,
+              primary: AppColorScheme.dark.brandGreen,
+              secondary: AppColorScheme.dark.secondary,
+              error: AppColorScheme.dark.destructive,
+              surface: AppColorScheme.dark.background,
+              brightness: Brightness.dark,
+            ),
+            scaffoldBackgroundColor: AppColorScheme.dark.background,
+            appBarTheme: AppBarTheme(
+              backgroundColor: AppColorScheme.dark.background,
+              foregroundColor: AppColorScheme.dark.primary,
+              elevation: 0,
+              centerTitle: false,
+              titleTextStyle: TextStyle(
+                color: AppColorScheme.dark.primary,
+                fontSize: _isIOS ? 15 : 20, // Smaller on iOS
+                fontWeight: FontWeight.w600,
+              ),
+              iconTheme: IconThemeData(
+                size: _isIOS ? 20 : 24, // Smaller icons on iOS
+              ),
+            ),
+            textTheme: TextTheme(
+              bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
+              bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
+              bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
+              titleLarge: TextStyle(
+                fontSize: _isIOS ? 18 : 24,
+                fontWeight: FontWeight.bold,
+              ),
+              titleMedium: TextStyle(
+                fontSize: _isIOS ? 16 : 20,
+                fontWeight: FontWeight.w600,
+              ),
+              titleSmall: TextStyle(
+                fontSize: _isIOS ? 14 : 18,
+                fontWeight: FontWeight.w500,
+              ),
+              labelLarge: TextStyle(fontSize: _isIOS ? 13 : 16),
+              labelMedium: TextStyle(fontSize: _isIOS ? 11 : 14),
+              labelSmall: TextStyle(fontSize: _isIOS ? 10 : 13),
+            ),
+            dividerColor: AppColorScheme.dark.border,
+            cardColor: AppColorScheme.dark.cardBackground,
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              backgroundColor: AppColorScheme.dark.cardBackground,
+              selectedItemColor: AppColorScheme.dark.brandGreen,
+              unselectedItemColor: AppColorScheme.dark.mutedForeground,
+            ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: AppColorScheme.dark.secondary,
+              contentTextStyle: TextStyle(color: AppColorScheme.dark.primary),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            useMaterial3: true,
+            extensions: const [AppColorScheme.dark],
           ),
-        ),
-        textTheme: TextTheme(
-          bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
-          bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
-          bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
-          titleLarge: TextStyle(
-            fontSize: _isIOS ? 18 : 24,
-            fontWeight: FontWeight.bold,
-          ),
-          titleMedium: TextStyle(
-            fontSize: _isIOS ? 16 : 20,
-            fontWeight: FontWeight.w600,
-          ),
-          titleSmall: TextStyle(
-            fontSize: _isIOS ? 14 : 18,
-            fontWeight: FontWeight.w500,
-          ),
-          labelLarge: TextStyle(fontSize: _isIOS ? 13 : 16),
-          labelMedium: TextStyle(fontSize: _isIOS ? 11 : 14),
-          labelSmall: TextStyle(fontSize: _isIOS ? 10 : 13),
-        ),
-        dividerColor: AppColorScheme.light.border,
-        cardColor: AppColorScheme.light.cardBackground,
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: AppColorScheme.light.background,
-          selectedItemColor: AppColorScheme.light.brandGreen,
-          unselectedItemColor: AppColorScheme.light.mutedForeground,
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: AppColorScheme.light.primary,
-          contentTextStyle: TextStyle(
-            color: AppColorScheme.light.primaryForeground,
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        useMaterial3: true,
-        extensions: const [AppColorScheme.light],
-      ),
-      // ── Dark Theme ──
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColorScheme.dark.brandGreen,
-          primary: AppColorScheme.dark.brandGreen,
-          secondary: AppColorScheme.dark.secondary,
-          error: AppColorScheme.dark.destructive,
-          surface: AppColorScheme.dark.background,
-          brightness: Brightness.dark,
-        ),
-        scaffoldBackgroundColor: AppColorScheme.dark.background,
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColorScheme.dark.background,
-          foregroundColor: AppColorScheme.dark.primary,
-          elevation: 0,
-          centerTitle: false,
-          titleTextStyle: TextStyle(
-            color: AppColorScheme.dark.primary,
-            fontSize: _isIOS ? 15 : 20, // Smaller on iOS
-            fontWeight: FontWeight.w600,
-          ),
-          iconTheme: IconThemeData(
-            size: _isIOS ? 20 : 24, // Smaller icons on iOS
-          ),
-        ),
-        textTheme: TextTheme(
-          bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
-          bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
-          bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
-          titleLarge: TextStyle(
-            fontSize: _isIOS ? 18 : 24,
-            fontWeight: FontWeight.bold,
-          ),
-          titleMedium: TextStyle(
-            fontSize: _isIOS ? 16 : 20,
-            fontWeight: FontWeight.w600,
-          ),
-          titleSmall: TextStyle(
-            fontSize: _isIOS ? 14 : 18,
-            fontWeight: FontWeight.w500,
-          ),
-          labelLarge: TextStyle(fontSize: _isIOS ? 13 : 16),
-          labelMedium: TextStyle(fontSize: _isIOS ? 11 : 14),
-          labelSmall: TextStyle(fontSize: _isIOS ? 10 : 13),
-        ),
-        dividerColor: AppColorScheme.dark.border,
-        cardColor: AppColorScheme.dark.cardBackground,
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: AppColorScheme.dark.cardBackground,
-          selectedItemColor: AppColorScheme.dark.brandGreen,
-          unselectedItemColor: AppColorScheme.dark.mutedForeground,
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: AppColorScheme.dark.secondary,
-          contentTextStyle: TextStyle(color: AppColorScheme.dark.primary),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        useMaterial3: true,
-        extensions: const [AppColorScheme.dark],
-      ),
-      home: const RootScreen(),
+          home: const RootScreen(),
+        );
+      },
     );
   }
 }

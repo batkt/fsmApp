@@ -1,14 +1,90 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../models/cleaning_task.dart';
+import '../models/task_model.dart';
+import '../services/project_service.dart';
+import '../services/task_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
 
-class PerformanceScreen extends StatelessWidget {
+class PerformanceScreen extends StatefulWidget {
   const PerformanceScreen({super.key});
 
   @override
+  State<PerformanceScreen> createState() => _PerformanceScreenState();
+}
+
+class _PerformanceScreenState extends State<PerformanceScreen> {
+  List<CleaningTask> _tasks = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    ProjectService.activeProject.addListener(_onProjectChanged);
+  }
+
+  @override
+  void dispose() {
+    ProjectService.activeProject.removeListener(_onProjectChanged);
+    super.dispose();
+  }
+
+  void _onProjectChanged() {
+    if (mounted) _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+    final activeProjectId = ProjectService.activeProject.value?.id;
+    if (activeProjectId == null) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    final apiTasks = await TaskService.byProject(activeProjectId);
+    if (mounted) {
+      setState(() {
+        _tasks = apiTasks.map((t) => CleaningTask.fromApi(t)).toList();
+        _loading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Гүйцэтгэл')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final c = context.colors;
+    
+    // Today Stats
+    final today = stripTime(DateTime.now());
+    final todayTasks = _tasks.where((t) => stripTime(t.date) == today).toList();
+    final todayDone = todayTasks.where((t) => t.status == TaskStatus.completed).length;
+    final todayInProgress = todayTasks.where((t) => t.status == TaskStatus.inProgress).length;
+    final todayPending = todayTasks.where((t) => t.status == TaskStatus.pending || t.status == TaskStatus.overdue).length;
+    final todayPercent = todayTasks.isEmpty ? 0.0 : todayDone / todayTasks.length;
+
+    // Monthly stats
+    final now = DateTime.now();
+    final firstOfMonth = DateTime(now.year, now.month, 1);
+    final monthTasks = _tasks.where((t) => t.date.isAfter(firstOfMonth.subtract(const Duration(seconds: 1)))).toList();
+    final monthDone = monthTasks.where((t) => t.status == TaskStatus.completed).length;
+    final monthTotal = monthTasks.length;
+    final monthAttendance = monthTotal == 0 ? 0 : 100; // Simplified for now
+
+    // Weekly Chart
+    final weekData = List.generate(7, (i) {
+      final day = stripTime(DateTime.now().subtract(Duration(days: 6 - i)));
+      return _tasks.where((t) => stripTime(t.date) == day && t.status == TaskStatus.completed).length.toDouble();
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -24,7 +100,7 @@ class PerformanceScreen extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
           Text(
-            'Таны гүйцэтгэлийн тойм',
+            '${ProjectService.activeProject.value?.ner ?? ""} төслийн тойм',
             style: TextStyle(
               fontSize: context.rFontSize(14),
               color: c.mutedForeground,
@@ -47,17 +123,17 @@ class PerformanceScreen extends StatelessWidget {
                   width: size,
                   height: size,
                   child: CustomPaint(
-                    painter: _RingPainter(0.75, context.rSpacing(18),
+                    painter: _RingPainter(todayPercent, context.rSpacing(18),
                         Colors.white.withOpacity(0.15), Colors.white),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('75%', style: TextStyle(
+                          Text('${(todayPercent * 100).round()}%', style: TextStyle(
                               fontSize: context.rFontSize(48),
                               fontWeight: FontWeight.w900, color: Colors.white,
                               letterSpacing: -1)),
-                          Text('6/8 даалгавар', style: TextStyle(
+                          Text('$todayDone/${todayTasks.length} даалгавар', style: TextStyle(
                               fontSize: context.rFontSize(14), color: Colors.white.withOpacity(0.8),
                               fontWeight: FontWeight.w500)),
                         ],
@@ -65,15 +141,15 @@ class PerformanceScreen extends StatelessWidget {
                     ),
                   ),
                 );
-              }
+              },
             ),
             const SizedBox(height: 16),
-            const Row(
+            Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-              _Mini(Icons.check_circle_outline, 'Дууссан', '6'),
-              _Mini(Icons.timelapse, 'Явагдаж буй', '1'),
-              _Mini(Icons.schedule, 'Хүлээгдэж буй', '1'),
+              _Mini(Icons.check_circle_outline, 'Дууссан', '$todayDone'),
+              _Mini(Icons.timelapse, 'Явагдаж буй', '$todayInProgress'),
+              _Mini(Icons.schedule, 'Хүлээгдэж буй', '$todayPending'),
             ]),
           ])),
           const SizedBox(height: 16),
@@ -85,17 +161,17 @@ class PerformanceScreen extends StatelessWidget {
             Expanded(child: _InfoCard(c: c,
               icon: Icons.local_fire_department_rounded,
               iconColor: const Color(0xFFEF4444),
-              title: 'Тасралтгүй',
-              value: '12',
-              unit: 'хоног',
-              subtitle: 'Дараалсан өдрүүд',
+              title: 'Нийт',
+              value: monthDone.toString(),
+              unit: 'даалгавар',
+              subtitle: 'Энэ сар',
             )),
             const SizedBox(width: 12),
             Expanded(child: _InfoCard(c: c,
               icon: Icons.calendar_month_rounded,
               iconColor: c.brandGreen,
-              title: 'Ирц',
-              value: '96%',
+              title: 'Биелэлт',
+              value: monthTotal == 0 ? '0' : '${(monthDone / monthTotal * 100).round()}%',
               unit: '',
               subtitle: 'Энэ сар',
             )),
@@ -110,10 +186,10 @@ class PerformanceScreen extends StatelessWidget {
               child: SizedBox(height: 160,
                 child: CustomPaint(size: const Size(double.infinity, 160),
                     painter: _BarsPainter(
-                      [5,8,6,9,7,4,6],
-                      ['Дав','Мяг','Лха','Пүр','Баа','Бям','Ням'],
-                      c.chart2, 3, c.mutedForeground))),
-              bottom: Text('Дундаж: 6.4 даалгавар/өдөр',
+                      weekData,
+                      ['Д', 'М', 'Л', 'П', 'Б', 'Бя', 'Н'],
+                      c.brandGreen, weekData.length - 1, c.mutedForeground))),
+              bottom: Text('Нийт: ${_tasks.length} даалгавар',
                   style: TextStyle(fontSize: 14,
                       color: c.mutedForeground))),
           const SizedBox(height: 16),

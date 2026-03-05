@@ -926,7 +926,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     }
   }
 
-  List<CleaningTask> get _allTodayTasks => _tasks;
 
   List<CleaningTask> get _todayTasks {
     var tasks = List<CleaningTask>.from(_tasks);
@@ -1006,6 +1005,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       code: t.taskCode,
       title: t.title,
     );
+    
+    // Start iOS Live Activity
+    WidgetService.startTaskActivity(t);
 
     // Start live update timer to update notification every second
     _liveUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -1034,10 +1036,22 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         progress: progress.clamp(0, 100),
         elapsedSeconds: elapsedSeconds,
       );
+      
+      // Update iOS Live Activity
+      WidgetService.updateTaskActivity(task);
     });
 
+    final ajiltanTsag = [{
+      'ajiltniiId': AuthService.currentUser?.id ?? '',
+      'ekhlekhTsag': (t.startedAtLocal ?? DateTime.now()).toUtc().toIso8601String(),
+    }];
+
     // Update backend status via task-status controller (force khiigdej bui)
-    TaskStatusService.updateTaskStatus(t.id, newStatus: 'khiigdej bui').then((
+    TaskStatusService.updateTaskStatus(
+      t.id, 
+      newStatus: 'khiigdej bui',
+      ajiltanTsag: ajiltanTsag,
+    ).then((
       success,
     ) {
       if (!success && mounted) {
@@ -1078,9 +1092,24 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
     // Stop native tracker
     TaskTrackerService.stopTask();
+    
+    // End iOS Live Activity
+    WidgetService.endTaskActivity();
+
+    final baseTime = t.startedAtLocal ?? t.ekhlekhTsag ?? DateTime.now();
+    final ajiltanTsag = [{
+      'ajiltniiId': AuthService.currentUser?.id ?? '',
+      'ekhlekhTsag': baseTime.toUtc().toIso8601String(),
+      'duusakhTsag': DateTime.now().toUtc().toIso8601String(),
+      'tsagMinute': t.elapsedMinutes ?? 0,
+    }];
 
     // Update backend status via task-status controller (force duussan)
-    TaskStatusService.updateTaskStatus(t.id, newStatus: 'duussan').then((
+    TaskStatusService.updateTaskStatus(
+      t.id, 
+      newStatus: 'duussan',
+      ajiltanTsag: ajiltanTsag,
+    ).then((
       success,
     ) {
       if (!success && mounted) {
@@ -1373,12 +1402,12 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final c = context.colors;
     final tasks = _todayTasks;
-    final allToday = _allTodayTasks;
     final unread = _unreadCount;
-    final completedCount = allToday
+    // Derive stats from current view (selected day)
+    final completedCount = tasks
         .where((t) => t.status == TaskStatus.completed)
         .length;
-    final totalCount = allToday.length;
+    final totalCount = tasks.length;
 
     return WalkthroughWrapper(
       config: _walkthroughConfig,
@@ -1517,6 +1546,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                       currentProject: _currentProject,
                       onProjectSelected: (projectId) {
                         setState(() => _selectedProjectId = projectId);
+                        // Update global active project
+                        final p = _apiProjects.firstWhere((p) => p.id == projectId);
+                        ProjectService.activeProject.value = p;
                         _loadTasks(projectId);
                       },
                     ),
@@ -1591,6 +1623,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       _projectsLoading = false;
       if (_apiProjects.isNotEmpty) {
         _selectedProjectId = _apiProjects.first.id;
+        ProjectService.activeProject.value = _apiProjects.first;
       }
     });
     // Load tasks for the first project
@@ -1628,10 +1661,13 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           duusakhMinute: apiTask.duusakhMinute,
           khugatsaaDuusakhOgnoo: apiTask.khugatsaaDuusakhOgnoo,
           zurag: apiTask.zurag,
+          hariutsagchZurag: apiTask.hariutsagchZurag,
+          ajiltanZurag: apiTask.ajiltanZurag,
           baiguullagiinId: apiTask.baiguullagiinId,
           barilgiinId: apiTask.barilgiinId,
           color: apiTask.color,
           subTasks: subtasks,
+          ajiltanTsag: apiTask.ajiltanTsag,
           createdAt: apiTask.createdAt,
           updatedAt: apiTask.updatedAt,
         );
@@ -1680,13 +1716,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   Project? get _currentProject {
     if (_selectedProjectId == null || _apiProjects.isEmpty) return null;
     try {
-      final p = _apiProjects.firstWhere((p) => p.id == _selectedProjectId);
-      if (ProjectService.activeProject.value?.id != p.id) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ProjectService.activeProject.value = p;
-        });
-      }
-      return p;
+      return _apiProjects.firstWhere((p) => p.id == _selectedProjectId);
     } catch (_) {
       return null;
     }

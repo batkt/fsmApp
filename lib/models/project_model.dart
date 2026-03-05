@@ -26,21 +26,28 @@ class Project {
     this.createdAt,
   });
 
-  factory Project.fromJson(Map<String, dynamic> j) => Project(
-    id: (j['_id'] ?? j['id'] ?? '').toString(),
-    ner: (j['ner'] ?? '').toString(),
-    tailbar: (j['tailbar'] ?? '').toString(),
-    tuluv: (j['tuluv'] ?? 'shine').toString(),
-    ekhlekhOgnoo: j['ekhlekhOgnoo']?.toString(),
-    duusakhOgnoo: j['duusakhOgnoo']?.toString(),
-    udirdagchId: j['udirdagchId']?.toString(),
-    ajiltnuud: List<String>.from(j['ajiltnuud'] ?? []),
-    baiguullagiinId: (j['baiguullagiinId'] ?? '').toString(),
-    barilgiinId: (j['barilgiinId'] ?? '').toString(),
-    createdAt: j['createdAt'] != null
-        ? DateTime.tryParse(j['createdAt'].toString())
-        : null,
-  );
+  factory Project.fromJson(Map<String, dynamic> j) {
+    String extractId(dynamic val) {
+      if (val is Map) return (val['_id'] ?? val['id'] ?? '').toString();
+      return (val ?? '').toString();
+    }
+    
+    return Project(
+      id: extractId(j['_id'] ?? j['id']),
+      ner: (j['ner'] ?? '').toString(),
+      tailbar: (j['tailbar'] ?? '').toString(),
+      tuluv: (j['tuluv'] ?? 'shine').toString(),
+      ekhlekhOgnoo: j['ekhlekhOgnoo']?.toString(),
+      duusakhOgnoo: j['duusakhOgnoo']?.toString(),
+      udirdagchId: j['udirdagchId'] != null ? extractId(j['udirdagchId']) : null,
+      ajiltnuud: (j['ajiltnuud'] as List?)?.map(extractId).where((e) => e.isNotEmpty).toList() ?? [],
+      baiguullagiinId: extractId(j['baiguullagiinId']),
+      barilgiinId: extractId(j['barilgiinId']),
+      createdAt: j['createdAt'] != null
+          ? DateTime.tryParse(j['createdAt'].toString())
+          : null,
+    );
+  }
 
   /// Status label in Mongolian
   String get tuluvLabel {

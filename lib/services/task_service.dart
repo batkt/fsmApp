@@ -1,6 +1,7 @@
 import '../models/task_model.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
+import 'project_service.dart';
 
 /// Minimal service for /tasks endpoints.
 class TaskService {
@@ -17,10 +18,23 @@ class TaskService {
     final user = AuthService.currentUser;
     if (user == null) return [];
 
-    final res = await ApiService.get('/tasks', query: {
-      'hariutsagchId': user.id,
-    });
-    return _parseList(res);
+    // 1. Get projects where the user is either a manager or a worker
+    final projects = await ProjectService.myProjects();
+    
+    // 2. Fetch all tasks for those projects
+    final allTasks = <ApiTask>[];
+    for (final p in projects) {
+      final pTasks = await byProject(p.id);
+      
+      // 3. Keep tasks where the user is specifically assigned
+      final filteredTasks = pTasks.where((t) => 
+        t.hariutsagchId == user.id || t.ajiltnuud.contains(user.id)
+      ).toList();
+      
+      allTasks.addAll(filteredTasks);
+    }
+    
+    return allTasks;
   }
 
   /// Get a single task by ID.

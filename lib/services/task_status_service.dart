@@ -33,26 +33,23 @@ class TaskStatusService {
   static Future<bool> updateTaskStatus(
     String taskId, {
     String? newStatus,
+    List<Map<String, dynamic>>? ajiltanTsag,
   }) async {
     try {
       debugPrint(
-        '[TaskStatus] Updating task status: $taskId, tuluv=$newStatus',
+        '[TaskStatus] Updating task status: $taskId, tuluv=$newStatus, hasAjiltanTsag=${ajiltanTsag != null}',
       );
 
       Map<String, dynamic>? body;
-      if (newStatus != null) {
-        final user = AuthService.currentUser;
-        if (user == null) {
-          debugPrint(
-            '[TaskStatus] ❌ No user logged in, cannot send manual tuluv=$newStatus',
-          );
-          return false;
-        }
+      final user = AuthService.currentUser;
+      
+      if (user != null && (newStatus != null || ajiltanTsag != null)) {
         body = {
           'ajiltniiId': user.id,
           'baiguullagiinId': user.baiguullagaId,
-          'tuluv': newStatus,
         };
+        if (newStatus != null) body['tuluv'] = newStatus;
+        if (ajiltanTsag != null) body['ajiltanTsag'] = ajiltanTsag;
       }
 
       final result = await ApiService.post(

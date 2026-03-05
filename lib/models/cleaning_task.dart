@@ -39,6 +39,7 @@ class CleaningTask {
     this.startedAtLocal,
     this.hariutsagchZurag = const [],
     this.ajiltanZurag = const [],
+    this.ajiltanTsag = const [],
   }) : photoPaths = photoPaths ?? [];
 
   /// Convert an API task to a CleaningTask for the UI.
@@ -138,6 +139,8 @@ class CleaningTask {
       // Store separate image types
       hariutsagchZurag: t.hariutsagchZurag,
       ajiltanZurag: t.ajiltanZurag,
+      // Store raw ajiltan tsag data
+      ajiltanTsag: t.ajiltanTsag,
       // Store Mongolia time for start/end for duration & progress calculations
       ekhlekhTsag: start,
       duusakhTsag: end,
@@ -170,6 +173,7 @@ class CleaningTask {
   final List<String> photoPaths; // Employee-uploaded photos (local paths)
   final List<TaskZurag> hariutsagchZurag; // Original images from task creator
   final List<TaskZurag> ajiltanZurag; // Images uploaded by employees
+  List<AjiltanTsag> ajiltanTsag; // Time tracking entries
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;
