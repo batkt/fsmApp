@@ -369,12 +369,8 @@ class _Card extends StatelessWidget {
   final Widget child; final Widget? bottom;
   @override
   Widget build(BuildContext context) => Container(
-<<<<<<< HEAD
     width: double.infinity,
     padding: EdgeInsets.all(context.rSpacing(16)),
-=======
-    width: double.infinity, padding: context.rPadding(all: 20),
->>>>>>> d08e7f5 (a)
     decoration: BoxDecoration(
       color: c.cardBackground,
       borderRadius: BorderRadius.circular(context.rRadius(20)),
@@ -384,29 +380,6 @@ class _Card extends StatelessWidget {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
       Row(children: [
-<<<<<<< HEAD
-        Icon(
-          icon,
-          color: iconColor,
-          size: context.rIconSize(18),
-        ),
-        SizedBox(width: context.rSpacing(6)),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: context.rFontSize(14),
-            fontWeight: FontWeight.w600,
-            color: c.primary,
-          ),
-        ),
-      ]),
-      SizedBox(height: context.rSpacing(16)),
-      child,
-      if (bottom != null) ...[
-        SizedBox(height: context.rSpacing(10)),
-        Center(child: bottom!),
-      ],
-=======
         Icon(icon, color: iconColor, size: context.rIconSize(22)),
         SizedBox(width: context.rSpacing(8)),
         Expanded(
@@ -418,7 +391,6 @@ class _Card extends StatelessWidget {
       SizedBox(height: context.rSpacing(20)), child,
       if (bottom != null) ...[
         SizedBox(height: context.rSpacing(12)), Center(child: bottom!)],
->>>>>>> d08e7f5 (a)
     ]),
   );
 }
@@ -432,11 +404,7 @@ class _InfoCard extends StatelessWidget {
   final Color iconColor; final String title, value, unit, subtitle;
   @override
   Widget build(BuildContext context) => Container(
-<<<<<<< HEAD
-    padding: EdgeInsets.all(context.rSpacing(12)),
-=======
     padding: context.rPadding(all: 16),
->>>>>>> d08e7f5 (a)
     decoration: BoxDecoration(
       color: c.cardBackground,
       borderRadius: BorderRadius.circular(context.rRadius(16)),
@@ -445,37 +413,6 @@ class _InfoCard extends StatelessWidget {
           blurRadius: 8, offset: const Offset(0, 3))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-<<<<<<< HEAD
-      Container(padding: EdgeInsets.all(context.rSpacing(6)),
-        decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: iconColor,
-            size: context.rIconSize(18))),
-      SizedBox(height: context.rSpacing(8)),
-      Text(title, style: TextStyle(
-          fontSize: context.rFontSize(11),
-          color: c.mutedForeground)),
-      SizedBox(height: context.rSpacing(2)),
-      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(value, style: TextStyle(
-            fontSize: context.rFontSize(20),
-            fontWeight: FontWeight.bold,
-            color: c.primary)),
-        if (unit.isNotEmpty) ...[
-          SizedBox(width: context.rSpacing(4)),
-          Padding(
-            padding: EdgeInsets.only(bottom: context.rSpacing(2)),
-            child: Text(unit, style: TextStyle(
-                fontSize: context.rFontSize(11),
-                color: c.mutedForeground)),
-          ),
-        ],
-      ]),
-      SizedBox(height: context.rSpacing(2)),
-      Text(subtitle, style: TextStyle(
-          fontSize: context.rFontSize(11),
-          color: c.mutedForeground)),
-=======
       Container(padding: context.rPadding(all: 8),
         decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(context.rRadius(10))),
@@ -503,7 +440,6 @@ class _InfoCard extends StatelessWidget {
           style: TextStyle(fontSize: context.rFontSize(13), color: c.mutedForeground),
           maxLines: 1,
           overflow: TextOverflow.ellipsis),
->>>>>>> d08e7f5 (a)
     ]),
   );
 }
@@ -515,11 +451,7 @@ class _Tile extends StatelessWidget {
   final String t, v, s;
   @override
   Widget build(BuildContext context) => Container(
-<<<<<<< HEAD
-    padding: EdgeInsets.all(context.rSpacing(12)),
-=======
     padding: context.rPadding(all: 16),
->>>>>>> d08e7f5 (a)
     decoration: BoxDecoration(
       color: c.cardBackground,
       borderRadius: BorderRadius.circular(context.rRadius(16)),
@@ -528,30 +460,6 @@ class _Tile extends StatelessWidget {
           blurRadius: 8, offset: const Offset(0, 3))]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-<<<<<<< HEAD
-      Container(padding: EdgeInsets.all(context.rSpacing(6)),
-        decoration: BoxDecoration(color: ic.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: ic, size: context.rIconSize(18))),
-      SizedBox(height: context.rSpacing(8)),
-      Text(t, style: TextStyle(
-          fontSize: context.rFontSize(11),
-          color: c.mutedForeground)),
-      SizedBox(height: context.rSpacing(2)),
-      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(v, style: TextStyle(
-            fontSize: context.rFontSize(20),
-            fontWeight: FontWeight.bold,
-            color: c.primary)),
-        SizedBox(width: context.rSpacing(4)),
-        Padding(
-          padding: EdgeInsets.only(bottom: context.rSpacing(2)),
-          child: Text(s, style: TextStyle(
-              fontSize: context.rFontSize(11),
-              color: c.mutedForeground)),
-        ),
-      ]),
-=======
       Container(padding: context.rPadding(all: 8),
         decoration: BoxDecoration(color: ic.withOpacity(0.1),
             borderRadius: BorderRadius.circular(context.rRadius(10))),
@@ -578,7 +486,6 @@ class _Tile extends StatelessWidget {
           ),
         ],
       ),
->>>>>>> d08e7f5 (a)
     ]),
   );
 }
@@ -593,16 +500,6 @@ class _ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
-<<<<<<< HEAD
-      Text(label, style: TextStyle(
-          fontSize: context.rFontSize(12),
-          color: c.primary,
-          fontWeight: FontWeight.w500)),
-      const Spacer(),
-      Text('$displayVal / $expected', style: TextStyle(
-          fontSize: context.rFontSize(11),
-          color: c.mutedForeground)),
-=======
       Expanded(
         child: Text(label, style: TextStyle(fontSize: context.rFontSize(15), color: c.primary,
             fontWeight: FontWeight.w500),
@@ -611,17 +508,12 @@ class _ProgressBar extends StatelessWidget {
       SizedBox(width: context.rSpacing(8)),
       Text('$displayVal / $expected', style: TextStyle(
           fontSize: context.rFontSize(14), color: c.mutedForeground)),
->>>>>>> d08e7f5 (a)
     ]),
     SizedBox(height: context.rSpacing(8)),
     ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(6)),
       child: LinearProgressIndicator(
         value: value.clamp(0.0, 1.0),
-<<<<<<< HEAD
-        minHeight: 6,
-=======
         minHeight: context.rSpacing(8),
->>>>>>> d08e7f5 (a)
         backgroundColor: c.muted,
         valueColor: AlwaysStoppedAnimation(color))),
   ]);
@@ -637,29 +529,6 @@ class _AreaRow extends StatelessWidget {
   Widget build(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [
-<<<<<<< HEAD
-      Expanded(
-        child: Text(
-          area,
-          style: TextStyle(
-            fontSize: context.rFontSize(12),
-            color: c.primary,
-          ),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      Text(
-        '$count/$total',
-        style: TextStyle(
-          fontSize: context.rFontSize(11),
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    ]),
-    SizedBox(height: context.rSpacing(4)),
-    ClipRRect(borderRadius: BorderRadius.circular(4),
-=======
       Expanded(child: Text(area, style: TextStyle(fontSize: context.rFontSize(15),
           color: c.primary), overflow: TextOverflow.ellipsis)),
       Text('$count/$total', style: TextStyle(fontSize: context.rFontSize(14),
@@ -667,7 +536,6 @@ class _AreaRow extends StatelessWidget {
     ]),
     SizedBox(height: context.rSpacing(6)),
     ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(4)),
->>>>>>> d08e7f5 (a)
       child: LinearProgressIndicator(
         value: count / total,
         minHeight: context.rSpacing(6),
@@ -683,33 +551,15 @@ class _RatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Expanded(
     child: Container(
-<<<<<<< HEAD
-      padding: EdgeInsets.all(context.rSpacing(8)),
-=======
       padding: context.rPadding(all: 10),
->>>>>>> d08e7f5 (a)
       decoration: BoxDecoration(
         color: c.muted,
         borderRadius: BorderRadius.circular(context.rRadius(12))),
       child: Column(children: [
-<<<<<<< HEAD
-        Text(
-          val.toString(),
-          style: TextStyle(
-            fontSize: context.rFontSize(16),
-            fontWeight: FontWeight.bold,
-            color: c.primary,
-          ),
-        ),
-        SizedBox(height: context.rSpacing(2)),
-        Text(label, style: TextStyle(
-            fontSize: context.rFontSize(9),
-=======
         Text(val.toString(), style: TextStyle(fontSize: context.rFontSize(20),
             fontWeight: FontWeight.bold, color: c.primary)),
         SizedBox(height: context.rSpacing(2)),
         Text(label, style: TextStyle(fontSize: context.rFontSize(9),
->>>>>>> d08e7f5 (a)
             color: c.mutedForeground),
             textAlign: TextAlign.center, maxLines: 2),
       ]),
@@ -725,33 +575,6 @@ class _Badge extends StatelessWidget {
   final Color color; final String title, desc;
   @override
   Widget build(BuildContext context) => Row(children: [
-<<<<<<< HEAD
-    Container(width: context.rIconSize(32), height: context.rIconSize(32),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12)),
-      child: Icon(icon, color: color, size: context.rIconSize(18))),
-    SizedBox(width: context.rSpacing(8)),
-    Expanded(child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(
-        title,
-        style: TextStyle(
-          fontSize: context.rFontSize(13),
-          fontWeight: FontWeight.w600,
-          color: c.primary,
-        ),
-      ),
-      SizedBox(height: context.rSpacing(2)),
-      Text(
-        desc,
-        style: TextStyle(
-          fontSize: context.rFontSize(11),
-          color: c.mutedForeground,
-        ),
-        maxLines: 2,
-      ),
-=======
     Container(
       width: context.rSpacing(42),
       height: context.rSpacing(42),
@@ -767,7 +590,6 @@ class _Badge extends StatelessWidget {
       SizedBox(height: context.rSpacing(2)),
       Text(desc, style: TextStyle(fontSize: context.rFontSize(14),
           color: c.mutedForeground), maxLines: 2),
->>>>>>> d08e7f5 (a)
     ])),
   ]);
 }
@@ -780,32 +602,6 @@ class _CompareRow extends StatelessWidget {
   final bool isUp;
   @override
   Widget build(BuildContext context) => Row(children: [
-<<<<<<< HEAD
-    Expanded(
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: context.rFontSize(12),
-          color: c.primary,
-        ),
-      ),
-    ),
-    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Text(
-        thisMonth,
-        style: TextStyle(
-          fontSize: context.rFontSize(14),
-          fontWeight: FontWeight.bold,
-          color: c.primary,
-        ),
-      ),
-      Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward,
-            size: 12, color: isUp ? c.success : c.destructive),
-        const SizedBox(width: 2),
-        Text(lastMonth, style: TextStyle(
-            fontSize: context.rFontSize(11),
-=======
     Expanded(child: Text(label, style: TextStyle(fontSize: context.rFontSize(15),
         color: c.primary))),
     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -816,7 +612,6 @@ class _CompareRow extends StatelessWidget {
             size: context.rIconSize(12), color: isUp ? c.success : c.destructive),
         SizedBox(width: context.rSpacing(2)),
         Text(lastMonth, style: TextStyle(fontSize: context.rFontSize(13),
->>>>>>> d08e7f5 (a)
             color: c.mutedForeground)),
       ]),
     ]),
