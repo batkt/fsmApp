@@ -321,7 +321,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           // ═══════════════════════════════════════════
           _Card(c: c, icon: Icons.map_rounded,
               iconColor: c.chart5,
-              title: 'Талбайн хамрах хүрээ',
+              title: 'Ажилууд',
               child: Column(children: [
                 if (topAreas.isEmpty)
                   Center(child: Padding(
@@ -338,7 +338,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     );
                   }),
               ]),
-              bottom: Text('Нийт: $monthDone/$monthTotal даалгавар',
+              bottom: Text('Нийт: $monthDone/$monthTotal ажил гүйцэтгэсэн',
                   style: TextStyle(fontSize: 14,
                       color: c.mutedForeground))),
           const SizedBox(height: 16),

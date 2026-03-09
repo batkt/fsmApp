@@ -556,7 +556,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('📝 Тэмдэглэл', style: TextStyle(fontSize: 13,
+                  Text('Тэмдэглэл', style: TextStyle(fontSize: 13,
                       fontWeight: FontWeight.w600, color: c.primary)),
                   const SizedBox(height: 4),
                   Text(t.notes, style: TextStyle(fontSize: 14,
