@@ -89,6 +89,30 @@ class SocketService {
     _socket?.off('new_message');
   }
 
+  static void onMessageEdited(void Function(ChatMessage msg) callback) {
+    _socket?.on('message_edited', (data) {
+      if (data is Map<String, dynamic>) {
+        callback(ChatMessage.fromJson(data));
+      }
+    });
+  }
+
+  static void offMessageEdited() {
+    _socket?.off('message_edited');
+  }
+
+  static void onMessageDeleted(void Function(String chatId) callback) {
+    _socket?.on('message_deleted', (data) {
+      if (data is Map<String, dynamic>) {
+        callback((data['chatId'] ?? '').toString());
+      }
+    });
+  }
+
+  static void offMessageDeleted() {
+    _socket?.off('message_deleted');
+  }
+
   static void onUserStatus(
     void Function(String userId, String status)? callback,
   ) {
@@ -171,6 +195,21 @@ class SocketService {
   static void offTaskUpdated() {
     _socket?.off('task_updated');
   }
+
+  /// Listen for KPI update events.
+  static void onKpiUpdated(void Function(Map<String, dynamic> kpi) callback) {
+    _socket?.on('kpi_updated', (data) {
+      if (data is Map<String, dynamic>) {
+        callback(data);
+      }
+    });
+  }
+
+  /// Stop listening for KPI update events.
+  static void offKpiUpdated() {
+    _socket?.off('kpi_updated');
+  }
+
 
   /// Listen for project created events.
   static void onProjectCreated(

@@ -71,6 +71,25 @@ class ApiService {
     }
   }
 
+  /// PATCH request → decoded JSON
+  static Future<ApiResult> patch(
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    try {
+      final res = await http
+          .patch(
+            Uri.parse('$baseUrl$path'),
+            headers: _headers,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(_timeout);
+      return _parse(res);
+    } catch (e) {
+      return ApiResult.error(_friendlyError(e));
+    }
+  }
+
   /// DELETE request
   static Future<ApiResult> delete(String path) async {
     try {

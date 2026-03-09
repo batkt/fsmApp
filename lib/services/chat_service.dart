@@ -43,6 +43,7 @@ class ChatService {
     required String medeelel,
     required String barilgiinId,
     required String baiguullagiinId,
+    ReplyTo? replyTo,
   }) async {
     final user = AuthService.currentUser;
     if (user == null) return null;
@@ -54,6 +55,7 @@ class ChatService {
       'baiguullagiinId': baiguullagiinId,
       'ajiltniiId': user.id,
       'ajiltniiNer': user.ner,
+      if (replyTo != null) 'replyTo': replyTo.toJson(),
     };
     if (taskId != null && taskId.isNotEmpty) payload['taskId'] = taskId;
     if (medeelel.isNotEmpty) payload['medeelel'] = medeelel;
@@ -62,7 +64,7 @@ class ChatService {
 
     if (!res.success) return null;
 
-    final d = res.data is Map 
+    final d = res.data is Map
         ? (res.data['data'] ?? res.data['result'] ?? res.data)
         : res.data;
 
@@ -78,6 +80,7 @@ class ChatService {
     required String barilgiinId,
     required String baiguullagiinId,
     String? caption,
+    ReplyTo? replyTo,
   }) async {
     final user = AuthService.currentUser;
     if (user == null) return null;
@@ -92,26 +95,29 @@ class ChatService {
       }
 
       // File
-      final file = File(filePath);
       final mimeType = lookupMimeType(filePath) ?? 'image/jpeg';
       final parts = mimeType.split('/');
       final fileName = filePath.split('/').last;
-      
+
       request.files.add(await http.MultipartFile.fromPath(
         'file',
         filePath,
         filename: fileName,
-        contentType: MediaType(parts[0], parts.length > 1 ? parts[1] : 'octet-stream'),
+        contentType:
+            MediaType(parts[0], parts.length > 1 ? parts[1] : 'octet-stream'),
       ));
 
       // Fields
       request.fields['projectId'] = projectId;
-      if (taskId != null && taskId.isNotEmpty) request.fields['taskId'] = taskId;
+      if (taskId != null && taskId.isNotEmpty)
+        request.fields['taskId'] = taskId;
       request.fields['barilgiinId'] = barilgiinId;
       request.fields['baiguullagiinId'] = baiguullagiinId;
       request.fields['ajiltniiId'] = user.id;
       request.fields['ajiltniiNer'] = user.ner;
-      if (caption != null && caption.isNotEmpty) request.fields['medeelel'] = caption;
+      if (caption != null && caption.isNotEmpty)
+        request.fields['medeelel'] = caption;
+      if (replyTo != null) request.fields['replyTo'] = json.encode(replyTo.toJson());
 
       final streamed = await request.send().timeout(const Duration(seconds: 60));
       final body = await streamed.stream.bytesToString();
@@ -134,6 +140,19 @@ class ChatService {
       debugPrint('Upload exception: $e');
       return null;
     }
+  }
+
+  /// Edit a message.
+  static Future<ChatMessage?> edit(String id, String newText) async {
+    final res = await ApiService.patch('/chats/$id', body: {'medeelel': newText});
+    if (!res.success) return null;
+    
+    final d = res.data is Map 
+        ? (res.data['data'] ?? res.data['result'] ?? res.data)
+        : res.data;
+
+    if (d is! Map<String, dynamic>) return null;
+    return ChatMessage.fromJson(d);
   }
 
   /// Delete a message.

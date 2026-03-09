@@ -1,3 +1,32 @@
+/// Model for the 'replyTo' field in a chat message.
+class ReplyTo {
+  final String chatId;
+  final String medeelel;
+  final String ajiltniiNer;
+  final String turul;
+
+  ReplyTo({
+    required this.chatId,
+    required this.medeelel,
+    required this.ajiltniiNer,
+    required this.turul,
+  });
+
+  factory ReplyTo.fromJson(Map<String, dynamic> j) => ReplyTo(
+        chatId: (j['chatId'] ?? '').toString(),
+        medeelel: (j['medeelel'] ?? '').toString(),
+        ajiltniiNer: (j['ajiltniiNer'] ?? '').toString(),
+        turul: (j['turul'] ?? 'text').toString(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'chatId': chatId,
+        'medeelel': medeelel,
+        'ajiltniiNer': ajiltniiNer,
+        'turul': turul,
+      };
+}
+
 /// Chat message model — maps to the API's /chats response.
 class ChatMessage {
   final String id;
@@ -14,6 +43,9 @@ class ChatMessage {
   final DateTime? createdAt;
   final List<String> unshsan;
   final bool isLocal;
+  final bool isEdited;
+  final bool isDeleted;
+  final ReplyTo? replyTo;
 
   ChatMessage({
     required this.id,
@@ -30,6 +62,9 @@ class ChatMessage {
     this.createdAt,
     this.unshsan = const [],
     this.isLocal = false,
+    this.isEdited = false,
+    this.isDeleted = false,
+    this.replyTo,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
@@ -49,6 +84,9 @@ class ChatMessage {
         : null,
     unshsan: (j['unshsan'] as List?)?.map((e) => e.toString()).toList() ?? [],
     isLocal: false,
+    isEdited: j['isEdited'] == true,
+    isDeleted: j['isDeleted'] == true,
+    replyTo: j['replyTo'] != null ? ReplyTo.fromJson(j['replyTo']) : null,
   );
 
   bool get isImage => turul == 'zurag';

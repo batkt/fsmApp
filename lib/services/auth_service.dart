@@ -13,6 +13,7 @@ class AuthUser {
   final String baiguullagaId;
   final String baiguullagaNer;
   final List<String> barilguud;
+  final String role;
 
   AuthUser({
     required this.id,
@@ -24,6 +25,7 @@ class AuthUser {
     required this.baiguullagaId,
     required this.baiguullagaNer,
     required this.barilguud,
+    required this.role,
   });
 
   Map<String, dynamic> toJson() => {
@@ -36,6 +38,7 @@ class AuthUser {
     'baiguullagaId': baiguullagaId,
     'baiguullagaNer': baiguullagaNer,
     'barilguud': barilguud,
+    'role': role,
   };
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
@@ -48,6 +51,7 @@ class AuthUser {
     baiguullagaId: (json['baiguullagaId'] ?? '').toString(),
     baiguullagaNer: (json['baiguullagaNer'] ?? '').toString(),
     barilguud: List<String>.from(json['barilguud'] ?? []),
+    role: (json['role'] ?? json['erkh'] ?? '').toString(),
   );
 }
 
@@ -112,6 +116,7 @@ class AuthService {
                   .toString(),
           baiguullagaNer: (baiguullaga?['ner'] ?? '').toString(),
           barilguud: List<String>.from(result['barilguud'] ?? []),
+          role: (result['erkh'] ?? '').toString(),
         );
 
         // Save to state

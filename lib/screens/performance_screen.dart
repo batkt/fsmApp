@@ -6,6 +6,9 @@ import '../services/project_service.dart';
 import '../services/task_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
+import '../services/kpi_service.dart';
+import '../services/socket_service.dart';
+import '../widgets/app_toast.dart';
 
 class PerformanceScreen extends StatefulWidget {
   const PerformanceScreen({super.key});
@@ -16,18 +19,28 @@ class PerformanceScreen extends StatefulWidget {
 
 class _PerformanceScreenState extends State<PerformanceScreen> {
   List<CleaningTask> _tasks = [];
+  Map<String, dynamic>? _kpi;
   bool _loading = true;
+  bool _refreshingKpi = false;
+
+  void _onSocketUpdate(dynamic _) {
+    if (mounted) _loadData();
+  }
 
   @override
   void initState() {
     super.initState();
     _loadData();
     ProjectService.activeProject.addListener(_onProjectChanged);
+    SocketService.onTaskUpdated(_onSocketUpdate);
+    SocketService.onTaskCreated(_onSocketUpdate);
+    SocketService.onKpiUpdated(_onSocketUpdate);
   }
 
   @override
   void dispose() {
     ProjectService.activeProject.removeListener(_onProjectChanged);
+    SocketService.offKpiUpdated();
     super.dispose();
   }
 
@@ -38,14 +51,44 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   Future<void> _loadData() async {
     setState(() => _loading = true);
     final activeProjectId = ProjectService.activeProject.value?.id;
-    final apiTasks = activeProjectId != null
-        ? await TaskService.byProject(activeProjectId)
-        : await TaskService.myTasks();
+    
+    // Run both in parallel
+    final results = await Future.wait([
+      activeProjectId != null
+          ? TaskService.byProject(activeProjectId)
+          : TaskService.myTasks(),
+      KpiService.getMyKpi(),
+    ]);
+
+    final apiTasks = results[0] as List<ApiTask>;
+    final kpiData = results[1] as Map<String, dynamic>?;
+
     if (mounted) {
       setState(() {
-        _tasks = apiTasks.map((t) => CleaningTask.fromApi(t)).toList();
+        _tasks = apiTasks.map<CleaningTask>((t) => CleaningTask.fromApi(t)).toList();
+        _kpi = kpiData;
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _refreshKpi() async {
+    setState(() => _refreshingKpi = true);
+    final success = await KpiService.refreshKpi();
+    if (success) {
+      final kpiData = await KpiService.getMyKpi();
+      if (mounted) {
+        setState(() {
+          _kpi = kpiData;
+          _refreshingKpi = false;
+        });
+        AppToast.show(context, 'KPI шинэчлэгдлээ', icon: Icons.check_circle_rounded);
+      }
+    } else {
+      if (mounted) {
+        setState(() => _refreshingKpi = false);
+        AppToast.show(context, 'Алдаа гарлаа', icon: Icons.error_outline_rounded);
+      }
     }
   }
 
@@ -107,26 +150,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final completionRate = monthTotal == 0 ? 0.0 : monthDone / monthTotal;
     final rateImprovement = (completionRate - prevMonthRate) * 100;
 
-    // Time Efficiency - filter out zero/null values for more accurate stats
-    final validTimeEntries = _tasks.expand((t) => t.ajiltanTsag).where((e) => (e.tsagMinute ?? 0) > 0).toList();
-    final avgMinutes = validTimeEntries.isEmpty ? 0 : 
-        (validTimeEntries.fold<int>(0, (sum, e) => sum + (e.tsagMinute ?? 0)) / validTimeEntries.length).round();
-    final fastestMinutes = validTimeEntries.isEmpty ? 0 : 
-        validTimeEntries.map((e) => e.tsagMinute ?? 0).reduce(min);
-    final slowestMinutes = validTimeEntries.isEmpty ? 0 :
-        validTimeEntries.map((e) => e.tsagMinute ?? 0).reduce(max);
-
     // Photo Verification Rate
     final tasksWithPhotos = _tasks.where((t) => t.hasPhoto).length;
     final photoRate = _tasks.isEmpty ? 0 : (tasksWithPhotos / _tasks.length * 100).round();
-
-    // Achievements calculation
-    final streak = _calculateStreak();
-    final fastCompletions = _tasks.where((t) {
-      if (t.status != TaskStatus.completed || t.ajiltanTsag.isEmpty) return false;
-      final time = t.ajiltanTsag.last.tsagMinute ?? 999;
-      return time < 30; // Assuming < 30 min is "fast"
-    }).length;
 
     // Area Coverage - group by location
     final areaMap = <String, List<CleaningTask>>{};
@@ -139,8 +165,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       ..sort((a, b) => b.value.length.compareTo(a.value.length));
     final topAreas = sortedAreas.take(4).toList();
 
-    // Rating (Mock based on completion for now as no real rating in model)
-    final derivedRating = (completionRate * 5).clamp(0.0, 5.0);
+    // Rating from KPI service
+    final derivedRating = _kpi?['kpiDundaj']?.toDouble() ?? 0.0;
+    final totalRatedTasks = _kpi?['kpiDaalgavarToo'] ?? 0;
+    final kpiHuvv = _kpi?['kpiHuvv'] ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -151,6 +179,19 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             fontSize: context.rFontSize(16),
           ),
         ),
+        actions: [
+          if (_refreshingKpi)
+            const Center(child: Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            ))
+          else
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              onPressed: _refreshKpi,
+              tooltip: 'Шинэчлэх',
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -216,21 +257,21 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           // ═══════════════════════════════════════════
           Row(children: [
             Expanded(child: _InfoCard(c: c,
-              icon: Icons.local_fire_department_rounded,
+              icon: Icons.emoji_events_rounded,
               iconColor: const Color(0xFFEF4444),
-              title: 'Нийт',
-              value: monthDone.toString(),
-              unit: 'даалгавар',
-              subtitle: 'Энэ сар',
+              title: 'Нийт оноо',
+              value: (_kpi?['kpiOnoo'] ?? 0).toString(),
+              unit: 'оноо',
+              subtitle: 'Нийт цуглуулсан',
             )),
             const SizedBox(width: 12),
             Expanded(child: _InfoCard(c: c,
-              icon: Icons.calendar_month_rounded,
+              icon: Icons.star_rounded,
               iconColor: c.brandGreen,
-              title: 'Биелэлт',
-              value: monthTotal == 0 ? '0' : '${(monthDone / monthTotal * 100).round()}%',
-              unit: '',
-              subtitle: 'Энэ сар',
+              title: 'Дунжаж оноо',
+              value: derivedRating.toStringAsFixed(1),
+              unit: '/ 10',
+              subtitle: '$totalRatedTasks үнэлгээнээс',
             )),
           ]),
           const SizedBox(height: 16),
@@ -251,34 +292,6 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                       color: c.mutedForeground))),
           const SizedBox(height: 16),
 
-          // ═══════════════════════════════════════════
-          // 4. TIME EFFICIENCY (Dual progress bars)
-          // ═══════════════════════════════════════════
-            _Card(c: c, icon: Icons.speed_rounded,
-              iconColor: c.chart4,
-              title: 'Цагийн бүтээмж',
-              child: Column(children: [
-                _ProgressBar(c: c, label: 'Дундаж хугацаа',
-                    value: (avgMinutes / 60).clamp(0.0, 1.0), displayVal: '$avgMinutes мин',
-                    expected: '60 мин', color: c.success),
-                const SizedBox(height: 16),
-                _ProgressBar(c: c, label: 'Хамгийн хурдан',
-                    value: (fastestMinutes / 60).clamp(0.0, 1.0), displayVal: '$fastestMinutes мин',
-                    expected: '60 мин', color: c.info),
-                const SizedBox(height: 16),
-                _ProgressBar(c: c, label: 'Хамгийн удаан',
-                    value: (slowestMinutes / 60).clamp(0.0, 1.0), displayVal: '$slowestMinutes мин',
-                    expected: '60 мин', color: c.warningOrange),
-              ]),
-              bottom: Row(mainAxisSize: MainAxisSize.min,
-                  children: [
-                Icon(Icons.trending_down, color: c.success,
-                    size: 16),
-                const SizedBox(width: 4),
-                Text('Дундаж хугацаа 20% багассан',
-                    style: TextStyle(fontSize: 14,
-                        color: c.success)),
-              ])),
           const SizedBox(height: 16),
 
           // ═══════════════════════════════════════════
@@ -330,136 +343,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                       color: c.mutedForeground))),
           const SizedBox(height: 16),
 
-          // ═══════════════════════════════════════════
-          // 7. SUPERVISOR RATING
-          // ═══════════════════════════════════════════
-          _Card(c: c, icon: Icons.supervisor_account_rounded,
-              iconColor: c.chart4,
-              title: 'Удирдлагын үнэлгээ',
-              child: Column(children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                  ...List.generate(5, (i) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Icon(
-                      i < 4 ? Icons.star_rounded
-                          : Icons.star_half_rounded,
-                      color: c.chart4, size: 36),
-                  )),
-                ]),
-                const SizedBox(height: 8),
-                Text(derivedRating.toStringAsFixed(1) + ' / 5.0',
-                    style: TextStyle(fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: c.primary)),
-                const SizedBox(height: 4),
-                Text('Гүйцэтгэлд суурилсан үнэлгээ',
-                    style: TextStyle(fontSize: 14,
-                        color: c.mutedForeground)),
-                const SizedBox(height: 16),
-                Row(children: [
-                  _RatingBar(c: c, label: 'Цэвэрлэгээ', val: 4.8),
-                  const SizedBox(width: 8),
-                  _RatingBar(c: c, label: 'Цагийн мөрдөлт', val: 4.5),
-                  const SizedBox(width: 8),
-                  _RatingBar(c: c, label: 'Хариуцлага', val: 4.2),
-                ]),
-              ])),
-          const SizedBox(height: 16),
-
-          // ═══════════════════════════════════════════
-          // 8. STATS GRID (4 tiles)
-          // ═══════════════════════════════════════════
-          Row(children: [
-            Expanded(child: _Tile(c: c, icon: Icons.star_rounded,
-                ic: c.chart4, t: 'Үнэлгээ', v: derivedRating.toStringAsFixed(1), s: '/ 5.0')),
-            const SizedBox(width: 12),
-            Expanded(child: _Tile(c: c, icon: Icons.access_time_filled,
-                ic: c.chart3, t: 'Гүйцэтгэл', v: monthTotal == 0 ? '0%' : '${(monthDone/monthTotal*100).round()}%',
-                s: 'биелэлт')),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: _Tile(c: c, icon: Icons.verified_rounded,
-                ic: c.success, t: 'Баталгаажуулалт', v: '$photoRate%',
-                s: 'зурагтай')),
-            const SizedBox(width: 12),
-            Expanded(child: _Tile(c: c, icon: Icons.emoji_events_rounded,
-                ic: c.chart5, t: 'Нийт даалгавар', v: monthTotal.toString(),
-                s: 'энэ сард')),
-          ]),
-          const SizedBox(height: 16),
-
-          // ═══════════════════════════════════════════
-          // 9. ACHIEVEMENTS / BADGES
-          // ═══════════════════════════════════════════
-          _Card(c: c, icon: Icons.military_tech_rounded,
-              iconColor: c.chart4, title: 'Амжилтууд',
-              child: Column(children: [
-                _Badge(c: c, icon: Icons.bolt_rounded,
-                    color: c.warningOrange,
-                    title: 'Хурдан гүйцэтгэгч',
-                    desc: '$fastCompletions даалгаврыг 30 минутын дотор дуусгасан'),
-                const SizedBox(height: 10),
-                _Badge(c: c, icon: Icons.local_fire_department,
-                    color: const Color(0xFFEF4444),
-                    title: '$streak өдрийн streak',
-                    desc: 'Дараалсан $streak өдөр даалгавар гүйцэтгэсэн'),
-              ])),
-          const SizedBox(height: 16),
-
-          // ═══════════════════════════════════════════
-          // 10. MONTHLY COMPARISON
-          // ═══════════════════════════════════════════
-          _Card(c: c, icon: Icons.compare_arrows_rounded,
-              iconColor: c.info,
-              title: 'Сарын харьцуулалт',
-              child: Column(children: [
-                _CompareRow(c: c, label: 'Нийт даалгавар',
-                    thisMonth: monthTotal.toString(), lastMonth: (monthTotal * 0.9).round().toString(),
-                    isUp: true),
-                Divider(color: c.border, height: 20),
-                _CompareRow(c: c, label: 'Гүйцэтгэл',
-                    thisMonth: monthTotal == 0 ? '0%' : '${(monthDone/monthTotal*100).round()}%', 
-                    lastMonth: '85%',
-                    isUp: true),
-                Divider(color: c.border, height: 20),
-                _CompareRow(c: c, label: 'Дундаж хугацаа',
-                    thisMonth: '$avgMinutes мин', lastMonth: '${(avgMinutes * 1.1).round()} мин',
-                    isUp: true),
-                Divider(color: c.border, height: 20),
-                _CompareRow(c: c, label: 'Ирц',
-                    thisMonth: '${(completionRate * 100).round()}%', 
-                    lastMonth: '${(prevMonthRate * 100).round()}%',
-                    isUp: completionRate >= prevMonthRate),
-              ])),
           const SizedBox(height: 24),
         ]),
       ),
     );
-  }
-
-  int _calculateStreak() {
-    if (_tasks.isEmpty) return 0;
-    final dates = _tasks
-        .map((t) => stripTime(t.date))
-        .toSet()
-        .toList()
-      ..sort((a, b) => b.compareTo(a));
-
-    int streak = 0;
-    DateTime current = stripTime(DateTime.now());
-
-    for (var date in dates) {
-      if (date == current) {
-        streak++;
-        current = current.subtract(const Duration(days: 1));
-      } else if (date.isBefore(current)) {
-        break;
-      }
-    }
-    return streak;
   }
 }
 
@@ -549,6 +436,32 @@ class _Card extends StatelessWidget {
   );
 }
 
+
+class _AreaRow extends StatelessWidget {
+  const _AreaRow({required this.c, required this.area,
+      required this.count, required this.total,
+      required this.color});
+  final AppColorScheme c; final String area;
+  final int count, total; final Color color;
+  @override
+  Widget build(BuildContext context) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Row(children: [
+      Expanded(child: Text(area, style: TextStyle(fontSize: context.rFontSize(15),
+          color: c.primary), overflow: TextOverflow.ellipsis)),
+      Text('$count/$total', style: TextStyle(fontSize: context.rFontSize(14),
+          fontWeight: FontWeight.w600, color: color)),
+    ]),
+    SizedBox(height: context.rSpacing(6)),
+    ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(4)),
+      child: LinearProgressIndicator(
+        value: count / total,
+        minHeight: context.rSpacing(6),
+        backgroundColor: c.muted,
+        valueColor: AlwaysStoppedAnimation(color))),
+  ]);
+}
+
 class _InfoCard extends StatelessWidget {
   const _InfoCard({required this.c, required this.icon,
       required this.iconColor, required this.title,
@@ -598,186 +511,7 @@ class _InfoCard extends StatelessWidget {
   );
 }
 
-class _Tile extends StatelessWidget {
-  const _Tile({required this.c, required this.icon, required this.ic,
-      required this.t, required this.v, required this.s});
-  final AppColorScheme c; final IconData icon; final Color ic;
-  final String t, v, s;
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: context.rPadding(all: 16),
-    decoration: BoxDecoration(
-      color: c.cardBackground,
-      borderRadius: BorderRadius.circular(context.rRadius(16)),
-      border: Border.all(color: c.border),
-      boxShadow: [BoxShadow(color: c.primary.withOpacity(0.03),
-          blurRadius: 8, offset: const Offset(0, 3))]),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-      Container(padding: context.rPadding(all: 8),
-        decoration: BoxDecoration(color: ic.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(context.rRadius(10))),
-        child: Icon(icon, color: ic, size: context.rIconSize(20))),
-      SizedBox(height: context.rSpacing(12)),
-      Text(t, 
-          style: TextStyle(fontSize: context.rFontSize(13), color: c.mutedForeground),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis),
-      SizedBox(height: context.rSpacing(4)),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(v, style: TextStyle(
-            fontSize: context.rFontSize(22),
-            fontWeight: FontWeight.w800,
-            color: c.primary,
-            letterSpacing: -0.5,
-          )),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(bottom: context.rSpacing(3)),
-              child: Text(s, 
-                  style: TextStyle(fontSize: context.rFontSize(11),
-                      color: c.mutedForeground,
-                      fontWeight: FontWeight.w500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-            ),
-          ),
-        ],
-      ),
-    ]),
-  );
-}
-
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.c, required this.label,
-      required this.value, required this.displayVal,
-      required this.expected, required this.color});
-  final AppColorScheme c; final String label, displayVal, expected;
-  final double value; final Color color;
-  @override
-  Widget build(BuildContext context) => Column(
-      crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [
-      Expanded(
-        child: Text(label, style: TextStyle(fontSize: context.rFontSize(15), color: c.primary,
-            fontWeight: FontWeight.w500),
-            maxLines: 1, overflow: TextOverflow.ellipsis),
-      ),
-      SizedBox(width: context.rSpacing(8)),
-      Text('$displayVal / $expected', style: TextStyle(
-          fontSize: context.rFontSize(14), color: c.mutedForeground)),
-    ]),
-    SizedBox(height: context.rSpacing(8)),
-    ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(6)),
-      child: LinearProgressIndicator(
-        value: value.clamp(0.0, 1.0),
-        minHeight: context.rSpacing(8),
-        backgroundColor: c.muted,
-        valueColor: AlwaysStoppedAnimation(color))),
-  ]);
-}
-
-class _AreaRow extends StatelessWidget {
-  const _AreaRow({required this.c, required this.area,
-      required this.count, required this.total,
-      required this.color});
-  final AppColorScheme c; final String area;
-  final int count, total; final Color color;
-  @override
-  Widget build(BuildContext context) => Column(
-      crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [
-      Expanded(child: Text(area, style: TextStyle(fontSize: context.rFontSize(15),
-          color: c.primary), overflow: TextOverflow.ellipsis)),
-      Text('$count/$total', style: TextStyle(fontSize: context.rFontSize(14),
-          fontWeight: FontWeight.w600, color: color)),
-    ]),
-    SizedBox(height: context.rSpacing(6)),
-    ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(4)),
-      child: LinearProgressIndicator(
-        value: count / total,
-        minHeight: context.rSpacing(6),
-        backgroundColor: c.muted,
-        valueColor: AlwaysStoppedAnimation(color))),
-  ]);
-}
-
-class _RatingBar extends StatelessWidget {
-  const _RatingBar({required this.c, required this.label,
-      required this.val});
-  final AppColorScheme c; final String label; final double val;
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Container(
-      padding: context.rPadding(all: 10),
-      decoration: BoxDecoration(
-        color: c.muted,
-        borderRadius: BorderRadius.circular(context.rRadius(12))),
-      child: Column(children: [
-        Text(val.toString(), style: TextStyle(fontSize: context.rFontSize(20),
-            fontWeight: FontWeight.bold, color: c.primary)),
-        SizedBox(height: context.rSpacing(2)),
-        Text(label, style: TextStyle(fontSize: context.rFontSize(9),
-            color: c.mutedForeground),
-            textAlign: TextAlign.center, maxLines: 2),
-      ]),
-    ),
-  );
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.c, required this.icon,
-      required this.color, required this.title,
-      required this.desc});
-  final AppColorScheme c; final IconData icon;
-  final Color color; final String title, desc;
-  @override
-  Widget build(BuildContext context) => Row(children: [
-    Container(
-      width: context.rSpacing(42),
-      height: context.rSpacing(42),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(context.rRadius(12))),
-      child: Icon(icon, color: color, size: context.rIconSize(22))),
-    SizedBox(width: context.rSpacing(12)),
-    Expanded(child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: TextStyle(fontSize: context.rFontSize(16),
-          fontWeight: FontWeight.w600, color: c.primary)),
-      SizedBox(height: context.rSpacing(2)),
-      Text(desc, style: TextStyle(fontSize: context.rFontSize(14),
-          color: c.mutedForeground), maxLines: 2),
-    ])),
-  ]);
-}
-
-class _CompareRow extends StatelessWidget {
-  const _CompareRow({required this.c, required this.label,
-      required this.thisMonth, required this.lastMonth,
-      required this.isUp});
-  final AppColorScheme c; final String label, thisMonth, lastMonth;
-  final bool isUp;
-  @override
-  Widget build(BuildContext context) => Row(children: [
-    Expanded(child: Text(label, style: TextStyle(fontSize: context.rFontSize(15),
-        color: c.primary))),
-    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Text(thisMonth, style: TextStyle(fontSize: context.rFontSize(18),
-          fontWeight: FontWeight.bold, color: c.primary)),
-      Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward,
-            size: context.rIconSize(12), color: isUp ? c.success : c.destructive),
-        SizedBox(width: context.rSpacing(2)),
-        Text(lastMonth, style: TextStyle(fontSize: context.rFontSize(13),
-            color: c.mutedForeground)),
-      ]),
-    ]),
-  ]);
-}
+// Custom painters (Lines 782+)
 
 // ═══════════════════════════════════════════════════════════════
 // CUSTOM PAINTERS

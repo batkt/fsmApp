@@ -949,7 +949,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                         backgroundColor: t.status == TaskStatus.inProgress
                             ? c.brandGreen
                             : c.primary,
-                        foregroundColor: Colors.green,
+                        foregroundColor: t.status == TaskStatus.inProgress ? Colors.white : c.primaryForeground,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(context.rRadius(16)),
