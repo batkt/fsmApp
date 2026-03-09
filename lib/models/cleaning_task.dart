@@ -219,14 +219,34 @@ class CleaningTask {
   /// Returns elapsed time from ekhlekhTsag to now (if in progress) or to duusakhTsag (if completed)
   int? get elapsedMinutes {
     if (status == TaskStatus.completed) {
-      if (ekhlekhTsag == null || duusakhTsag == null) return 0;
-      final duration = duusakhTsag!.difference(ekhlekhTsag!);
-      return duration.inMinutes;
+      if (ajiltanTsag.isNotEmpty) {
+        int totalSeconds = 0;
+        for (final tsag in ajiltanTsag) {
+          if (tsag.tsagMinute != null && tsag.tsagMinute! > 0) {
+            totalSeconds += tsag.tsagMinute! * 60;
+          } else if (tsag.duusakhTsag != null) {
+            final diff = tsag.duusakhTsag!.difference(tsag.ekhlekhTsag).inSeconds;
+            if (diff > 0) totalSeconds += diff;
+          }
+        }
+        return totalSeconds < 0 ? 0 : totalSeconds ~/ 60;
+      }
+      return 0;
     }
 
     if (status == TaskStatus.inProgress) {
-      // Use local startedAt if available so progress starts at 0 when user taps "Эхлэх"
-      final base = startedAtLocal ?? ekhlekhTsag ?? DateTime.now();
+      DateTime? base = startedAtLocal;
+      if (base == null) {
+        for (final tsag in ajiltanTsag.reversed) {
+          if (tsag.duusakhTsag == null) {
+            base = tsag.ekhlekhTsag;
+            break;
+          }
+        }
+      }
+      // Never fallback to ekhlekhTsag since it's the scheduled time and has a timezone shift
+      base ??= DateTime.now();
+      
       final duration = DateTime.now().difference(base);
       return duration.inMinutes < 0 ? 0 : duration.inMinutes;
     }

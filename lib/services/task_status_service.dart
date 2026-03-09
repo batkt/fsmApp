@@ -43,7 +43,12 @@ class TaskStatusService {
       Map<String, dynamic>? body;
       final user = AuthService.currentUser;
       
-      if (user != null && (newStatus != null || ajiltanTsag != null)) {
+      if (user == null) {
+        debugPrint('[TaskStatus] ❌ No current user! Cannot update task status.');
+        return false;
+      }
+
+      if (newStatus != null || ajiltanTsag != null) {
         body = {
           'ajiltniiId': user.id,
           'baiguullagiinId': user.baiguullagaId,
@@ -51,6 +56,8 @@ class TaskStatusService {
         if (newStatus != null) body['tuluv'] = newStatus;
         if (ajiltanTsag != null) body['ajiltanTsag'] = ajiltanTsag;
       }
+
+      debugPrint('[TaskStatus] Request body keys: ${body?.keys.toList()}');
 
       final result = await ApiService.post(
         '/task-status/update/$taskId',

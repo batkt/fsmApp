@@ -1077,7 +1077,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     });
   }
 
-  void _handleFinish(CleaningTask t) {
+  void _handleFinish(CleaningTask t) async {
     if (t.status == TaskStatus.completed) return;
 
     // Cancel live update timer
@@ -1085,7 +1085,32 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     _liveUpdateTimer = null;
     _currentTrackingTask = null;
 
-    // Optimistically update UI
+    // Calculate the ACTUAL elapsed minutes BEFORE changing status to completed
+    // (because elapsedMinutes getter uses status to decide which branch to use)
+    final now = DateTime.now();
+    
+    // For auto-started tasks, find the real start time from ajiltanTsag entries
+    DateTime? actualStartTime = t.startedAtLocal;
+    if (actualStartTime == null && t.ajiltanTsag.isNotEmpty) {
+      // Find the last open session (no duusakhTsag) regardless of user
+      for (final tsag in t.ajiltanTsag.reversed) {
+        if (tsag.duusakhTsag == null) {
+          actualStartTime = tsag.ekhlekhTsag;
+          break;
+        }
+      }
+      // If no open session, use any session's start time
+      if (actualStartTime == null) {
+        actualStartTime = t.ajiltanTsag.first.ekhlekhTsag;
+      }
+    }
+    // NEVER fallback to t.ekhlekhTsag, because it has been shifted and will
+    // create future timestamps yielding negative durations. Use now.
+    actualStartTime ??= now;
+    
+    final actualElapsedMinutes = now.difference(actualStartTime).inMinutes.clamp(0, 99999);
+
+    // NOW optimistically update UI
     setState(() => t.status = TaskStatus.completed);
     _syncWidget();
     _snack('"${t.title}" даалгавар дууссан');
@@ -1096,40 +1121,50 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     // End iOS Live Activity
     WidgetService.endTaskActivity();
 
-    final baseTime = t.startedAtLocal ?? t.ekhlekhTsag ?? DateTime.now();
     final ajiltanTsag = [{
       'ajiltniiId': AuthService.currentUser?.id ?? '',
-      'ekhlekhTsag': baseTime.toUtc().toIso8601String(),
-      'duusakhTsag': DateTime.now().toUtc().toIso8601String(),
-      'tsagMinute': t.elapsedMinutes ?? 0,
+      'ekhlekhTsag': actualStartTime.toUtc().toIso8601String(),
+      'duusakhTsag': now.toUtc().toIso8601String(),
+      'tsagMinute': actualElapsedMinutes,
     }];
 
-    // Update backend status via task-status controller (force duussan)
-    TaskStatusService.updateTaskStatus(
+    // Await the backend status update (with retry)
+    bool success = await TaskStatusService.updateTaskStatus(
       t.id, 
       newStatus: 'duussan',
       ajiltanTsag: ajiltanTsag,
-    ).then((
-      success,
-    ) {
-      if (!success && mounted) {
-        // Revert on failure
-        setState(() => t.status = TaskStatus.inProgress);
-        _syncWidget();
-        AppToast.show(
-          context,
-          'Даалгаврын статус шинэчлэхэд алдаа гарлаа',
-          icon: Icons.error_outline_rounded,
-          color: context.colors.destructive,
-        );
-      } else if (success) {
-        // Refresh tasks to get updated status and notifications
-        if (_selectedProjectId != null) {
-          _refreshTasks();
-        }
-        _loadNotifications();
+    );
+
+    // Retry once on failure
+    if (!success) {
+      debugPrint('[Dashboard] First attempt to finish task failed, retrying...');
+      await Future.delayed(const Duration(seconds: 1));
+      success = await TaskStatusService.updateTaskStatus(
+        t.id, 
+        newStatus: 'duussan',
+        ajiltanTsag: ajiltanTsag,
+      );
+    }
+
+    if (!mounted) return;
+
+    if (!success) {
+      // Revert on failure
+      setState(() => t.status = TaskStatus.inProgress);
+      _syncWidget();
+      AppToast.show(
+        context,
+        'Даалгаврын статус шинэчлэхэд алдаа гарлаа',
+        icon: Icons.error_outline_rounded,
+        color: context.colors.destructive,
+      );
+    } else {
+      // Refresh tasks to get updated status and notifications
+      if (_selectedProjectId != null) {
+        _refreshTasks();
       }
-    });
+      _loadNotifications();
+    }
   }
 
   void _handleNextStatus(CleaningTask t) {
