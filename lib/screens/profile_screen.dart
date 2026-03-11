@@ -321,11 +321,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: 'Монгол',
             ),
             const SizedBox(height: 8),
-            _SettingTile(
-              c: c,
-              icon: Icons.dark_mode_rounded,
-              title: 'Загвар',
-              subtitle: 'Системийн тохиргоо',
+            ListenableBuilder(
+              listenable: SettingsService(),
+              builder: (context, _) {
+                final themeMode = SettingsService().themeMode;
+                final isDark = themeMode == ThemeMode.dark || 
+                    (themeMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
+                    
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: c.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: c.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: c.brandGreen.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.dark_mode_rounded,
+                          color: c.brandGreen,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Харанхуй горим',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: c.primary,
+                              ),
+                            ),
+                            Text(
+                              themeMode == ThemeMode.system ? 'Системийн тохиргоо (Автомат)' : 'Гараар тохируулсан',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: c.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: isDark,
+                        onChanged: (val) {
+                          SettingsService().setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
+                        },
+                        activeColor: c.brandGreen,
+                        activeTrackColor: c.brandGreen.withOpacity(0.3),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 12),
             

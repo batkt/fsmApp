@@ -67,7 +67,7 @@ class WorkEaseApp extends StatelessWidget {
         return MaterialApp(
           title: 'workEase',
           debugShowCheckedModeBanner: false,
-          themeMode: ThemeMode.system, // follows device setting
+          themeMode: SettingsService().themeMode,
           // ── Light Theme ──
           theme: ThemeData(
             brightness: Brightness.light,

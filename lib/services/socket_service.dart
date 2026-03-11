@@ -11,6 +11,9 @@ class SocketService {
 
   static bool get isConnected => _connected;
 
+  static String? _currentProjectId;
+  static String? _currentTaskId;
+
   /// Connect to the Socket.IO server.
   static void connect() {
     if (_socket != null) return;
@@ -27,10 +30,19 @@ class SocketService {
     _socket!.onConnect((_) {
       debugPrint('[Socket] Connected');
       _connected = true;
-      // Go online
+      // Go online & join notification room
       final user = AuthService.currentUser;
       if (user != null) {
         _socket!.emit('user_online', {'userId': user.id, 'status': 'online'});
+        _socket!.emit('join_notifications', {'userId': user.id});
+      }
+      
+      // Re-join active chat room if any
+      if (_currentProjectId != null) {
+        _socket!.emit('join_room', {
+          'projectId': _currentProjectId,
+          if (_currentTaskId != null) 'taskId': _currentTaskId,
+        });
       }
     });
 
@@ -59,6 +71,8 @@ class SocketService {
 
   /// Join a chat room (project or task).
   static void joinRoom({required String projectId, String? taskId}) {
+    _currentProjectId = projectId;
+    _currentTaskId = taskId;
     _socket?.emit('join_room', {
       'projectId': projectId,
       if (taskId != null) 'taskId': taskId,
@@ -67,11 +81,16 @@ class SocketService {
 
   /// Leave a chat room.
   static void leaveRoom({required String projectId, String? taskId}) {
+    if (_currentProjectId == projectId && _currentTaskId == taskId) {
+      _currentProjectId = null;
+      _currentTaskId = null;
+    }
     _socket?.emit('leave_room', {
       'projectId': projectId,
       if (taskId != null) 'taskId': taskId,
     });
   }
+
 
   static final Map<String, String> _onlineUsers = {};
 
