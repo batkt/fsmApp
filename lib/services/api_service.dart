@@ -102,6 +102,35 @@ class ApiService {
     }
   }
 
+  /// MULTIPART request for file upload
+  static Future<ApiResult> uploadFile(
+    String path, {
+    required String filePath,
+    required String fileField,
+    Map<String, String>? fields,
+  }) async {
+    try {
+      final req = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+      
+      if (AuthService.token != null) {
+        req.headers['Authorization'] = 'Bearer ${AuthService.token}';
+      }
+
+      if (fields != null) {
+        req.fields.addAll(fields);
+      }
+
+      req.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+
+      final streamRes = await req.send().timeout(const Duration(seconds: 45));
+      final res = await http.Response.fromStream(streamRes);
+      
+      return _parse(res);
+    } catch (e) {
+      return ApiResult.error(_friendlyError(e));
+    }
+  }
+
   // ── Internal ──
 
   static ApiResult _parse(http.Response res) {

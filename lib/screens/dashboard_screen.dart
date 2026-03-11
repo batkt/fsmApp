@@ -24,6 +24,7 @@ import '../services/task_service.dart';
 import '../services/subtask_service.dart';
 import '../services/widget_service.dart';
 import '../services/image_service.dart';
+import '../services/api_service.dart';
 import '../services/socket_service.dart';
 import '../services/notification_service.dart';
 import '../services/push_notification_service.dart';
@@ -1312,20 +1313,33 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         return false;
       });
 
-      await ImageService.savePhoto(t.id, img.path).then((savedPath) {
+      await ImageService.savePhoto(t.id, img.path).then((savedPath) async {
         isDone = true;
+        
+        final uploadRes = await ApiService.uploadFile('/tasks/${t.id}/upload-image', filePath: savedPath, fileField: 'file');
+        
         if (mounted) {
           updateProgress(1.0);
           setState(() {
             final idx = t.photoPaths.indexOf(img.path);
             if (idx != -1) t.photoPaths[idx] = savedPath;
           });
-          AppToast.show(
-            context,
-            '✅ Зураг хадгаллаа',
-            icon: Icons.check_circle_rounded,
-            color: context.colors.success,
-          );
+          
+          if (uploadRes.success) {
+            AppToast.show(
+              context,
+              '✅ Зураг хадгаллаа',
+              icon: Icons.check_circle_rounded,
+              color: context.colors.success,
+            );
+          } else {
+            AppToast.show(
+              context,
+              'Зураг хадгалсан боловч сервер рүү илгээгдсэнгүй',
+              icon: Icons.cloud_off_rounded,
+              color: context.colors.warning,
+            );
+          }
         }
       });
     } catch (_) {
