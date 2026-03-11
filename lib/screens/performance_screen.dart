@@ -22,6 +22,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   Map<String, dynamic>? _kpi;
   bool _loading = true;
   bool _refreshingKpi = false;
+  DateTime _selectedDate = DateTime.now();
 
   void _onSocketUpdate(dynamic _) {
     if (mounted) _loadData();
@@ -92,6 +93,32 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     }
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        final c = Theme.of(context).colorScheme;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: c.copyWith(
+              primary: const Color(0xFF10B981),
+              onPrimary: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeProject = ProjectService.activeProject.value;
@@ -109,8 +136,8 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
 
     final c = context.colors;
     
-    // Today Stats
-    final today = stripTime(DateTime.now());
+    // Day Stats (Filtered by selected date)
+    final today = stripTime(_selectedDate);
     final todayTasks = _tasks.where((t) => stripTime(t.date) == today).toList();
     final todayDone = todayTasks.where((t) => t.status == TaskStatus.completed).length;
     final todayInProgress = todayTasks.where((t) => t.status == TaskStatus.inProgress).length;
@@ -183,6 +210,11 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month_rounded),
+            onPressed: () => _selectDate(context),
+            tooltip: 'Өдөр сонгох',
+          ),
           if (_refreshingKpi)
             const Center(child: Padding(
               padding: EdgeInsets.only(right: 16.0),
@@ -213,9 +245,17 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           // 1. DAILY COMPLETION RING
           // ═══════════════════════════════════════════
           _GreenCard(c: c, child: Column(children: [
-            const Text('Өнөөдрийн гүйцэтгэл',
-                style: TextStyle(color: Colors.white, fontSize: 18,
-                    fontWeight: FontWeight.w600)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  stripTime(_selectedDate) == stripTime(DateTime.now()) 
+                    ? 'Өнөөдрийн гүйцэтгэл' 
+                    : '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day} гүйцэтгэл',
+                  style: const TextStyle(color: Colors.white, fontSize: 18,
+                      fontWeight: FontWeight.w600)),
+              ],
+            ),
             const SizedBox(height: 20),
             LayoutBuilder(
               builder: (context, constraints) {
