@@ -125,9 +125,12 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final monthTotal = monthTasks.length;
     final monthAttendance = monthTotal == 0 ? 0 : 100; // Simplified for now
 
-    // Weekly Chart
+    // Weekly Chart - Align with Monday-Sunday week
+    final currentWeekDay = now.weekday; // 1 (Mon) to 7 (Sun)
+    final monday = stripTime(now.subtract(Duration(days: currentWeekDay - 1)));
+    
     final weekData = List.generate(7, (i) {
-      final day = stripTime(DateTime.now().subtract(Duration(days: 6 - i)));
+      final day = monday.add(Duration(days: i));
       return _tasks.where((t) => stripTime(t.date) == day && t.status == TaskStatus.completed).length.toDouble();
     });
 
@@ -286,7 +289,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     painter: _BarsPainter(
                       weekData,
                       ['Д', 'М', 'Л', 'П', 'Б', 'Бя', 'Н'],
-                      c.brandGreen, weekData.length - 1, c.mutedForeground))),
+                      c.brandGreen, now.weekday - 1, c.mutedForeground))),
               bottom: Text('Нийт: ${_tasks.length} даалгавар',
                   style: TextStyle(fontSize: 14,
                       color: c.mutedForeground))),
