@@ -43,12 +43,10 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
 
   void _startProgressTimer() {
     _progressTimer?.cancel();
-    // Only start timer if task is in progress
     if (t.status == TaskStatus.inProgress) {
       _progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (mounted && t.status == TaskStatus.inProgress) {
           setState(() {
-            // Force rebuild to update elapsed time
           });
         } else {
           timer.cancel();
@@ -221,7 +219,6 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Container(
             margin: EdgeInsets.only(top: context.rSpacing(12)),
             width: context.rSpacing(40),
@@ -231,9 +228,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
               borderRadius: BorderRadius.circular(context.rRadius(2)),
             ),
           ),
-
-          // Header
-          Padding(
+       Padding(
             padding: EdgeInsets.fromLTRB(
               context.rSpacing(20),
               context.rSpacing(16),
@@ -340,15 +335,12 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
           ),
 
           const SizedBox(height: 16),
-
-          // Scrollable body
           Flexible(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: context.rSpacing(20)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info Grid
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(context.rSpacing(16)),
@@ -370,14 +362,14 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           c: c,
                           icon: Icons.place_rounded,
                           label: 'БАЙРШИЛ',
-                          value: t.location,
+                          value: t.location.isEmpty ? '-' : t.location,
                         ),
                         Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
                         _InfoRow(
                           c: c,
                           icon: Icons.layers_rounded,
                           label: 'ДАВХАР',
-                          value: t.floor,
+                          value: t.floor.isEmpty ? '-' : t.floor,
                         ),
                         Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
                         _InfoRow(
@@ -391,8 +383,6 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       ],
                     ),
                   ),
-
-                  // Notes
                   if (t.notes.isNotEmpty) ...[
                     SizedBox(height: context.rSpacing(24)),
                     Container(
@@ -444,8 +434,6 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       ),
                     ),
                   ],
-
-                  // Subtasks
                   if (t.subtasks.isNotEmpty) ...[
                     SizedBox(height: context.rSpacing(24)),
                     Container(
@@ -581,14 +569,11 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       ),
                     ),
                   ],
-
-                  // Photos section - Show both types of images separately
                   SizedBox(height: context.rSpacing(16)),
                   Container(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Original task images
                         if (t.hariutsagchZurag.isNotEmpty) ...[
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -654,31 +639,65 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                               ),
                                             ],
                                           ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
-                                            child: Image.network(
-                                              fullUrl,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child, progress) {
-                                                if (progress == null) return child;
-                                                return Container(
-                                                  color: c.muted,
-                                                  child: Center(
-                                                    child: CircularProgressIndicator(
-                                                      value: progress.expectedTotalBytes != null
-                                                          ? progress.cumulativeBytesLoaded /
-                                                              progress.expectedTotalBytes!
-                                                          : null,
-                                                      strokeWidth: 2,
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                                child: Image.network(
+                                                  fullUrl,
+                                                  fit: BoxFit.cover,
+                                                  loadingBuilder: (context, child, progress) {
+                                                    if (progress == null) return child;
+                                                    return Container(
+                                                      color: c.muted,
+                                                      child: Center(
+                                                        child: CircularProgressIndicator(
+                                                          value: progress.expectedTotalBytes != null
+                                                              ? progress.cumulativeBytesLoaded /
+                                                                  progress.expectedTotalBytes!
+                                                              : null,
+                                                          strokeWidth: 2,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                  errorBuilder: (_, __, ___) => Container(
+                                                    color: c.muted,
+                                                    child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
+                                                  ),
+                                                ),
+                                              ),
+                                              if (zurag.ajiltniiNer != null && zurag.ajiltniiNer!.isNotEmpty)
+                                                Positioned(
+                                                  bottom: 0,
+                                                  left: 0,
+                                                  right: 0,
+                                                  child: Container(
+                                                    padding: EdgeInsets.symmetric(
+                                                        vertical: context.rSpacing(4),
+                                                        horizontal: context.rSpacing(8)),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black.withOpacity(0.6),
+                                                      borderRadius: BorderRadius.only(
+                                                        bottomLeft: Radius.circular(context.rRadius(16)),
+                                                        bottomRight: Radius.circular(context.rRadius(16)),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      zurag.ajiltniiNer!,
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: context.rFontSize(10),
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      textAlign: TextAlign.center,
                                                     ),
                                                   ),
-                                                );
-                                              },
-                                              errorBuilder: (_, __, ___) => Container(
-                                                color: c.muted,
-                                                child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
-                                              ),
-                                            ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -757,31 +776,65 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                               ),
                                             ],
                                           ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
-                                            child: Image.network(
-                                              fullUrl,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child, progress) {
-                                                if (progress == null) return child;
-                                                return Container(
-                                                  color: c.muted,
-                                                  child: Center(
-                                                    child: CircularProgressIndicator(
-                                                      value: progress.expectedTotalBytes != null
-                                                          ? progress.cumulativeBytesLoaded /
-                                                              progress.expectedTotalBytes!
-                                                          : null,
-                                                      strokeWidth: 2,
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                                child: Image.network(
+                                                  fullUrl,
+                                                  fit: BoxFit.cover,
+                                                  loadingBuilder: (context, child, progress) {
+                                                    if (progress == null) return child;
+                                                    return Container(
+                                                      color: c.muted,
+                                                      child: Center(
+                                                        child: CircularProgressIndicator(
+                                                          value: progress.expectedTotalBytes != null
+                                                              ? progress.cumulativeBytesLoaded /
+                                                                  progress.expectedTotalBytes!
+                                                              : null,
+                                                          strokeWidth: 2,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                  errorBuilder: (_, __, ___) => Container(
+                                                    color: c.muted,
+                                                    child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
+                                                  ),
+                                                ),
+                                              ),
+                                              if (zurag.ajiltniiNer != null && zurag.ajiltniiNer!.isNotEmpty)
+                                                Positioned(
+                                                  bottom: 0,
+                                                  left: 0,
+                                                  right: 0,
+                                                  child: Container(
+                                                    padding: EdgeInsets.symmetric(
+                                                        vertical: context.rSpacing(4),
+                                                        horizontal: context.rSpacing(8)),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black.withOpacity(0.6),
+                                                      borderRadius: BorderRadius.only(
+                                                        bottomLeft: Radius.circular(context.rRadius(16)),
+                                                        bottomRight: Radius.circular(context.rRadius(16)),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      zurag.ajiltniiNer!,
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: context.rFontSize(10),
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      textAlign: TextAlign.center,
                                                     ),
                                                   ),
-                                                );
-                                              },
-                                              errorBuilder: (_, __, ___) => Container(
-                                                color: c.muted,
-                                                child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
-                                              ),
-                                            ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                       ),

@@ -6,6 +6,7 @@ class TaskZurag {
   final String? turul;
   final DateTime? ognoo;
   final String? ajiltniiId; // Employee ID who uploaded the image
+  final String? ajiltniiNer; // Employee Name who uploaded the image
 
   TaskZurag({
     this.zamNer,
@@ -14,6 +15,7 @@ class TaskZurag {
     this.turul,
     this.ognoo,
     this.ajiltniiId,
+    this.ajiltniiNer,
   });
 
   factory TaskZurag.fromJson(Map<String, dynamic> j) => TaskZurag(
@@ -27,6 +29,7 @@ class TaskZurag {
       j['ognoo'] ?? j['ogno'],
     ), // Support both 'ognoo' and 'ogno'
     ajiltniiId: j['ajiltniiId']?.toString(),
+    ajiltniiNer: j['ajiltniiNer']?.toString(),
   );
 
   static DateTime? _tryParse(dynamic v) {
@@ -98,6 +101,8 @@ class ApiTask {
   final String? color;
   final List<ApiSubTask> subTasks;
   final List<AjiltanTsag> ajiltanTsag;
+  final String? bairshil;
+  final String? davkhar;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -124,6 +129,8 @@ class ApiTask {
     this.color,
     this.subTasks = const [],
     this.ajiltanTsag = const [],
+    this.bairshil,
+    this.davkhar,
     this.createdAt,
     this.updatedAt,
   });
@@ -139,6 +146,8 @@ class ApiTask {
       projectId: extractId(j['projectId']),
       taskId: (j['taskId'] ?? '').toString(),
       ner: (j['ner'] ?? '').toString(),
+      bairshil: j['bairshil']?.toString(),
+      davkhar: j['davkhar']?.toString(),
       tailbar: (j['tailbar'] ?? '').toString(),
       zereglel: (j['zereglel'] ?? 'engiin').toString(),
       tuluv: (j['tuluv'] ?? 'shine').toString(),

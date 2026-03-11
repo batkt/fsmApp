@@ -112,7 +112,8 @@ class CleaningTask {
     return CleaningTask(
       id: t.id,
       title: t.ner,
-      location: t.taskId,
+      location: t.bairshil ?? '',
+      floor: t.davkhar ?? '',
       date: date,
       startTime: startTime,
       endTime: endTime,
@@ -244,11 +245,13 @@ class CleaningTask {
           }
         }
       }
-      // Never fallback to ekhlekhTsag since it's the scheduled time and has a timezone shift
-      base ??= DateTime.now();
+      
+      // If we still have no base, it hasn't really "started" in a way we can track
+      if (base == null) return 0;
       
       final duration = DateTime.now().difference(base);
-      return duration.inMinutes < 0 ? 0 : duration.inMinutes;
+      final mins = (duration.inSeconds / 60.0).round();
+      return mins < 0 ? 0 : mins;
     }
 
     // Pending / Overdue: treat as not started for progress

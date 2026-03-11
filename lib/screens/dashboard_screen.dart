@@ -36,6 +36,7 @@ import '../services/fcm_service.dart';
 import '../services/task_status_service.dart';
 import '../services/version_service.dart';
 import '../services/task_tracker_service.dart';
+import '../services/timezone_service.dart';
 import '../utils/responsive.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
@@ -1109,7 +1110,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     // create future timestamps yielding negative durations. Use now.
     actualStartTime ??= now;
     
-    final actualElapsedMinutes = now.difference(actualStartTime).inMinutes.clamp(0, 99999);
+    final actualElapsedMinutes = (now.difference(actualStartTime).inSeconds / 60.0).round().clamp(0, 99999);
 
     // NOW optimistically update UI
     setState(() => t.status = TaskStatus.completed);
@@ -1170,7 +1171,17 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   void _handleNextStatus(CleaningTask t) {
     if (t.status == TaskStatus.pending || t.status == TaskStatus.overdue) {
-      _handleStart(t);
+      final now = TimezoneService.nowMongolia();
+      if (t.date.year == now.year && t.date.month == now.month && t.date.day == now.day) {
+        _handleStart(t);
+      } else {
+        AppToast.show(
+          context,
+          'Зөвхөн өнөөдрийн даалгаврыг эхлүүлэх боломжтой.',
+          icon: Icons.info_outline_rounded,
+          color: context.colors.warning,
+        );
+      }
     } else if (t.status == TaskStatus.inProgress) {
       _handleFinish(t);
     }
@@ -1793,6 +1804,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           projectId: apiTask.projectId,
           taskId: apiTask.taskId,
           ner: apiTask.ner,
+          bairshil: apiTask.bairshil,
+          davkhar: apiTask.davkhar,
           tailbar: apiTask.tailbar,
           zereglel: apiTask.zereglel,
           tuluv: apiTask.tuluv,
@@ -1820,7 +1833,32 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
     if (!mounted) return;
     setState(() {
-      _tasks = tasksWithSubtasks.map((t) => CleaningTask.fromApi(t)).toList();
+      final newTasks = tasksWithSubtasks.map((t) => CleaningTask.fromApi(t)).toList();
+      
+      // Keep local state (like startedAtLocal and subtasks checkmarks) when refreshing
+      for (var newTask in newTasks) {
+        try {
+          final oldTask = _tasks.firstWhere((old) => old.id == newTask.id);
+          
+          // Preserve startedAtLocal so timer doesn't reset to 0
+          if (oldTask.status == newTask.status && newTask.status == TaskStatus.inProgress) {
+            newTask.startedAtLocal = oldTask.startedAtLocal;
+          }
+          
+          // Preserve subtasks isDone state if they match (in case API is slightly behind)
+          if (oldTask.subtasks.length == newTask.subtasks.length) {
+            for (int i = 0; i < oldTask.subtasks.length; i++) {
+              if (oldTask.subtasks[i].id == newTask.subtasks[i].id) {
+                newTask.subtasks[i].isDone = oldTask.subtasks[i].isDone;
+              }
+            }
+          }
+        } catch (_) {
+          // Task is new, no local state to preserve
+        }
+      }
+
+      _tasks = newTasks;
       _tasksLoading = false;
     });
     _syncWidget();
