@@ -183,27 +183,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
                
               if (_loading)
                 Center(child: Padding(
-                  padding: const EdgeInsets.all(40),
+                  padding: const EdgeInsets.all(30),
                   child: CircularProgressIndicator(color: c.brandGreen, strokeWidth: 2.5),
                 ))
               else ...[
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: Row(children: [
-                    _StatCard(c: c, label: 'Нийт', count: _allTasks.length,
-                        color: c.primary, icon: Icons.history_rounded),
-                    const SizedBox(width: 4),
-                    _StatCard(c: c, label: 'Дууссан', count: completedCount,
-                        color: c.success, icon: Icons.check_circle_rounded),
-                    const SizedBox(width: 4),
-                    _StatCard(c: c, label: 'Идэвхтэй', count: inProgressCount,
-                        color: c.info, icon: Icons.play_circle_rounded),
-                    const SizedBox(width: 4),
-                    _StatCard(c: c, label: 'Хэтэрсэн', count: overdueCount,
-                        color: c.destructive, icon: Icons.error_rounded),
-                  ]),
+                  clipBehavior: Clip.none,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(children: [
+                      _StatCard(c: c, label: 'Нийт', count: _allTasks.length,
+                          color: c.primary, icon: Icons.assignment_rounded),
+                      const SizedBox(width: 12),
+                      _StatCard(c: c, label: 'Дууссан', count: completedCount,
+                          color: c.success, icon: Icons.check_circle_rounded),
+                      const SizedBox(width: 12),
+                      _StatCard(c: c, label: 'Идэвхтэй', count: inProgressCount,
+                          color: c.info, icon: Icons.play_circle_rounded),
+                      const SizedBox(width: 12),
+                      _StatCard(c: c, label: 'Хэтэрсэн', count: overdueCount,
+                          color: c.destructive, icon: Icons.error_rounded),
+                    ]),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
               // ── Search ──
               Container(
@@ -325,22 +329,53 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 100, // Fixed width for horizontal scrolling
-      padding: const EdgeInsets.all(12),
+      width: 105,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.15)),
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.12)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(children: [
-        Icon(icon, size: 22, color: color),
-        const SizedBox(height: 6),
-        Text('$count', style: TextStyle(fontSize: 20,
-            fontWeight: FontWeight.bold, color: color)),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 11,
-            color: c.mutedForeground), textAlign: TextAlign.center),
-      ]),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: c.mutedForeground.withOpacity(0.8),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }
