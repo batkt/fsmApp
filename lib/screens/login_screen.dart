@@ -1670,7 +1670,11 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
             hintText: 'Шинэ нууц код',
             counterText: '',
             hintStyle: TextStyle(color: c.mutedForeground.withOpacity(0.6)),
-            prefixIcon: Icon(Icons.lock_outline, color: c.mutedForeground, size: 20),
+            prefixIcon: Icon(
+              Icons.lock_outline,
+              color: c.mutedForeground,
+              size: 20,
+            ),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureNew
@@ -1731,7 +1735,11 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
             hintText: 'Нууц код давтах',
             counterText: '',
             hintStyle: TextStyle(color: c.mutedForeground.withOpacity(0.6)),
-            prefixIcon: Icon(Icons.lock_outline, color: c.mutedForeground, size: 20),
+            prefixIcon: Icon(
+              Icons.lock_outline,
+              color: c.mutedForeground,
+              size: 20,
+            ),
             suffixIcon: _confirmPassCtrl.text.isNotEmpty
                 ? Icon(
                     passwordsMatch
