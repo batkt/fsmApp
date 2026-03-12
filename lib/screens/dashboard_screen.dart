@@ -928,7 +928,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     }
   }
 
-
   List<CleaningTask> get _todayTasks {
     var tasks = List<CleaningTask>.from(_tasks);
 
@@ -1007,7 +1006,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       code: t.taskCode,
       title: t.title,
     );
-    
+
     // Start iOS Live Activity
     WidgetService.startTaskActivity(t);
 
@@ -1038,24 +1037,26 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         progress: progress.clamp(0, 100),
         elapsedSeconds: elapsedSeconds,
       );
-      
+
       // Update iOS Live Activity
       WidgetService.updateTaskActivity(task);
     });
 
-    final ajiltanTsag = [{
-      'ajiltniiId': AuthService.currentUser?.id ?? '',
-      'ekhlekhTsag': (t.startedAtLocal ?? DateTime.now()).toUtc().toIso8601String(),
-    }];
+    final ajiltanTsag = [
+      {
+        'ajiltniiId': AuthService.currentUser?.id ?? '',
+        'ekhlekhTsag': (t.startedAtLocal ?? DateTime.now())
+            .toUtc()
+            .toIso8601String(),
+      },
+    ];
 
     // Update backend status via task-status controller (force khiigdej bui)
     TaskStatusService.updateTaskStatus(
-      t.id, 
+      t.id,
       newStatus: 'khiigdej bui',
       ajiltanTsag: ajiltanTsag,
-    ).then((
-      success,
-    ) {
+    ).then((success) {
       if (!success && mounted) {
         // Revert on failure
         _liveUpdateTimer?.cancel();
@@ -1090,7 +1091,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     // Calculate the ACTUAL elapsed minutes BEFORE changing status to completed
     // (because elapsedMinutes getter uses status to decide which branch to use)
     final now = DateTime.now();
-    
+
     // For auto-started tasks, find the real start time from ajiltanTsag entries
     DateTime? actualStartTime = t.startedAtLocal;
     if (actualStartTime == null && t.ajiltanTsag.isNotEmpty) {
@@ -1109,8 +1110,12 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     // NEVER fallback to t.ekhlekhTsag, because it has been shifted and will
     // create future timestamps yielding negative durations. Use now.
     actualStartTime ??= now;
-    
-    final actualElapsedMinutes = (now.difference(actualStartTime).inSeconds / 60.0).round().clamp(0, 99999);
+
+    final actualElapsedMinutes =
+        (now.difference(actualStartTime).inSeconds / 60.0).round().clamp(
+          0,
+          99999,
+        );
 
     // NOW optimistically update UI
     setState(() => t.status = TaskStatus.completed);
@@ -1119,30 +1124,34 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
     // Stop native tracker
     TaskTrackerService.stopTask();
-    
+
     // End iOS Live Activity
     WidgetService.endTaskActivity();
 
-    final ajiltanTsag = [{
-      'ajiltniiId': AuthService.currentUser?.id ?? '',
-      'ekhlekhTsag': actualStartTime.toUtc().toIso8601String(),
-      'duusakhTsag': now.toUtc().toIso8601String(),
-      'tsagMinute': actualElapsedMinutes,
-    }];
+    final ajiltanTsag = [
+      {
+        'ajiltniiId': AuthService.currentUser?.id ?? '',
+        'ekhlekhTsag': actualStartTime.toUtc().toIso8601String(),
+        'duusakhTsag': now.toUtc().toIso8601String(),
+        'tsagMinute': actualElapsedMinutes,
+      },
+    ];
 
     // Await the backend status update (with retry)
     bool success = await TaskStatusService.updateTaskStatus(
-      t.id, 
+      t.id,
       newStatus: 'duussan',
       ajiltanTsag: ajiltanTsag,
     );
 
     // Retry once on failure
     if (!success) {
-      debugPrint('[Dashboard] First attempt to finish task failed, retrying...');
+      debugPrint(
+        '[Dashboard] First attempt to finish task failed, retrying...',
+      );
       await Future.delayed(const Duration(seconds: 1));
       success = await TaskStatusService.updateTaskStatus(
-        t.id, 
+        t.id,
         newStatus: 'duussan',
         ajiltanTsag: ajiltanTsag,
       );
@@ -1172,7 +1181,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   void _handleNextStatus(CleaningTask t) {
     if (t.status == TaskStatus.pending || t.status == TaskStatus.overdue) {
       final now = TimezoneService.nowMongolia();
-      if (t.date.year == now.year && t.date.month == now.month && t.date.day == now.day) {
+      if (t.date.year == now.year &&
+          t.date.month == now.month &&
+          t.date.day == now.day) {
         _handleStart(t);
       } else {
         AppToast.show(
@@ -1231,14 +1242,26 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           decoration: BoxDecoration(
-                            border: Border.all(color: c.border.withOpacity(0.5)),
+                            border: Border.all(
+                              color: c.border.withOpacity(0.5),
+                            ),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.camera_alt_rounded, color: c.brandGreen, size: 32),
+                              Icon(
+                                Icons.camera_alt_rounded,
+                                color: c.brandGreen,
+                                size: 32,
+                              ),
                               const SizedBox(height: 12),
-                              Text('Камер', style: TextStyle(color: c.primary, fontWeight: FontWeight.bold)),
+                              Text(
+                                'Камер',
+                                style: TextStyle(
+                                  color: c.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1252,14 +1275,26 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           decoration: BoxDecoration(
-                            border: Border.all(color: c.border.withOpacity(0.5)),
+                            border: Border.all(
+                              color: c.border.withOpacity(0.5),
+                            ),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.photo_library_rounded, color: c.info, size: 32),
+                              Icon(
+                                Icons.photo_library_rounded,
+                                color: c.info,
+                                size: 32,
+                              ),
                               const SizedBox(height: 12),
-                              Text('Цомог', style: TextStyle(color: c.primary, fontWeight: FontWeight.bold)),
+                              Text(
+                                'Цомог',
+                                style: TextStyle(
+                                  color: c.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1326,16 +1361,20 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
       await ImageService.savePhoto(t.id, img.path).then((savedPath) async {
         isDone = true;
-        
-        final uploadRes = await ApiService.uploadFile('/tasks/${t.id}/upload-image', filePath: savedPath, fileField: 'file');
-        
+
+        final uploadRes = await ApiService.uploadFile(
+          '/tasks/${t.id}/upload-image',
+          filePath: savedPath,
+          fileField: 'file',
+        );
+
         if (mounted) {
           updateProgress(1.0);
           setState(() {
             final idx = t.photoPaths.indexOf(img.path);
             if (idx != -1) t.photoPaths[idx] = savedPath;
           });
-          
+
           if (uploadRes.success) {
             AppToast.show(
               context,
@@ -1633,7 +1672,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF43F5E), // Rose 500
-                        borderRadius: BorderRadius.circular(context.rRadius(10)),
+                        borderRadius: BorderRadius.circular(
+                          context.rRadius(10),
+                        ),
                         border: Border.all(
                           color: Colors.white,
                           width: context.rSpacing(2),
@@ -1698,7 +1739,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                         if (projectId == 'all') {
                           ProjectService.activeProject.value = null;
                         } else {
-                          final p = _apiProjects.firstWhere((p) => p.id == projectId);
+                          final p = _apiProjects.firstWhere(
+                            (p) => p.id == projectId,
+                          );
                           ProjectService.activeProject.value = p;
                         }
                         _loadTasks(projectId);
@@ -1819,6 +1862,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           zurag: apiTask.zurag,
           hariutsagchZurag: apiTask.hariutsagchZurag,
           ajiltanZurag: apiTask.ajiltanZurag,
+          baraa: apiTask.baraa,
           baiguullagiinId: apiTask.baiguullagiinId,
           barilgiinId: apiTask.barilgiinId,
           color: apiTask.color,
@@ -1833,18 +1877,21 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
     if (!mounted) return;
     setState(() {
-      final newTasks = tasksWithSubtasks.map((t) => CleaningTask.fromApi(t)).toList();
-      
+      final newTasks = tasksWithSubtasks
+          .map((t) => CleaningTask.fromApi(t))
+          .toList();
+
       // Keep local state (like startedAtLocal and subtasks checkmarks) when refreshing
       for (var newTask in newTasks) {
         try {
           final oldTask = _tasks.firstWhere((old) => old.id == newTask.id);
-          
+
           // Preserve startedAtLocal so timer doesn't reset to 0
-          if (oldTask.status == newTask.status && newTask.status == TaskStatus.inProgress) {
+          if (oldTask.status == newTask.status &&
+              newTask.status == TaskStatus.inProgress) {
             newTask.startedAtLocal = oldTask.startedAtLocal;
           }
-          
+
           // Preserve subtasks isDone state if they match (in case API is slightly behind)
           if (oldTask.subtasks.length == newTask.subtasks.length) {
             for (int i = 0; i < oldTask.subtasks.length; i++) {
@@ -1895,7 +1942,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   }
 
   Project? get _currentProject {
-    if (_selectedProjectId == null || _selectedProjectId == 'all' || _apiProjects.isEmpty) {
+    if (_selectedProjectId == null ||
+        _selectedProjectId == 'all' ||
+        _apiProjects.isEmpty) {
       return null;
     }
     try {

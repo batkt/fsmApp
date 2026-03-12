@@ -372,6 +372,16 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       children: [
                         _InfoRow(
                           c: c,
+                          icon: Icons.tag_rounded,
+                          label: 'ДААЛГАВАРЫН КОД',
+                          value: t.taskCode.isEmpty ? '-' : t.taskCode,
+                        ),
+                        Divider(
+                          height: context.rSpacing(24),
+                          color: c.border.withOpacity(0.5),
+                        ),
+                        _InfoRow(
+                          c: c,
                           icon: Icons.place_rounded,
                           label: 'БАЙРШИЛ',
                           value: t.location.isEmpty ? '-' : t.location,
