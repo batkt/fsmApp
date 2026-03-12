@@ -97,7 +97,13 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 10));
 
-      final data = json.decode(response.body);
+      Map<String, dynamic> data;
+      try {
+        data = json.decode(response.body);
+      } catch (e) {
+        debugPrint('Failed to parse login response: $e');
+        return AuthResult.failure('Серверийн хариу буруу байна');
+      }
 
       if (response.statusCode == 200 && data['success'] == true) {
         final tokenVal = data['token'] as String;
@@ -130,21 +136,68 @@ class AuthService {
 
         return AuthResult.success(user);
       } else {
-        // Server returned an error message. Translate if in English.
-        String msg =
-            data['message'] ??
-            data['error'] ??
-            'Нэвтрэх нэр эсвэл нууц үг буруу';
+        // Extract error message from various possible formats
+        String msg = '';
+        
+        // Try different possible error message fields
+        if (data['message'] != null) {
+          msg = data['message'].toString();
+        } else if (data['error'] != null) {
+          msg = data['error'].toString();
+        } else if (data['msg'] != null) {
+          msg = data['msg'].toString();
+        } else if (data['errors'] != null) {
+          // Handle array of errors
+          if (data['errors'] is List && (data['errors'] as List).isNotEmpty) {
+            msg = (data['errors'] as List).first.toString();
+          } else if (data['errors'] is Map) {
+            final errors = data['errors'] as Map;
+            msg = errors.values.first.toString();
+          }
+        }
+        
+        // If still no message, use status code based defaults
+        if (msg.isEmpty) {
+          switch (response.statusCode) {
+            case 401:
+              msg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
+              break;
+            case 404:
+              msg = 'Хэрэглэгч олдсонгүй';
+              break;
+            case 400:
+              msg = 'Хүсэлт буруу байна';
+              break;
+            case 403:
+              msg = 'Хандах эрхгүй байна';
+              break;
+            case 500:
+              msg = 'Серверийн дотоод алдаа гарлаа';
+              break;
+            default:
+              msg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
+          }
+        }
 
+        // Translate common English error messages to Mongolian
         final lowerMsg = msg.toLowerCase();
-        if (lowerMsg.contains('unauthorized')) {
+        if (lowerMsg.contains('user not found') || 
+            lowerMsg.contains('хэрэглэгч олдсонгүй') ||
+            lowerMsg.contains('user does not exist')) {
+          msg = 'Хэрэглэгч олдсонгүй';
+        } else if (lowerMsg.contains('invalid password') || 
+                   lowerMsg.contains('wrong password') ||
+                   lowerMsg.contains('нууц код буруу')) {
+          msg = 'Нууц код буруу байна';
+        } else if (lowerMsg.contains('invalid credentials') ||
+                   lowerMsg.contains('authentication failed')) {
+          msg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
+        } else if (lowerMsg.contains('unauthorized')) {
           msg = 'Хандах эрхгүй эсвэл эрх хүчингүй байна';
         } else if (lowerMsg.contains('forbidden')) {
           msg = 'Танд энэ үйлдлийг хийх зөвшөөрөл байхгүй байна';
         } else if (lowerMsg.contains('not found')) {
-          msg = 'Мэдээлэл олдсонгүй';
-        } else if (lowerMsg.contains('invalid credentials')) {
-          msg = 'Нэвтрэх нэр эсвэл нууц үг буруу байна';
+          msg = 'Хэрэглэгч олдсонгүй';
         } else if (lowerMsg.contains('bad request')) {
           msg = 'Хүсэлт буруу байна';
         } else if (lowerMsg.contains('internal server error')) {
@@ -155,6 +208,7 @@ class AuthService {
           msg = 'Сервертэй холбогдож чадсангүй';
         }
 
+        debugPrint('Login failed: Status ${response.statusCode}, Message: $msg');
         return AuthResult.failure(msg);
       }
     } on http.ClientException {
