@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform, debugPrint;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/notification_model.dart';
 import 'push_notification_service.dart';
 import 'api_service.dart';
@@ -88,11 +89,30 @@ class FCMService {
 
       final notification = _remoteMessageToAppNotification(message);
       if (notification != null) {
-        debugPrint(
-          '[FCM] Showing foreground notification: ${notification.title}',
-        );
-        await PushNotificationService.showNotification(notification);
-        debugPrint('[FCM] ✅ Foreground notification shown');
+        // Check if this notification has already been shown (prevent duplicates)
+        final prefs = await SharedPreferences.getInstance();
+        final shownIds =
+            prefs.getStringList('shown_push_notifications') ?? <String>[];
+
+        if (!shownIds.contains(notification.id)) {
+          debugPrint(
+            '[FCM] Showing foreground notification: ${notification.title}',
+          );
+          await PushNotificationService.showNotification(notification);
+          debugPrint('[FCM] ✅ Foreground notification shown');
+
+          // Mark as shown to prevent duplicates
+          final updatedShownIds = <String>[...shownIds, notification.id];
+          // Keep only last 1000 to prevent storage bloat
+          final finalShownIds = updatedShownIds.length > 1000
+              ? updatedShownIds.sublist(updatedShownIds.length - 1000)
+              : updatedShownIds;
+          await prefs.setStringList('shown_push_notifications', finalShownIds);
+        } else {
+          debugPrint(
+            '[FCM] ⏭️ Notification ${notification.id} already shown, skipping duplicate',
+          );
+        }
       } else {
         debugPrint(
           '[FCM] ⚠️ Could not convert RemoteMessage to AppNotification',
@@ -276,10 +296,29 @@ class FCMService {
       // Convert RemoteMessage to AppNotification and show local notification
       final notification = _remoteMessageToAppNotification(message);
       if (notification != null) {
-        // Initialize PushNotificationService for background
-        await PushNotificationService.initialize();
-        await PushNotificationService.showNotification(notification);
-        debugPrint('[FCM] ✅ Background notification shown');
+        // Check if this notification has already been shown (prevent duplicates)
+        final prefs = await SharedPreferences.getInstance();
+        final shownIds =
+            prefs.getStringList('shown_push_notifications') ?? <String>[];
+
+        if (!shownIds.contains(notification.id)) {
+          // Initialize PushNotificationService for background
+          await PushNotificationService.initialize();
+          await PushNotificationService.showNotification(notification);
+          debugPrint('[FCM] ✅ Background notification shown');
+
+          // Mark as shown to prevent duplicates
+          final updatedShownIds = <String>[...shownIds, notification.id];
+          // Keep only last 1000 to prevent storage bloat
+          final finalShownIds = updatedShownIds.length > 1000
+              ? updatedShownIds.sublist(updatedShownIds.length - 1000)
+              : updatedShownIds;
+          await prefs.setStringList('shown_push_notifications', finalShownIds);
+        } else {
+          debugPrint(
+            '[FCM] ⏭️ Background notification ${notification.id} already shown, skipping duplicate',
+          );
+        }
       }
     } catch (e) {
       debugPrint('[FCM] ❌ Error handling background message: $e');
