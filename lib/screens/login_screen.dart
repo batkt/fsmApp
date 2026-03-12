@@ -1705,17 +1705,33 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
         // Confirm PIN code
         TextField(
           controller: _confirmPassCtrl,
+          focusNode: _confirmPassFocus,
           keyboardType: TextInputType.number,
           maxLength: 4,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           obscureText: _obscureConfirm,
-          onChanged: (_) => setState(() {}),
+          onChanged: (value) {
+            setState(() {});
+            // Auto-submit when 4 digits are entered and passwords match
+            if (value.length == 4 && !_loading) {
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted &&
+                    _confirmPassCtrl.text.length == 4 &&
+                    _newPassCtrl.text.length == 4 &&
+                    _newPassCtrl.text == _confirmPassCtrl.text) {
+                  // Close keyboard and submit
+                  FocusScope.of(context).unfocus();
+                  _resetPassword();
+                }
+              });
+            }
+          },
           style: TextStyle(color: c.primary, fontSize: 16),
           decoration: InputDecoration(
             hintText: 'Нууц код давтах',
             counterText: '',
             hintStyle: TextStyle(color: c.mutedForeground.withOpacity(0.6)),
-            prefixIcon: Icon(Icons.numbers, color: c.mutedForeground, size: 20),
+            prefixIcon: Icon(Icons.lock_outline, color: c.mutedForeground, size: 20),
             suffixIcon: _confirmPassCtrl.text.isNotEmpty
                 ? Icon(
                     passwordsMatch
