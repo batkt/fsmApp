@@ -1,3 +1,47 @@
+/// Baraa (item/material) model
+class Baraa {
+  final String baraaId;
+  final String ner; // Name
+  final String negj; // Unit
+  final int too; // Quantity
+  final double une; // Price
+  final double niitUne; // Total price
+  final String tailbar; // Description
+  final DateTime? ognoo; // Date
+
+  Baraa({
+    required this.baraaId,
+    required this.ner,
+    required this.negj,
+    required this.too,
+    required this.une,
+    required this.niitUne,
+    this.tailbar = '',
+    this.ognoo,
+  });
+
+  factory Baraa.fromJson(Map<String, dynamic> j) => Baraa(
+    baraaId: (j['baraaId'] ?? j['_id'] ?? '').toString(),
+    ner: (j['ner'] ?? '').toString(),
+    negj: (j['negj'] ?? '').toString(),
+    too: j['too'] is int
+        ? j['too']
+        : (j['too'] != null ? int.tryParse(j['too'].toString()) ?? 0 : 0),
+    une: j['une'] is num
+        ? j['une'].toDouble()
+        : (j['une'] != null
+              ? double.tryParse(j['une'].toString()) ?? 0.0
+              : 0.0),
+    niitUne: j['niitUne'] is num
+        ? j['niitUne'].toDouble()
+        : (j['niitUne'] != null
+              ? double.tryParse(j['niitUne'].toString()) ?? 0.0
+              : 0.0),
+    tailbar: (j['tailbar'] ?? '').toString(),
+    ognoo: TaskZurag._tryParse(j['ognoo']),
+  );
+}
+
 /// Task image/photo model
 class TaskZurag {
   final String? zamNer;
@@ -62,14 +106,16 @@ class AjiltanTsag {
     duusakhTsag: TaskZurag._tryParse(j['duusakhTsag']),
     tsagMinute: j['tsagMinute'] is int
         ? j['tsagMinute']
-        : (j['tsagMinute'] != null ? int.tryParse(j['tsagMinute'].toString()) : null),
+        : (j['tsagMinute'] != null
+              ? int.tryParse(j['tsagMinute'].toString())
+              : null),
     tailbar: j['tailbar']?.toString(),
     ognoo: TaskZurag._tryParse(j['ognoo']),
   );
 
   Map<String, dynamic> toJson() => {
     'ajiltniiId': ajiltniiId,
-    if (ekhlekhTsag != null) 'ekhlekhTsag': ekhlekhTsag.toIso8601String(),
+    'ekhlekhTsag': ekhlekhTsag.toIso8601String(),
     if (duusakhTsag != null) 'duusakhTsag': duusakhTsag!.toIso8601String(),
     if (tsagMinute != null) 'tsagMinute': tsagMinute,
     if (tailbar != null) 'tailbar': tailbar,
@@ -96,6 +142,7 @@ class ApiTask {
   final List<TaskZurag> zurag; // Legacy field (for backward compatibility)
   final List<TaskZurag> hariutsagchZurag; // Images from task creator/assigner
   final List<TaskZurag> ajiltanZurag; // Images from employees
+  final List<Baraa> baraa; // Items/materials assigned to the task
   final String baiguullagiinId;
   final String barilgiinId;
   final String? color;
@@ -124,6 +171,7 @@ class ApiTask {
     this.zurag = const [],
     this.hariutsagchZurag = const [],
     this.ajiltanZurag = const [],
+    this.baraa = const [],
     required this.baiguullagiinId,
     required this.barilgiinId,
     this.color,
@@ -140,7 +188,7 @@ class ApiTask {
       if (val is Map) return (val['_id'] ?? val['id'] ?? '').toString();
       return (val ?? '').toString();
     }
-    
+
     return ApiTask(
       id: extractId(j['_id'] ?? j['id']),
       projectId: extractId(j['projectId']),
@@ -152,7 +200,12 @@ class ApiTask {
       zereglel: (j['zereglel'] ?? 'engiin').toString(),
       tuluv: (j['tuluv'] ?? 'shine').toString(),
       hariutsagchId: extractId(j['hariutsagchId']),
-      ajiltnuud: (j['ajiltnuud'] as List?)?.map(extractId).where((e) => e.isNotEmpty).toList() ?? [],
+      ajiltnuud:
+          (j['ajiltnuud'] as List?)
+              ?.map(extractId)
+              .where((e) => e.isNotEmpty)
+              .toList() ??
+          [],
       ekhlekhTsag: _tryParse(j['ekhlekhTsag']),
       duusakhTsag: _tryParse(j['duusakhTsag']),
       ekhlekhMinute: j['ekhlekhMinute'] is int
@@ -176,6 +229,9 @@ class ApiTask {
           .toList(),
       ajiltanZurag: (j['ajiltanZurag'] as List<dynamic>? ?? [])
           .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
+          .toList(),
+      baraa: (j['baraa'] as List<dynamic>? ?? [])
+          .map((b) => Baraa.fromJson(b is Map<String, dynamic> ? b : {}))
           .toList(),
       baiguullagiinId: extractId(j['baiguullagiinId']),
       barilgiinId: extractId(j['barilgiinId']),

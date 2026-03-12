@@ -46,8 +46,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
     if (t.status == TaskStatus.inProgress) {
       _progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (mounted && t.status == TaskStatus.inProgress) {
-          setState(() {
-          });
+          setState(() {});
         } else {
           timer.cancel();
           _progressTimer = null;
@@ -113,7 +112,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       builder: (_) => Dialog(
         backgroundColor: Colors.black,
         insetPadding: EdgeInsets.all(context.rSpacing(16)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.rRadius(16))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(context.rRadius(16)),
+        ),
         child: Stack(
           children: [
             ClipRRect(
@@ -154,7 +155,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       builder: (_) => Dialog(
         backgroundColor: Colors.black,
         insetPadding: EdgeInsets.all(context.rSpacing(16)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.rRadius(16))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(context.rRadius(16)),
+        ),
         child: Stack(
           children: [
             ClipRRect(
@@ -214,7 +217,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
       ),
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(context.rRadius(24))),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(context.rRadius(24)),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -228,7 +233,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
               borderRadius: BorderRadius.circular(context.rRadius(2)),
             ),
           ),
-       Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(
               context.rSpacing(20),
               context.rSpacing(16),
@@ -242,7 +247,10 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                   height: context.rSpacing(54),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [c.brandGreen.withOpacity(0.15), c.brandGreen.withOpacity(0.05)],
+                      colors: [
+                        c.brandGreen.withOpacity(0.15),
+                        c.brandGreen.withOpacity(0.05),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -280,7 +288,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                             ),
                             decoration: BoxDecoration(
                               color: sc.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(context.rRadius(20)),
+                              borderRadius: BorderRadius.circular(
+                                context.rRadius(20),
+                              ),
                               border: Border.all(color: sc.withOpacity(0.3)),
                             ),
                             child: Row(
@@ -313,7 +323,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                             ),
                             decoration: BoxDecoration(
                               color: pc.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(context.rRadius(20)),
+                              borderRadius: BorderRadius.circular(
+                                context.rRadius(20),
+                              ),
                               border: Border.all(color: pc.withOpacity(0.2)),
                             ),
                             child: Text(
@@ -364,21 +376,30 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           label: 'БАЙРШИЛ',
                           value: t.location.isEmpty ? '-' : t.location,
                         ),
-                        Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
+                        Divider(
+                          height: context.rSpacing(24),
+                          color: c.border.withOpacity(0.5),
+                        ),
                         _InfoRow(
                           c: c,
                           icon: Icons.layers_rounded,
                           label: 'ДАВХАР',
                           value: t.floor.isEmpty ? '-' : t.floor,
                         ),
-                        Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
+                        Divider(
+                          height: context.rSpacing(24),
+                          color: c.border.withOpacity(0.5),
+                        ),
                         _InfoRow(
                           c: c,
                           icon: Icons.access_time_filled_rounded,
                           label: 'ХУГАЦАА',
                           value: '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
                         ),
-                        Divider(height: context.rSpacing(24), color: c.border.withOpacity(0.5)),
+                        Divider(
+                          height: context.rSpacing(24),
+                          color: c.border.withOpacity(0.5),
+                        ),
                         _ProgressRow(task: t, c: c),
                       ],
                     ),
@@ -389,7 +410,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       padding: EdgeInsets.all(context.rSpacing(16)),
                       decoration: BoxDecoration(
                         color: c.cardBackground,
-                        borderRadius: BorderRadius.circular(context.rRadius(16)),
+                        borderRadius: BorderRadius.circular(
+                          context.rRadius(16),
+                        ),
                         border: Border.all(color: c.border.withOpacity(0.5)),
                       ),
                       child: Column(
@@ -440,7 +463,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       padding: EdgeInsets.all(context.rSpacing(16)),
                       decoration: BoxDecoration(
                         color: c.cardBackground,
-                        borderRadius: BorderRadius.circular(context.rRadius(16)),
+                        borderRadius: BorderRadius.circular(
+                          context.rRadius(16),
+                        ),
                         border: Border.all(color: c.border.withOpacity(0.5)),
                       ),
                       child: Column(
@@ -472,10 +497,15 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                               ),
                               const Spacer(),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: context.rSpacing(8), vertical: context.rSpacing(2)),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: context.rSpacing(8),
+                                  vertical: context.rSpacing(2),
+                                ),
                                 decoration: BoxDecoration(
                                   color: c.brandGreen.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(context.rRadius(10)),
+                                  borderRadius: BorderRadius.circular(
+                                    context.rRadius(10),
+                                  ),
                                 ),
                                 child: Text(
                                   '${t.subtasksDone}/${t.subtasks.length}',
@@ -490,7 +520,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           ),
                           SizedBox(height: context.rSpacing(16)),
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(context.rRadius(10)),
+                            borderRadius: BorderRadius.circular(
+                              context.rRadius(10),
+                            ),
                             child: LinearProgressIndicator(
                               value: t.subtaskProgress,
                               minHeight: context.rSpacing(8),
@@ -502,7 +534,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           ...List.generate(t.subtasks.length, (i) {
                             final st = t.subtasks[i];
                             return Padding(
-                              padding: EdgeInsets.only(bottom: context.rSpacing(8)),
+                              padding: EdgeInsets.only(
+                                bottom: context.rSpacing(8),
+                              ),
                               child: InkWell(
                                 onTap: done
                                     ? null
@@ -510,14 +544,18 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                         setState(() => st.isDone = !st.isDone);
                                         await widget.onSubtaskToggle(i);
                                       },
-                                borderRadius: BorderRadius.circular(context.rRadius(12)),
+                                borderRadius: BorderRadius.circular(
+                                  context.rRadius(12),
+                                ),
                                 child: Container(
                                   padding: EdgeInsets.all(context.rSpacing(12)),
                                   decoration: BoxDecoration(
                                     color: st.isDone
                                         ? c.success.withOpacity(0.04)
                                         : c.secondary.withOpacity(0.3),
-                                    borderRadius: BorderRadius.circular(context.rRadius(12)),
+                                    borderRadius: BorderRadius.circular(
+                                      context.rRadius(12),
+                                    ),
                                     border: Border.all(
                                       color: st.isDone
                                           ? c.success.withOpacity(0.2)
@@ -527,20 +565,32 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   child: Row(
                                     children: [
                                       AnimatedContainer(
-                                        duration: const Duration(milliseconds: 300),
-                                        padding: EdgeInsets.all(context.rSpacing(2)),
+                                        duration: const Duration(
+                                          milliseconds: 300,
+                                        ),
+                                        padding: EdgeInsets.all(
+                                          context.rSpacing(2),
+                                        ),
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: st.isDone ? c.success : Colors.transparent,
+                                          color: st.isDone
+                                              ? c.success
+                                              : Colors.transparent,
                                           border: Border.all(
-                                            color: st.isDone ? c.success : c.mutedForeground.withOpacity(0.5),
+                                            color: st.isDone
+                                                ? c.success
+                                                : c.mutedForeground.withOpacity(
+                                                    0.5,
+                                                  ),
                                             width: 2,
                                           ),
                                         ),
                                         child: Icon(
                                           Icons.check,
                                           size: context.rIconSize(14),
-                                          color: st.isDone ? Colors.white : Colors.transparent,
+                                          color: st.isDone
+                                              ? Colors.white
+                                              : Colors.transparent,
                                         ),
                                       ),
                                       SizedBox(width: context.rSpacing(12)),
@@ -549,7 +599,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                           st.title,
                                           style: TextStyle(
                                             fontSize: context.rFontSize(14),
-                                            fontWeight: st.isDone ? FontWeight.w500 : FontWeight.w400,
+                                            fontWeight: st.isDone
+                                                ? FontWeight.w500
+                                                : FontWeight.w400,
                                             color: st.isDone
                                                 ? c.mutedForeground
                                                 : c.primary,
@@ -569,6 +621,167 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                       ),
                     ),
                   ],
+                  // Always show БАРАА section header, even if empty (for debugging)
+                  SizedBox(height: context.rSpacing(24)),
+                  Container(
+                    padding: EdgeInsets.all(context.rSpacing(16)),
+                    decoration: BoxDecoration(
+                      color: c.cardBackground,
+                      borderRadius: BorderRadius.circular(context.rRadius(16)),
+                      border: Border.all(color: c.border.withOpacity(0.5)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(context.rSpacing(6)),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.inventory_2_rounded,
+                                size: context.rIconSize(16),
+                                color: Colors.blue,
+                              ),
+                            ),
+                            SizedBox(width: context.rSpacing(10)),
+                            Text(
+                              'БАРАА',
+                              style: TextStyle(
+                                fontSize: context.rFontSize(12),
+                                fontWeight: FontWeight.w700,
+                                color: c.mutedForeground,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${t.baraa.length}',
+                              style: TextStyle(
+                                fontSize: context.rFontSize(12),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (t.baraa.isEmpty) ...[
+                          SizedBox(height: context.rSpacing(12)),
+                          Text(
+                            'Бараа байхгүй байна',
+                            style: TextStyle(
+                              fontSize: context.rFontSize(12),
+                              color: c.mutedForeground,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ] else ...[
+                          SizedBox(height: context.rSpacing(16)),
+                          ...t.baraa.map((baraa) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom: context.rSpacing(12),
+                              ),
+                              child: Container(
+                                padding: EdgeInsets.all(context.rSpacing(12)),
+                                decoration: BoxDecoration(
+                                  color: c.secondary.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(
+                                    context.rRadius(12),
+                                  ),
+                                  border: Border.all(
+                                    color: c.border.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            baraa.ner,
+                                            style: TextStyle(
+                                              fontSize: context.rFontSize(14),
+                                              fontWeight: FontWeight.w600,
+                                              color: c.primary,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: context.rSpacing(8),
+                                            vertical: context.rSpacing(4),
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              context.rRadius(8),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${baraa.too} ${baraa.negj}',
+                                            style: TextStyle(
+                                              fontSize: context.rFontSize(12),
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (baraa.une > 0 || baraa.niitUne > 0) ...[
+                                      SizedBox(height: context.rSpacing(6)),
+                                      Row(
+                                        children: [
+                                          if (baraa.une > 0)
+                                            Text(
+                                              'Нэгж үнэ: ${baraa.une.toStringAsFixed(0)}₮',
+                                              style: TextStyle(
+                                                fontSize: context.rFontSize(12),
+                                                color: c.mutedForeground,
+                                              ),
+                                            ),
+                                          if (baraa.une > 0 &&
+                                              baraa.niitUne > 0)
+                                            SizedBox(
+                                              width: context.rSpacing(12),
+                                            ),
+                                          if (baraa.niitUne > 0)
+                                            Text(
+                                              'Нийт үнэ: ${baraa.niitUne.toStringAsFixed(0)}₮',
+                                              style: TextStyle(
+                                                fontSize: context.rFontSize(12),
+                                                fontWeight: FontWeight.w600,
+                                                color: c.primary,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                    if (baraa.tailbar.isNotEmpty) ...[
+                                      SizedBox(height: context.rSpacing(6)),
+                                      Text(
+                                        baraa.tailbar,
+                                        style: TextStyle(
+                                          fontSize: context.rFontSize(12),
+                                          color: c.mutedForeground,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ],
+                    ),
+                  ),
                   SizedBox(height: context.rSpacing(16)),
                   Container(
                     child: Column(
@@ -613,27 +826,38 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   scrollDirection: Axis.horizontal,
                                   physics: const BouncingScrollPhysics(),
                                   itemCount: t.hariutsagchZurag.length,
-                                  separatorBuilder: (_, __) => SizedBox(width: context.rSpacing(12)),
+                                  separatorBuilder: (_, __) =>
+                                      SizedBox(width: context.rSpacing(12)),
                                   itemBuilder: (ctx, i) {
                                     final zurag = t.hariutsagchZurag[i];
-                                    final imageUrl = zurag.zamNer ?? zurag.fileNer ?? '';
-                                    if (imageUrl.isEmpty) return const SizedBox.shrink();
+                                    final imageUrl =
+                                        zurag.zamNer ?? zurag.fileNer ?? '';
+                                    if (imageUrl.isEmpty)
+                                      return const SizedBox.shrink();
 
                                     final fullUrl = imageUrl.startsWith('http')
                                         ? imageUrl
                                         : '${ApiService.baseUrl}/$imageUrl';
 
                                     return GestureDetector(
-                                      onTap: () => _showNetworkPhoto(context, fullUrl, c),
+                                      onTap: () => _showNetworkPhoto(
+                                        context,
+                                        fullUrl,
+                                        c,
+                                      ),
                                       child: Hero(
                                         tag: 'network_$fullUrl',
                                         child: Container(
                                           width: context.rSpacing(120),
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                            borderRadius: BorderRadius.circular(
+                                              context.rRadius(16),
+                                            ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(0.1),
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -643,57 +867,93 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             fit: StackFit.expand,
                                             children: [
                                               ClipRRect(
-                                                borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      context.rRadius(16),
+                                                    ),
                                                 child: Image.network(
                                                   fullUrl,
                                                   fit: BoxFit.cover,
                                                   loadingBuilder: (context, child, progress) {
-                                                    if (progress == null) return child;
+                                                    if (progress == null)
+                                                      return child;
                                                     return Container(
                                                       color: c.muted,
                                                       child: Center(
                                                         child: CircularProgressIndicator(
-                                                          value: progress.expectedTotalBytes != null
+                                                          value:
+                                                              progress.expectedTotalBytes !=
+                                                                  null
                                                               ? progress.cumulativeBytesLoaded /
-                                                                  progress.expectedTotalBytes!
+                                                                    progress
+                                                                        .expectedTotalBytes!
                                                               : null,
                                                           strokeWidth: 2,
                                                         ),
                                                       ),
                                                     );
                                                   },
-                                                  errorBuilder: (_, __, ___) => Container(
-                                                    color: c.muted,
-                                                    child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
-                                                  ),
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Container(
+                                                        color: c.muted,
+                                                        child: Icon(
+                                                          Icons
+                                                              .broken_image_rounded,
+                                                          color:
+                                                              c.mutedForeground,
+                                                        ),
+                                                      ),
                                                 ),
                                               ),
-                                              if (zurag.ajiltniiNer != null && zurag.ajiltniiNer!.isNotEmpty)
+                                              if (zurag.ajiltniiNer != null &&
+                                                  zurag.ajiltniiNer!.isNotEmpty)
                                                 Positioned(
                                                   bottom: 0,
                                                   left: 0,
                                                   right: 0,
                                                   child: Container(
-                                                    padding: EdgeInsets.symmetric(
-                                                        vertical: context.rSpacing(4),
-                                                        horizontal: context.rSpacing(8)),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          vertical: context
+                                                              .rSpacing(4),
+                                                          horizontal: context
+                                                              .rSpacing(8),
+                                                        ),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.black.withOpacity(0.6),
-                                                      borderRadius: BorderRadius.only(
-                                                        bottomLeft: Radius.circular(context.rRadius(16)),
-                                                        bottomRight: Radius.circular(context.rRadius(16)),
-                                                      ),
+                                                      color: Colors.black
+                                                          .withOpacity(0.6),
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                            bottomLeft:
+                                                                Radius.circular(
+                                                                  context
+                                                                      .rRadius(
+                                                                        16,
+                                                                      ),
+                                                                ),
+                                                            bottomRight:
+                                                                Radius.circular(
+                                                                  context
+                                                                      .rRadius(
+                                                                        16,
+                                                                      ),
+                                                                ),
+                                                          ),
                                                     ),
                                                     child: Text(
                                                       zurag.ajiltniiNer!,
                                                       style: TextStyle(
                                                         color: Colors.white,
-                                                        fontSize: context.rFontSize(10),
-                                                        fontWeight: FontWeight.w600,
+                                                        fontSize: context
+                                                            .rFontSize(10),
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      textAlign: TextAlign.center,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
                                                   ),
                                                 ),
@@ -750,27 +1010,38 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   scrollDirection: Axis.horizontal,
                                   physics: const BouncingScrollPhysics(),
                                   itemCount: t.ajiltanZurag.length,
-                                  separatorBuilder: (_, __) => SizedBox(width: context.rSpacing(12)),
+                                  separatorBuilder: (_, __) =>
+                                      SizedBox(width: context.rSpacing(12)),
                                   itemBuilder: (ctx, i) {
                                     final zurag = t.ajiltanZurag[i];
-                                    final imageUrl = zurag.zamNer ?? zurag.fileNer ?? '';
-                                    if (imageUrl.isEmpty) return const SizedBox.shrink();
+                                    final imageUrl =
+                                        zurag.zamNer ?? zurag.fileNer ?? '';
+                                    if (imageUrl.isEmpty)
+                                      return const SizedBox.shrink();
 
                                     final fullUrl = imageUrl.startsWith('http')
                                         ? imageUrl
                                         : '${ApiService.baseUrl}/$imageUrl';
 
                                     return GestureDetector(
-                                      onTap: () => _showNetworkPhoto(context, fullUrl, c),
+                                      onTap: () => _showNetworkPhoto(
+                                        context,
+                                        fullUrl,
+                                        c,
+                                      ),
                                       child: Hero(
                                         tag: 'employee_$fullUrl',
                                         child: Container(
                                           width: context.rSpacing(120),
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                            borderRadius: BorderRadius.circular(
+                                              context.rRadius(16),
+                                            ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(0.1),
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -780,57 +1051,93 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             fit: StackFit.expand,
                                             children: [
                                               ClipRRect(
-                                                borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      context.rRadius(16),
+                                                    ),
                                                 child: Image.network(
                                                   fullUrl,
                                                   fit: BoxFit.cover,
                                                   loadingBuilder: (context, child, progress) {
-                                                    if (progress == null) return child;
+                                                    if (progress == null)
+                                                      return child;
                                                     return Container(
                                                       color: c.muted,
                                                       child: Center(
                                                         child: CircularProgressIndicator(
-                                                          value: progress.expectedTotalBytes != null
+                                                          value:
+                                                              progress.expectedTotalBytes !=
+                                                                  null
                                                               ? progress.cumulativeBytesLoaded /
-                                                                  progress.expectedTotalBytes!
+                                                                    progress
+                                                                        .expectedTotalBytes!
                                                               : null,
                                                           strokeWidth: 2,
                                                         ),
                                                       ),
                                                     );
                                                   },
-                                                  errorBuilder: (_, __, ___) => Container(
-                                                    color: c.muted,
-                                                    child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
-                                                  ),
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Container(
+                                                        color: c.muted,
+                                                        child: Icon(
+                                                          Icons
+                                                              .broken_image_rounded,
+                                                          color:
+                                                              c.mutedForeground,
+                                                        ),
+                                                      ),
                                                 ),
                                               ),
-                                              if (zurag.ajiltniiNer != null && zurag.ajiltniiNer!.isNotEmpty)
+                                              if (zurag.ajiltniiNer != null &&
+                                                  zurag.ajiltniiNer!.isNotEmpty)
                                                 Positioned(
                                                   bottom: 0,
                                                   left: 0,
                                                   right: 0,
                                                   child: Container(
-                                                    padding: EdgeInsets.symmetric(
-                                                        vertical: context.rSpacing(4),
-                                                        horizontal: context.rSpacing(8)),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          vertical: context
+                                                              .rSpacing(4),
+                                                          horizontal: context
+                                                              .rSpacing(8),
+                                                        ),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.black.withOpacity(0.6),
-                                                      borderRadius: BorderRadius.only(
-                                                        bottomLeft: Radius.circular(context.rRadius(16)),
-                                                        bottomRight: Radius.circular(context.rRadius(16)),
-                                                      ),
+                                                      color: Colors.black
+                                                          .withOpacity(0.6),
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                            bottomLeft:
+                                                                Radius.circular(
+                                                                  context
+                                                                      .rRadius(
+                                                                        16,
+                                                                      ),
+                                                                ),
+                                                            bottomRight:
+                                                                Radius.circular(
+                                                                  context
+                                                                      .rRadius(
+                                                                        16,
+                                                                      ),
+                                                                ),
+                                                          ),
                                                     ),
                                                     child: Text(
                                                       zurag.ajiltniiNer!,
                                                       style: TextStyle(
                                                         color: Colors.white,
-                                                        fontSize: context.rFontSize(10),
-                                                        fontWeight: FontWeight.w600,
+                                                        fontSize: context
+                                                            .rFontSize(10),
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      textAlign: TextAlign.center,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
                                                   ),
                                                 ),
@@ -886,7 +1193,8 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                 scrollDirection: Axis.horizontal,
                                 physics: const BouncingScrollPhysics(),
                                 itemCount: t.photoPaths.length + (done ? 0 : 1),
-                                separatorBuilder: (_, __) => SizedBox(width: context.rSpacing(12)),
+                                separatorBuilder: (_, __) =>
+                                    SizedBox(width: context.rSpacing(12)),
                                 itemBuilder: (ctx, i) {
                                   if (i == t.photoPaths.length) {
                                     return GestureDetector(
@@ -898,17 +1206,28 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                         width: context.rSpacing(120),
                                         decoration: BoxDecoration(
                                           color: c.brandGreen.withOpacity(0.05),
-                                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                          borderRadius: BorderRadius.circular(
+                                            context.rRadius(16),
+                                          ),
                                           border: Border.all(
-                                            color: c.brandGreen.withOpacity(0.2),
+                                            color: c.brandGreen.withOpacity(
+                                              0.2,
+                                            ),
                                             style: BorderStyle.solid,
                                           ),
                                         ),
                                         child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.add_a_photo_rounded, color: c.brandGreen, size: context.rIconSize(28)),
-                                            SizedBox(height: context.rSpacing(4)),
+                                            Icon(
+                                              Icons.add_a_photo_rounded,
+                                              color: c.brandGreen,
+                                              size: context.rIconSize(28),
+                                            ),
+                                            SizedBox(
+                                              height: context.rSpacing(4),
+                                            ),
                                             Text(
                                               'Нэмэх',
                                               style: TextStyle(
@@ -926,28 +1245,41 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   final path = t.photoPaths[i];
                                   final file = File(path);
                                   return GestureDetector(
-                                    onTap: () => _showFullPhoto(context, path, c),
+                                    onTap: () =>
+                                        _showFullPhoto(context, path, c),
                                     child: Hero(
                                       tag: 'local_$path',
                                       child: Container(
                                         width: context.rSpacing(120),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                          borderRadius: BorderRadius.circular(
+                                            context.rRadius(16),
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.1),
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
                                               blurRadius: 8,
                                               offset: const Offset(0, 4),
                                             ),
                                           ],
                                         ),
                                         child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                                          borderRadius: BorderRadius.circular(
+                                            context.rRadius(16),
+                                          ),
                                           child: file.existsSync()
-                                              ? Image.file(file, fit: BoxFit.cover)
+                                              ? Image.file(
+                                                  file,
+                                                  fit: BoxFit.cover,
+                                                )
                                               : Container(
                                                   color: c.muted,
-                                                  child: Icon(Icons.broken_image_rounded, color: c.mutedForeground),
+                                                  child: Icon(
+                                                    Icons.broken_image_rounded,
+                                                    color: c.mutedForeground,
+                                                  ),
                                                 ),
                                         ),
                                       ),
@@ -1002,10 +1334,14 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                         backgroundColor: t.status == TaskStatus.inProgress
                             ? c.brandGreen
                             : c.primary,
-                        foregroundColor: t.status == TaskStatus.inProgress ? Colors.white : c.primaryForeground,
+                        foregroundColor: t.status == TaskStatus.inProgress
+                            ? Colors.white
+                            : c.primaryForeground,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(context.rRadius(16)),
+                          borderRadius: BorderRadius.circular(
+                            context.rRadius(16),
+                          ),
                         ),
                       ),
                       child: Row(
@@ -1019,7 +1355,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           ),
                           SizedBox(width: context.rSpacing(12)),
                           Text(
-                            t.status == TaskStatus.inProgress ? 'ДУУСГАХ' : 'ЭХЛЭХ',
+                            t.status == TaskStatus.inProgress
+                                ? 'ДУУСГАХ'
+                                : 'ЭХЛЭХ',
                             style: TextStyle(
                               fontSize: context.rFontSize(16),
                               fontWeight: FontWeight.w800,
@@ -1033,7 +1371,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                 else
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: context.rSpacing(16)),
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.rSpacing(16),
+                    ),
                     decoration: BoxDecoration(
                       color: c.success.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(context.rRadius(16)),
@@ -1042,7 +1382,11 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.verified_rounded, color: c.success, size: context.rIconSize(22)),
+                        Icon(
+                          Icons.verified_rounded,
+                          color: c.success,
+                          size: context.rIconSize(22),
+                        ),
                         SizedBox(width: context.rSpacing(12)),
                         Text(
                           'ДААЛГАВАР ДУУССАН',
@@ -1105,7 +1449,11 @@ class _InfoRow extends StatelessWidget {
             color: c.primary.withOpacity(0.04),
             borderRadius: BorderRadius.circular(context.rRadius(10)),
           ),
-          child: Icon(icon, size: context.rIconSize(18), color: c.mutedForeground),
+          child: Icon(
+            icon,
+            size: context.rIconSize(18),
+            color: c.mutedForeground,
+          ),
         ),
         SizedBox(width: context.rSpacing(12)),
         Column(
@@ -1255,7 +1603,9 @@ class _ProgressRow extends StatelessWidget {
               ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
-                width: MediaQuery.of(context).size.width * (progress > 1.0 ? 1.0 : progress),
+                width:
+                    MediaQuery.of(context).size.width *
+                    (progress > 1.0 ? 1.0 : progress),
                 height: context.rSpacing(10),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
