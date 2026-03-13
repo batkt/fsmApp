@@ -7,6 +7,7 @@ import '../models/task_model.dart';
 import '../services/image_service.dart';
 import '../services/project_service.dart';
 import '../services/task_service.dart';
+import '../services/socket_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_detail_modal.dart';
 
@@ -27,11 +28,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.initState();
     _loadTasks();
     ProjectService.activeProject.addListener(_onProjectChanged);
+    SocketService.onTaskCreated(_onSocketUpdate);
+    SocketService.onTaskUpdated(_onSocketUpdate);
+  }
+
+  void _onSocketUpdate(dynamic _) {
+    if (mounted) _loadTasks();
   }
 
   @override
   void dispose() {
     ProjectService.activeProject.removeListener(_onProjectChanged);
+    SocketService.offTaskCreated(_onSocketUpdate);
+    SocketService.offTaskUpdated(_onSocketUpdate);
     super.dispose();
   }
 

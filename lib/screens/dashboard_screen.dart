@@ -388,8 +388,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           _showTaskCreatedNotification(task);
         }
 
-        // Refresh tasks if it belongs to current project
-        if (task.projectId == _selectedProjectId) {
+        // Refresh tasks if it belongs to current project or "all" is selected
+        if (_selectedProjectId == null || _selectedProjectId == 'all' || task.projectId == _selectedProjectId) {
           _refreshTasks();
         }
 
@@ -418,8 +418,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           _showTaskUpdatedNotification(task);
         }
 
-        // Refresh tasks if it belongs to current project
-        if (task.projectId == _selectedProjectId) {
+        // Refresh tasks if it belongs to current project or "all" is selected
+        if (_selectedProjectId == null || _selectedProjectId == 'all' || task.projectId == _selectedProjectId) {
           _refreshTasks();
         }
 
@@ -1917,14 +1917,32 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     setState(() {
       _apiProjects = fetched;
       _projectsLoading = false;
-      if (_apiProjects.isNotEmpty) {
-        _selectedProjectId = _apiProjects.first.id;
-        ProjectService.activeProject.value = _apiProjects.first;
+      
+      if (_selectedProjectId == null) {
+        if (_apiProjects.isNotEmpty) {
+          _selectedProjectId = _apiProjects.first.id;
+          ProjectService.activeProject.value = _apiProjects.first;
+        }
+      } else if (_selectedProjectId != 'all') {
+        final exists = _apiProjects.any((p) => p.id == _selectedProjectId);
+        if (!exists) {
+          if (_apiProjects.isNotEmpty) {
+            _selectedProjectId = _apiProjects.first.id;
+            ProjectService.activeProject.value = _apiProjects.first;
+          } else {
+            _selectedProjectId = null;
+            ProjectService.activeProject.value = null;
+          }
+        } else {
+          // Update active project details in case name was changed
+          ProjectService.activeProject.value = _apiProjects.firstWhere((p) => p.id == _selectedProjectId);
+        }
       }
     });
-    // Load tasks for the first project
-    if (_selectedProjectId != null) {
-      _loadTasks(_selectedProjectId!);
+    
+    // Load tasks for the active project
+    if (_selectedProjectId != null || _apiProjects.isEmpty) {
+      _loadTasks(_selectedProjectId ?? 'all');
     }
   }
 
@@ -2014,8 +2032,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   /// Refresh tasks for the current project (used by pull-to-refresh and socket events)
   Future<void> _refreshTasks() async {
-    if (_selectedProjectId == null) return;
-    await _loadTasks(_selectedProjectId!);
+    final projectId = _selectedProjectId ?? 'all';
+    await _loadTasks(projectId);
   }
 
   /// Start periodic task status checker

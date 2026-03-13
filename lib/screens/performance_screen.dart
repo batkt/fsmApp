@@ -41,7 +41,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   @override
   void dispose() {
     ProjectService.activeProject.removeListener(_onProjectChanged);
-    SocketService.offKpiUpdated();
+    SocketService.offTaskUpdated(_onSocketUpdate);
+    SocketService.offTaskCreated(_onSocketUpdate);
+    SocketService.offKpiUpdated(_onSocketUpdate);
     super.dispose();
   }
 
@@ -184,11 +186,11 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final tasksWithPhotos = _tasks.where((t) => t.hasPhoto).length;
     final photoRate = _tasks.isEmpty ? 0 : (tasksWithPhotos / _tasks.length * 100).round();
 
-    // Area Coverage - group by location
+    // Area Coverage - group by task title
     final areaMap = <String, List<CleaningTask>>{};
     for (final t in _tasks) {
-      if (t.location.isNotEmpty) {
-        areaMap.putIfAbsent(t.location, () => []).add(t);
+      if (t.title.isNotEmpty) {
+        areaMap.putIfAbsent(t.title, () => []).add(t);
       }
     }
     final sortedAreas = areaMap.entries.toList()

@@ -35,6 +35,15 @@ class SocketService {
       if (user != null) {
         _socket!.emit('user_online', {'userId': user.id, 'status': 'online'});
         _socket!.emit('join_notifications', {'userId': user.id});
+        
+        // Join all building rooms so we receive task_created, task_updated,
+        // project_created, project_updated, task_deleted events
+        for (final barilgiinId in user.barilguud) {
+          if (barilgiinId.isNotEmpty) {
+            _socket!.emit('join_barilga', {'barilgiinId': barilgiinId});
+            debugPrint('[Socket] Joined barilga room: barilga_$barilgiinId');
+          }
+        }
       }
       
       // Re-join active chat room if any
@@ -187,46 +196,99 @@ class SocketService {
     _socket?.emit('change_status', {'status': status});
   }
 
+  static final List<void Function(Map<String, dynamic>)> _taskCreatedListeners = [];
+  static final List<void Function(Map<String, dynamic>)> _taskUpdatedListeners = [];
+  static final List<void Function(Map<String, dynamic>)> _taskDeletedListeners = [];
+  static final List<void Function(Map<String, dynamic>)> _projectCreatedListeners = [];
+  static final List<void Function(Map<String, dynamic>)> _projectUpdatedListeners = [];
+  static final List<void Function(Map<String, dynamic>)> _kpiUpdatedListeners = [];
+  
   /// Listen for task created events.
   static void onTaskCreated(void Function(Map<String, dynamic> task) callback) {
-    _socket?.on('task_created', (data) {
-      if (data is Map<String, dynamic>) {
-        callback(data);
-      }
-    });
+    if (_taskCreatedListeners.isEmpty) {
+      _socket?.on('task_created', (data) {
+        if (data is Map<String, dynamic>) {
+          for (var cb in _taskCreatedListeners.toList()) cb(data);
+        }
+      });
+    }
+    _taskCreatedListeners.add(callback);
   }
 
   /// Stop listening for task created events.
-  static void offTaskCreated() {
-    _socket?.off('task_created');
+  static void offTaskCreated([void Function(Map<String, dynamic>)? callback]) {
+    if (callback != null) {
+      _taskCreatedListeners.remove(callback);
+    } else {
+      _taskCreatedListeners.clear();
+    }
+    if (_taskCreatedListeners.isEmpty) _socket?.off('task_created');
   }
 
   /// Listen for task update events.
   static void onTaskUpdated(void Function(Map<String, dynamic> task) callback) {
-    _socket?.on('task_updated', (data) {
-      if (data is Map<String, dynamic>) {
-        callback(data);
-      }
-    });
+    if (_taskUpdatedListeners.isEmpty) {
+      _socket?.on('task_updated', (data) {
+        if (data is Map<String, dynamic>) {
+          for (var cb in _taskUpdatedListeners.toList()) cb(data);
+        }
+      });
+    }
+    _taskUpdatedListeners.add(callback);
   }
 
   /// Stop listening for task update events.
-  static void offTaskUpdated() {
-    _socket?.off('task_updated');
+  static void offTaskUpdated([void Function(Map<String, dynamic>)? callback]) {
+    if (callback != null) {
+      _taskUpdatedListeners.remove(callback);
+    } else {
+      _taskUpdatedListeners.clear();
+    }
+    if (_taskUpdatedListeners.isEmpty) _socket?.off('task_updated');
+  }
+
+  /// Listen for task deleted events.
+  static void onTaskDeleted(void Function(Map<String, dynamic> data) callback) {
+    if (_taskDeletedListeners.isEmpty) {
+      _socket?.on('task_deleted', (data) {
+        if (data is Map<String, dynamic>) {
+          for (var cb in _taskDeletedListeners.toList()) cb(data);
+        }
+      });
+    }
+    _taskDeletedListeners.add(callback);
+  }
+
+  /// Stop listening for task deleted events.
+  static void offTaskDeleted([void Function(Map<String, dynamic>)? callback]) {
+    if (callback != null) {
+      _taskDeletedListeners.remove(callback);
+    } else {
+      _taskDeletedListeners.clear();
+    }
+    if (_taskDeletedListeners.isEmpty) _socket?.off('task_deleted');
   }
 
   /// Listen for KPI update events.
   static void onKpiUpdated(void Function(Map<String, dynamic> kpi) callback) {
-    _socket?.on('kpi_updated', (data) {
-      if (data is Map<String, dynamic>) {
-        callback(data);
-      }
-    });
+    if (_kpiUpdatedListeners.isEmpty) {
+      _socket?.on('kpi_updated', (data) {
+        if (data is Map<String, dynamic>) {
+          for (var cb in _kpiUpdatedListeners.toList()) cb(data);
+        }
+      });
+    }
+    _kpiUpdatedListeners.add(callback);
   }
 
   /// Stop listening for KPI update events.
-  static void offKpiUpdated() {
-    _socket?.off('kpi_updated');
+  static void offKpiUpdated([void Function(Map<String, dynamic>)? callback]) {
+    if (callback != null) {
+      _kpiUpdatedListeners.remove(callback);
+    } else {
+      _kpiUpdatedListeners.clear();
+    }
+    if (_kpiUpdatedListeners.isEmpty) _socket?.off('kpi_updated');
   }
 
 
@@ -234,32 +296,48 @@ class SocketService {
   static void onProjectCreated(
     void Function(Map<String, dynamic> project) callback,
   ) {
-    _socket?.on('project_created', (data) {
-      if (data is Map<String, dynamic>) {
-        callback(data);
-      }
-    });
+    if (_projectCreatedListeners.isEmpty) {
+      _socket?.on('project_created', (data) {
+        if (data is Map<String, dynamic>) {
+          for (var cb in _projectCreatedListeners.toList()) cb(data);
+        }
+      });
+    }
+    _projectCreatedListeners.add(callback);
   }
 
   /// Stop listening for project created events.
-  static void offProjectCreated() {
-    _socket?.off('project_created');
+  static void offProjectCreated([void Function(Map<String, dynamic>)? callback]) {
+    if (callback != null) {
+      _projectCreatedListeners.remove(callback);
+    } else {
+      _projectCreatedListeners.clear();
+    }
+    if (_projectCreatedListeners.isEmpty) _socket?.off('project_created');
   }
 
   /// Listen for project update events.
   static void onProjectUpdated(
     void Function(Map<String, dynamic> project) callback,
   ) {
-    _socket?.on('project_updated', (data) {
-      if (data is Map<String, dynamic>) {
-        callback(data);
-      }
-    });
+    if (_projectUpdatedListeners.isEmpty) {
+      _socket?.on('project_updated', (data) {
+        if (data is Map<String, dynamic>) {
+          for (var cb in _projectUpdatedListeners.toList()) cb(data);
+        }
+      });
+    }
+    _projectUpdatedListeners.add(callback);
   }
 
   /// Stop listening for project update events.
-  static void offProjectUpdated() {
-    _socket?.off('project_updated');
+  static void offProjectUpdated([void Function(Map<String, dynamic>)? callback]) {
+    if (callback != null) {
+      _projectUpdatedListeners.remove(callback);
+    } else {
+      _projectUpdatedListeners.clear();
+    }
+    if (_projectUpdatedListeners.isEmpty) _socket?.off('project_updated');
   }
 
   /// Join notification room for a user.
