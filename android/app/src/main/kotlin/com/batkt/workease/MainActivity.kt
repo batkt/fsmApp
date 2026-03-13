@@ -29,27 +29,12 @@ class MainActivity : FlutterFragmentActivity() {
                 }
             }
 
-        // New task tracker channel for foreground service
+        // Task tracker channel (deactivated as requested)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, TASK_TRACKER_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "start" -> {
-                        val args = call.arguments as? Map<*, *>
-                        val taskId = args?.get("taskId") as? String ?: ""
-                        val code = args?.get("code") as? String ?: ""
-                        val title = args?.get("title") as? String ?: ""
-                        TaskTrackerService.start(this, taskId, code, title)
-                        result.success(true)
-                    }
-                    "updateLiveProgress" -> {
-                        val args = call.arguments as? Map<*, *>
-                        val progress = (args?.get("progress") as? Number)?.toInt() ?: 0
-                        val elapsedSeconds = (args?.get("elapsedSeconds") as? Number)?.toInt() ?: 0
-                        TaskTrackerService.updateProgress(this, progress, elapsedSeconds)
-                        result.success(true)
-                    }
-                    "stop" -> {
-                        TaskTrackerService.stop(this)
+                    "start", "updateLiveProgress", "stop" -> {
+                        // Service removed - only returning success to prevent Dart exceptions
                         result.success(true)
                     }
                     else -> result.notImplemented()

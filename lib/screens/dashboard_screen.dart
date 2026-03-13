@@ -1447,7 +1447,63 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           }
         }
 
-        // Navigate to chat if it's a chat notification
+        if (!mounted) return;
+
+        // 1. Handle Task Notifications (Open Detail Modal)
+        if (notification.taskId != null && notification.taskId!.isNotEmpty) {
+          // Check if task exists in our local list first
+          try {
+            final existingTask = _tasks.firstWhere((t) => t.id == notification.taskId);
+            Navigator.pop(context); // Close notification modal
+            _openTaskDetail(existingTask);
+            return;
+          } catch (_) {
+            // Not in list, fetch from API
+            AppToast.show(context, 'Даалгавар ачаалж байна...');
+            final apiTask = await TaskService.getById(notification.taskId!);
+            if (apiTask != null && mounted) {
+              // Fetch subtasks
+              final subtasks = await SubTaskService.byTask(apiTask.id);
+              final fullTask = ApiTask(
+                id: apiTask.id,
+                projectId: apiTask.projectId,
+                taskId: apiTask.taskId,
+                ner: apiTask.ner,
+                bairshil: apiTask.bairshil,
+                davkhar: apiTask.davkhar,
+                tailbar: apiTask.tailbar,
+                zereglel: apiTask.zereglel,
+                tuluv: apiTask.tuluv,
+                hariutsagchId: apiTask.hariutsagchId,
+                ajiltnuud: apiTask.ajiltnuud,
+                ekhlekhTsag: apiTask.ekhlekhTsag,
+                duusakhTsag: apiTask.duusakhTsag,
+                ekhlekhMinute: apiTask.ekhlekhMinute,
+                duusakhMinute: apiTask.duusakhMinute,
+                khugatsaaDuusakhOgnoo: apiTask.khugatsaaDuusakhOgnoo,
+                zurag: apiTask.zurag,
+                hariutsagchZurag: apiTask.hariutsagchZurag,
+                ajiltanZurag: apiTask.ajiltanZurag,
+                baraa: apiTask.baraa,
+                baiguullagiinId: apiTask.baiguullagiinId,
+                barilgiinId: apiTask.barilgiinId,
+                color: apiTask.color,
+                subTasks: subtasks,
+                ajiltanTsag: apiTask.ajiltanTsag,
+                createdAt: apiTask.createdAt,
+                updatedAt: apiTask.updatedAt,
+              );
+              
+              if (mounted) {
+                Navigator.pop(context); // Close notification modal
+                _openTaskDetail(CleaningTask.fromApi(fullTask));
+              }
+              return;
+            }
+          }
+        }
+
+        // 2. Handle Chat Notifications
         if (notification.turul == 'chatMessage' &&
             notification.projectId != null) {
           if (mounted) {

@@ -4,11 +4,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <!-- Required on Android 14+ when using foregroundServiceType=\"dataSync\" -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <!-- Required for Live Update notifications to appear in Samsung Now Bar / status bar chips -->
-    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:label="workEase"
         android:name="${applicationName}"
@@ -84,12 +80,6 @@
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
 
-        <!-- ═══ Task Tracker Foreground Service (for current task \"Явц\") ═══ -->
-        <!-- Mark as dataSync type and grant corresponding permission above -->
-        <service
-            android:name=".TaskTrackerService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

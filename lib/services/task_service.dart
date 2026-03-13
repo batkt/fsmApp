@@ -7,10 +7,27 @@ import 'project_service.dart';
 class TaskService {
   /// Fetch tasks for a specific project.
   static Future<List<ApiTask>> byProject(String projectId) async {
+    final user = AuthService.currentUser;
     final res = await ApiService.get('/tasks', query: {
       'projectId': projectId,
+      if (user != null) 'ajiltniiId': user.id, // Prefer backend filtering if supported
     });
-    return _parseList(res);
+    
+    final all = _parseList(res);
+    if (user == null) return all;
+
+    // Optional: If we want managers to see all project tasks, we'd need project info here.
+    // For now, to satisfy the privacy request, we filter strictly to assigned tasks
+    // unless the user has 'admin' or 'manager' role in their profile.
+    final isPrivileged = user.role == 'admin' || user.role == 'manager' || user.role == 'hynalt';
+    
+    if (isPrivileged) return all;
+
+    // Filter to tasks where user is the responsible person or one of the workers
+    return all.where((t) => 
+      t.hariutsagchId == user.id || 
+      t.ajiltnuud.contains(user.id)
+    ).toList();
   }
 
   /// Fetch tasks assigned to the current user across all projects.
@@ -18,7 +35,7 @@ class TaskService {
     final user = AuthService.currentUser;
     if (user == null) return [];
 
-    // 1. Get projects where the user is either a manager or a worker
+    // 1. Get projects where the user is involved
     final projects = await ProjectService.myProjects();
     
     // 2. Fetch all tasks for those projects

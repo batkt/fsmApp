@@ -1,6 +1,3 @@
-import java.util.Properties
-import java.io.FileInputStream
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,21 +5,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Load keystore properties
-val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-}
-
 // Conditionally apply Google Services plugin if google-services.json exists and package matches
 val googleServicesFile = file("google-services.json")
 if (googleServicesFile.exists()) {
     try {
         val jsonContent = googleServicesFile.readText()
-        // Simple string check: if the JSON contains the current package name, apply the plugin
-        // This avoids JSON parsing complexity in Gradle Kotlin DSL
-        if (jsonContent.contains("\"package_name\":\"com.batkt.workease\"")) {
+        // More robust check: look for the package name even if JSON formatting (spaces) differs
+        if (jsonContent.contains("\"package_name\"") && jsonContent.contains("\"com.batkt.workease\"")) {
             apply(plugin = "com.google.gms.google-services")
         } else {
             println("Warning: google-services.json exists but doesn't contain package 'com.batkt.workease'. Skipping Google Services plugin.")
@@ -61,13 +50,11 @@ android {
 
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                val storeFileStr = keystoreProperties["storeFile"] as String?
-                storeFile = storeFileStr?.let { file(it) }
-                storePassword = keystoreProperties["storePassword"] as String
-            }
+            // Hardcoded as requested, pointing to the root keystore file
+            storeFile = file("../../upload-keystore.jks")
+            storePassword = "123456"
+            keyAlias = "upload"
+            keyPassword = "123456"
         }
     }
 
