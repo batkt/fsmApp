@@ -210,17 +210,17 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _handleNotificationTap(String? payload) {
+  void _handleNotificationTap(String? payload) async {
     if (payload == null || !mounted) return;
 
     try {
       // Parse JSON payload
       final data = jsonDecode(payload) as Map<String, dynamic>;
       final type = data['type'] as String?;
+      final taskId = data['taskId'] as String?;
+      final projectId = data['projectId'] as String?;
 
       if (type == 'chatMessage') {
-        final projectId = data['projectId'] as String?;
-        final taskId = data['taskId'] as String?;
         final barilgiinId = data['barilgiinId'] as String? ?? '';
         final baiguullagiinId = data['baiguullagiinId'] as String? ?? '';
 
@@ -237,6 +237,50 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
               ),
             ),
           );
+        }
+      } else if (taskId != null && taskId.isNotEmpty) {
+        // Handle Task Notifications
+        try {
+          final existingTask = _tasks.firstWhere((t) => t.id == taskId);
+          _openTaskDetail(existingTask);
+        } catch (_) {
+          AppToast.show(context, 'Даалгавар ачаалж байна...');
+          final apiTask = await TaskService.getById(taskId);
+          if (apiTask != null && mounted) {
+            final subtasks = await SubTaskService.byTask(apiTask.id);
+            final fullTask = ApiTask(
+              id: apiTask.id,
+              projectId: apiTask.projectId,
+              taskId: apiTask.taskId,
+              ner: apiTask.ner,
+              bairshil: apiTask.bairshil,
+              davkhar: apiTask.davkhar,
+              tailbar: apiTask.tailbar,
+              zereglel: apiTask.zereglel,
+              tuluv: apiTask.tuluv,
+              hariutsagchId: apiTask.hariutsagchId,
+              ajiltnuud: apiTask.ajiltnuud,
+              ekhlekhTsag: apiTask.ekhlekhTsag,
+              duusakhTsag: apiTask.duusakhTsag,
+              ekhlekhMinute: apiTask.ekhlekhMinute,
+              duusakhMinute: apiTask.duusakhMinute,
+              khugatsaaDuusakhOgnoo: apiTask.khugatsaaDuusakhOgnoo,
+              zurag: apiTask.zurag,
+              hariutsagchZurag: apiTask.hariutsagchZurag,
+              ajiltanZurag: apiTask.ajiltanZurag,
+              baraa: apiTask.baraa,
+              baiguullagiinId: apiTask.baiguullagiinId,
+              barilgiinId: apiTask.barilgiinId,
+              color: apiTask.color,
+              subTasks: subtasks,
+              ajiltanTsag: apiTask.ajiltanTsag,
+              createdAt: apiTask.createdAt,
+              updatedAt: apiTask.updatedAt,
+            );
+            if (mounted) {
+              _openTaskDetail(CleaningTask.fromApi(fullTask));
+            }
+          }
         }
       }
     } catch (e) {
@@ -1507,6 +1551,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         if (notification.turul == 'chatMessage' &&
             notification.projectId != null) {
           if (mounted) {
+            Navigator.pop(context); // Close notification modal
             Navigator.push(
               context,
               MaterialPageRoute(
