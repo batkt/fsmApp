@@ -78,7 +78,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _selectedDay = stripTime(DateTime.now());
+    _selectedDay = stripTime(TimezoneService.nowMongolia());
     _tasks = [];
     _notifications = [];
 
@@ -1037,7 +1037,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
     // Optimistically update UI and reset local progress baseline
     setState(() {
-      t.startedAtLocal = DateTime.now();
+      t.startedAtLocal = TimezoneService.nowMongolia();
       t.status = TaskStatus.inProgress;
       _currentTrackingTask = t;
     });
@@ -1072,9 +1072,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       }
 
       // Calculate progress and elapsed time
-      final progress = task.progressPercentage?.round() ?? 0;
-      final elapsedMinutes = task.elapsedMinutes ?? 0;
-      final elapsedSeconds = elapsedMinutes * 60;
+      final progress = ((task.progressPercentage ?? 0.0) * 100).toInt();
+      final elapsedSeconds = task.elapsedSeconds;
 
       // Update the notification with live progress
       TaskTrackerService.updateLiveProgress(
@@ -1089,7 +1088,8 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     final ajiltanTsag = [
       {
         'ajiltniiId': AuthService.currentUser?.id ?? '',
-        'ekhlekhTsag': (t.startedAtLocal ?? DateTime.now())
+        'ekhlekhTsag': (t.startedAtLocal ?? TimezoneService.nowMongolia())
+            .subtract(const Duration(hours: 8))
             .toUtc()
             .toIso8601String(),
       },
@@ -1134,7 +1134,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
     // Calculate the ACTUAL elapsed minutes BEFORE changing status to completed
     // (because elapsedMinutes getter uses status to decide which branch to use)
-    final now = DateTime.now();
+    final now = TimezoneService.nowMongolia();
 
     // For auto-started tasks, find the real start time from ajiltanTsag entries
     DateTime? actualStartTime = t.startedAtLocal;
@@ -1175,8 +1175,12 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     final ajiltanTsag = [
       {
         'ajiltniiId': AuthService.currentUser?.id ?? '',
-        'ekhlekhTsag': actualStartTime.toUtc().toIso8601String(),
-        'duusakhTsag': now.toUtc().toIso8601String(),
+        'ekhlekhTsag': actualStartTime
+            .subtract(const Duration(hours: 8))
+            .toUtc()
+            .toIso8601String(),
+        'duusakhTsag':
+            now.subtract(const Duration(hours: 8)).toUtc().toIso8601String(),
         'tsagMinute': actualElapsedMinutes,
       },
     ];

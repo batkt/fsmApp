@@ -125,8 +125,8 @@ class WidgetService {
         'taskId': task.id,
         'taskCode': task.taskCode,
         'taskTitle': task.title,
-        'elapsedTime': task.formattedElapsedTime,
-        'progress': (task.progressPercentage ?? 0 * 100).toInt(),
+        'elapsedTime': task.formattedElapsedHMS,
+        'progress': ((task.progressPercentage ?? 0) * 100).toInt(),
         'status': 'Явагдаж буй',
       });
     } catch (e) {
@@ -139,8 +139,8 @@ class WidgetService {
     if (!_isIOS) return;
     try {
       await _liveActivityChannel.invokeMethod('updateTaskActivity', {
-        'elapsedTime': task.formattedElapsedTime,
-        'progress': (task.progressPercentage ?? 0 * 100).toInt(),
+        'elapsedTime': task.formattedElapsedHMS,
+        'progress': ((task.progressPercentage ?? 0) * 100).toInt(),
         'status': task.status == TaskStatus.completed ? 'Дууссан' : 'Явагдаж буй',
       });
     } catch (e) {

@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
 import '../services/kpi_service.dart';
 import '../services/socket_service.dart';
+import '../services/timezone_service.dart';
 import '../widgets/app_toast.dart';
 
 class PerformanceScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   Map<String, dynamic>? _kpi;
   bool _loading = true;
   bool _refreshingKpi = false;
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = TimezoneService.nowMongolia();
 
   void _onSocketUpdate(dynamic _) {
     if (mounted) _loadData();
@@ -147,7 +148,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final todayPercent = todayTasks.isEmpty ? 0.0 : todayDone / todayTasks.length;
 
     // Monthly stats
-    final now = DateTime.now();
+    final now = TimezoneService.nowMongolia();
     final firstOfMonth = DateTime(now.year, now.month, 1);
     final monthTasks = _tasks.where((t) => t.date.isAfter(firstOfMonth.subtract(const Duration(seconds: 1)))).toList();
     final monthDone = monthTasks.where((t) => t.status == TaskStatus.completed).length;
@@ -160,7 +161,11 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     
     final weekData = List.generate(7, (i) {
       final day = monday.add(Duration(days: i));
-      return _tasks.where((t) => stripTime(t.date) == day && t.status == TaskStatus.completed).length.toDouble();
+      return _tasks.where((t) {
+        if (t.status != TaskStatus.completed) return false;
+        final finishDate = t.completedAt ?? t.date;
+        return stripTime(finishDate) == day;
+      }).length.toDouble();
     });
 
     // Monthly Quality/Completion Data (last 6 months)
@@ -251,7 +256,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  stripTime(_selectedDate) == stripTime(DateTime.now()) 
+                  stripTime(_selectedDate) == stripTime(TimezoneService.nowMongolia()) 
                     ? 'Өнөөдрийн гүйцэтгэл' 
                     : '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day} гүйцэтгэл',
                   style: const TextStyle(color: Colors.white, fontSize: 18,

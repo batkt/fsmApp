@@ -403,8 +403,10 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                         _InfoRow(
                           c: c,
                           icon: Icons.access_time_filled_rounded,
-                          label: 'ХУГАЦАА',
-                          value: '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
+                          label: done ? 'ДУУССАН ЦАГ' : 'ХУГАЦАА',
+                          value: done && t.completedAt != null
+                              ? '${t.completedAt!.hour.toString().padLeft(2, '0')}:${t.completedAt!.minute.toString().padLeft(2, '0')} (${t.completedAt!.year}/${t.completedAt!.month}/${t.completedAt!.day})'
+                              : '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
                         ),
                         Divider(
                           height: context.rSpacing(24),
@@ -733,7 +735,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             ),
                                           ),
                                           child: Text(
-                                            '${baraa.too} ${baraa.negj}',
+                                            '${baraa.too} ${baraa.negjLabel}',
                                             style: TextStyle(
                                               fontSize: context.rFontSize(12),
                                               fontWeight: FontWeight.w600,
@@ -1503,7 +1505,7 @@ class _ProgressRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = task.progressPercentage;
-    final elapsed = task.formattedElapsedTime;
+    final elapsed = task.formattedElapsedHMS;
     final total = task.formattedDuration;
 
     Color progressColor;
@@ -1554,7 +1556,7 @@ class _ProgressRow extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'ЯВЦ',
+                        'ЗАРЦУУЛСАН',
                         style: TextStyle(
                           fontSize: context.rFontSize(11),
                           fontWeight: FontWeight.w600,

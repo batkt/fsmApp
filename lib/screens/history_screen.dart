@@ -8,6 +8,7 @@ import '../services/image_service.dart';
 import '../services/project_service.dart';
 import '../services/task_service.dart';
 import '../services/socket_service.dart';
+import '../services/timezone_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_detail_modal.dart';
 
@@ -59,7 +60,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         : await TaskService.myTasks();
     if (!mounted) return;
 
-    final today = stripTime(DateTime.now());
+    final today = stripTime(TimezoneService.nowMongolia());
     final List<CleaningTask> loaded = [];
 
     for (var t in apiTasks) {
@@ -153,7 +154,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   String _fmtDate(DateTime d) {
-    final today = stripTime(DateTime.now());
+    final today = stripTime(TimezoneService.nowMongolia());
     final yesterday = today.subtract(const Duration(days: 1));
     final dt = stripTime(d);
     if (dt == today) return 'Өнөөдөр';
@@ -583,8 +584,24 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
           _DetailRow(icon: Icons.person_outline, label: 'Удирдагч',
               value: t.supervisor, c: c),
           const SizedBox(height: 8),
-          _DetailRow(icon: Icons.timer_outlined, label: 'Тооцоолсон',
+          _DetailRow(icon: Icons.timer_outlined, label: 'Төлөвлөсөн',
               value: '${t.estimatedMinutes} мин', c: c),
+          if (t.status == TaskStatus.completed && t.completedAt != null) ...[
+            const SizedBox(height: 8),
+            _DetailRow(
+              icon: Icons.check_circle_outline_rounded,
+              label: 'Дууссан',
+              value: '${t.completedAt!.hour.toString().padLeft(2, '0')}:${t.completedAt!.minute.toString().padLeft(2, '0')}',
+              c: c,
+            ),
+            const SizedBox(height: 8),
+            _DetailRow(
+              icon: Icons.hourglass_bottom_rounded,
+              label: 'Зарцуулсан',
+              value: t.formattedElapsedHMS,
+              c: c,
+            ),
+          ],
 
           // ── Notes ──
           if (t.notes.isNotEmpty) ...[

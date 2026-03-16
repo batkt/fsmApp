@@ -41,6 +41,7 @@ class CleaningTask {
     this.ajiltanZurag = const [],
     this.ajiltanTsag = const [],
     this.baraa = const [],
+    this.completedAt,
   }) : photoPaths = photoPaths ?? [];
 
   /// Convert an API task to a CleaningTask for the UI.
@@ -141,13 +142,27 @@ class CleaningTask {
       // Store separate image types
       hariutsagchZurag: t.hariutsagchZurag,
       ajiltanZurag: t.ajiltanZurag,
-      // Store raw ajiltan tsag data
-      ajiltanTsag: t.ajiltanTsag,
+      // Store raw ajiltan tsag data (converted to Mongolia time)
+      ajiltanTsag: t.ajiltanTsag.map((entry) => AjiltanTsag(
+        ajiltniiId: entry.ajiltniiId,
+        ekhlekhTsag: TimezoneService.toMongoliaTime(entry.ekhlekhTsag.toUtc()),
+        duusakhTsag: entry.duusakhTsag != null 
+            ? TimezoneService.toMongoliaTime(entry.duusakhTsag!.toUtc()) 
+            : null,
+        tsagMinute: entry.tsagMinute,
+        tailbar: entry.tailbar,
+        ognoo: entry.ognoo != null 
+            ? TimezoneService.toMongoliaTime(entry.ognoo!.toUtc()) 
+            : null,
+      )).toList(),
       // Store baraa items
       baraa: t.baraa,
       // Store Mongolia time for start/end for duration & progress calculations
       ekhlekhTsag: start,
       duusakhTsag: end,
+      completedAt: t.duussanOgnoo != null 
+          ? TimezoneService.toMongoliaTime(t.duussanOgnoo!.toUtc())
+          : null,
     );
   }
 
@@ -179,6 +194,7 @@ class CleaningTask {
   final List<TaskZurag> ajiltanZurag; // Images uploaded by employees
   List<AjiltanTsag> ajiltanTsag; // Time tracking entries
   final List<Baraa> baraa; // Items/materials assigned to the task
+  final DateTime? completedAt;
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;
@@ -220,21 +236,21 @@ class CleaningTask {
     }
   }
 
-  /// Calculate elapsed time in minutes
-  /// Returns elapsed time from ekhlekhTsag to now (if in progress) or to duusakhTsag (if completed)
-  int? get elapsedMinutes {
+  /// Calculate elapsed time in seconds for precise display
+  int get elapsedSeconds {
     if (status == TaskStatus.completed) {
       if (ajiltanTsag.isNotEmpty) {
         int totalSeconds = 0;
         for (final tsag in ajiltanTsag) {
-          if (tsag.tsagMinute != null && tsag.tsagMinute! > 0) {
-            totalSeconds += tsag.tsagMinute! * 60;
-          } else if (tsag.duusakhTsag != null) {
-            final diff = tsag.duusakhTsag!.difference(tsag.ekhlekhTsag).inSeconds;
+          if (tsag.duusakhTsag != null) {
+            final diff =
+                tsag.duusakhTsag!.difference(tsag.ekhlekhTsag).inSeconds;
             if (diff > 0) totalSeconds += diff;
+          } else if (tsag.tsagMinute != null && tsag.tsagMinute! > 0) {
+            totalSeconds += tsag.tsagMinute! * 60;
           }
         }
-        return totalSeconds < 0 ? 0 : totalSeconds ~/ 60;
+        return totalSeconds < 0 ? 0 : totalSeconds;
       }
       return 0;
     }
@@ -249,29 +265,40 @@ class CleaningTask {
           }
         }
       }
-      
-      // If we still have no base, it hasn't really "started" in a way we can track
+
       if (base == null) return 0;
-      
-      final duration = DateTime.now().difference(base);
-      final mins = (duration.inSeconds / 60.0).round();
-      return mins < 0 ? 0 : mins;
+
+      final duration = TimezoneService.nowMongolia().difference(base);
+      final secs = duration.inSeconds;
+      return secs < 0 ? 0 : secs;
     }
 
-    // Pending / Overdue: treat as not started for progress
     return 0;
   }
+
+  /// Format elapsed time as HH:mm:ss
+  String get formattedElapsedHMS {
+    final seconds = elapsedSeconds;
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
+    final s = seconds % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  /// Calculate elapsed time in minutes
+  /// Returns elapsed time from ekhlekhTsag to now (if in progress) or to duusakhTsag (if completed)
+  int? get elapsedMinutes => (elapsedSeconds / 60.0).round();
 
   /// Calculate progress percentage (0.0 to 1.0)
   /// Returns null if cannot calculate
   double? get progressPercentage {
-    final total = calculatedDurationMinutes;
-    final elapsed = elapsedMinutes;
+    final totalSecs = (calculatedDurationMinutes ?? 0) * 60;
+    final elapsedSecs = elapsedSeconds;
 
-    if (total == null || elapsed == null || total == 0) return null;
+    if (totalSecs == 0) return null; // Changed from `elapsedSecs == null` to `totalSecs == 0`
 
     // Cap at 100%
-    return (elapsed / total).clamp(0.0, 1.0);
+    return (elapsedSecs / totalSecs).clamp(0.0, 1.0);
   }
 
   /// Format elapsed time as human-readable string

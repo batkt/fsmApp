@@ -20,6 +20,48 @@ class Baraa {
     this.ognoo,
   });
 
+  String get negjLabel {
+    final n = negj.trim().toLowerCase();
+    switch (n) {
+      case 'piece':
+      case 'shirheg':
+      case 'shirxeg':
+      case 'sh':
+      case 'ш':
+      case 'ш.':
+      case 'ширхэг':
+      case 'ширхэг.':
+        return 'Ширхэг';
+      case 'box':
+      case 'haire':
+      case 'хайрцаг':
+        return 'Хайрцаг';
+      case 'kg':
+      case 'kg.':
+      case 'кг':
+      case 'кг.':
+        return 'кг';
+      case 'liter':
+      case 'litr':
+      case 'литр':
+        return 'Литр';
+      case 'meter':
+      case 'metr':
+      case 'метр':
+        return 'Метр';
+      case 'bogts':
+      case 'богц':
+        return 'Богц';
+      case 'dana':
+      case 'дан':
+        return 'Дан';
+      default:
+        return negj;
+    }
+  }
+
+  /// Calculate progress percentage (0.0 to 1.0)
+  /// Returns null if cannot calculate
   factory Baraa.fromJson(Map<String, dynamic> j) => Baraa(
     baraaId: (j['baraaId'] ?? j['_id'] ?? '').toString(),
     ner: (j['ner'] ?? '').toString(),
@@ -102,7 +144,7 @@ class AjiltanTsag {
 
   factory AjiltanTsag.fromJson(Map<String, dynamic> j) => AjiltanTsag(
     ajiltniiId: (j['ajiltniiId'] ?? '').toString(),
-    ekhlekhTsag: TaskZurag._tryParse(j['ekhlekhTsag']) ?? DateTime.now(),
+    ekhlekhTsag: TaskZurag._tryParse(j['ekhlekhTsag']) ?? DateTime.now().toUtc(),
     duusakhTsag: TaskZurag._tryParse(j['duusakhTsag']),
     tsagMinute: j['tsagMinute'] is int
         ? j['tsagMinute']
@@ -152,6 +194,7 @@ class ApiTask {
   final String? davkhar;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? duussanOgnoo;
 
   ApiTask({
     required this.id,
@@ -181,6 +224,7 @@ class ApiTask {
     this.davkhar,
     this.createdAt,
     this.updatedAt,
+    this.duussanOgnoo,
   });
 
   factory ApiTask.fromJson(Map<String, dynamic> j) {
@@ -244,6 +288,7 @@ class ApiTask {
           .toList(),
       createdAt: _tryParse(j['createdAt']),
       updatedAt: _tryParse(j['updatedAt']),
+      duussanOgnoo: _tryParse(j['duussanOgnoo']),
     );
   }
 
