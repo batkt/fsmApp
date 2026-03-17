@@ -42,10 +42,6 @@ class CleaningTask {
     this.ajiltanTsag = const [],
     this.baraa = const [],
     this.completedAt,
-    this.ekhlekhOgnoo,
-    this.duusakhOgnoo,
-    this.isDay = false,
-    this.isLoop = false,
   }) : photoPaths = photoPaths ?? [];
 
   /// Convert an API task to a CleaningTask for the UI.
@@ -167,14 +163,6 @@ class CleaningTask {
       completedAt: t.duussanOgnoo != null 
           ? TimezoneService.toMongoliaTime(t.duussanOgnoo!.toUtc())
           : null,
-      ekhlekhOgnoo: t.ekhlekhOgnoo != null
-          ? TimezoneService.toMongoliaTime(t.ekhlekhOgnoo!.toUtc())
-          : null,
-      duusakhOgnoo: t.duusakhOgnoo != null
-          ? TimezoneService.toMongoliaTime(t.duusakhOgnoo!.toUtc())
-          : null,
-      isDay: t.isDay,
-      isLoop: t.isLoop,
     );
   }
 
@@ -207,10 +195,6 @@ class CleaningTask {
   List<AjiltanTsag> ajiltanTsag; // Time tracking entries
   final List<Baraa> baraa; // Items/materials assigned to the task
   final DateTime? completedAt;
-  final DateTime? ekhlekhOgnoo;
-  final DateTime? duusakhOgnoo;
-  final bool isDay;
-  final bool isLoop;
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;
@@ -226,9 +210,17 @@ class CleaningTask {
     return '${fmt(startTime)} - ${fmt(endTime)}';
   }
 
-  /// Calculate duration in minutes from duusakhTsag - ekhlekhTsag
-  /// Returns null if either date is missing
+  /// Calculate duration in minutes (per day for loops, or total for single tasks)
   int? get calculatedDurationMinutes {
+    if (isDay) return 1440;
+    
+    if (isLoop) {
+      // Loop tasks should show budget per day
+      final startMin = startTime.hour * 60 + startTime.minute;
+      final endMin = endTime.hour * 60 + endTime.minute;
+      return (endMin >= startMin) ? (endMin - startMin) : 0;
+    }
+    
     if (ekhlekhTsag == null || duusakhTsag == null) return null;
     final duration = duusakhTsag!.difference(ekhlekhTsag!);
     return duration.inMinutes;
@@ -254,39 +246,37 @@ class CleaningTask {
 
   /// Calculate elapsed time in seconds for precise display
   int get elapsedSeconds {
-    if (status == TaskStatus.completed) {
+    final bool isCompl = status == TaskStatus.completed;
+    final bool isProg = status == TaskStatus.inProgress;
+
+    if (isCompl || isProg) {
       if (ajiltanTsag.isNotEmpty) {
         int totalSeconds = 0;
         for (final tsag in ajiltanTsag) {
+          // For loops, only count logs from this specific day
+          if (isLoop) {
+            final logDate = tsag.ekhlekhTsag;
+            if (logDate.year != date.year || 
+                logDate.month != date.month || 
+                logDate.day != date.day) {
+              continue;
+            }
+          }
+
           if (tsag.duusakhTsag != null) {
-            final diff =
-                tsag.duusakhTsag!.difference(tsag.ekhlekhTsag).inSeconds;
+            final diff = tsag.duusakhTsag!.difference(tsag.ekhlekhTsag).inSeconds;
             if (diff > 0) totalSeconds += diff;
           } else if (tsag.tsagMinute != null && tsag.tsagMinute! > 0) {
             totalSeconds += tsag.tsagMinute! * 60;
+          } else if (isProg && tsag.duusakhTsag == null) {
+            // Include active session
+            final diff = TimezoneService.nowMongolia().difference(tsag.ekhlekhTsag).inSeconds;
+            if (diff > 0) totalSeconds += diff;
           }
         }
         return totalSeconds < 0 ? 0 : totalSeconds;
       }
       return 0;
-    }
-
-    if (status == TaskStatus.inProgress) {
-      DateTime? base = startedAtLocal;
-      if (base == null) {
-        for (final tsag in ajiltanTsag.reversed) {
-          if (tsag.duusakhTsag == null) {
-            base = tsag.ekhlekhTsag;
-            break;
-          }
-        }
-      }
-
-      if (base == null) return 0;
-
-      final duration = TimezoneService.nowMongolia().difference(base);
-      final secs = duration.inSeconds;
-      return secs < 0 ? 0 : secs;
     }
 
     return 0;
@@ -333,6 +323,21 @@ class CleaningTask {
         return '$hours цаг $remainingMinutes мин';
       }
     }
+  }
+
+  /// Check if the task is active on a given day
+  bool isOnDay(DateTime day) {
+    final checkDay = stripTime(day);
+    
+    // Fall back through various possible date fields
+    final start = ekhlekhOgnoo ?? ekhlekhTsag ?? date;
+    final end = duusakhOgnoo ?? duusakhTsag ?? date;
+    
+    final taskStart = stripTime(start);
+    final taskEnd = stripTime(end);
+    
+    return (checkDay.isAtSameMomentAs(taskStart) || checkDay.isAfter(taskStart)) &&
+           (checkDay.isAtSameMomentAs(taskEnd) || checkDay.isBefore(taskEnd));
   }
 }
 

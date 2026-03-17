@@ -22,6 +22,7 @@ class _TaskCardState extends State<TaskCard> {
   bool _expanded = false;
 
   String _time() {
+    if (widget.task.isDay) return 'Бүтэн өдөр';
     String f(TimeOfDay t) =>
         '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
     return '${f(widget.task.startTime)} - ${f(widget.task.endTime)}';
@@ -96,10 +97,22 @@ class _TaskCardState extends State<TaskCard> {
                           fontWeight: FontWeight.w600,
                           color: c.primary))),
                     // Priority indicator
-                    Icon(
-                      _prioIcon(t.priority),
-                      size: context.rIconSize(18),
-                      color: pc,
+                    Row(
+                      children: [
+                        if (t.isLoop) ...[
+                          Icon(
+                            Icons.loop_rounded,
+                            size: context.rIconSize(16),
+                            color: Colors.purple,
+                          ),
+                          context.rWidth(4),
+                        ],
+                        Icon(
+                          _prioIcon(t.priority),
+                          size: context.rIconSize(18),
+                          color: pc,
+                        ),
+                      ],
                     ),
                   ]),
                   context.rHeight(4),

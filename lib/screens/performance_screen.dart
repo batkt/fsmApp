@@ -141,7 +141,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     
     // Day Stats (Filtered by selected date)
     final today = stripTime(_selectedDate);
-    final todayTasks = _tasks.where((t) => stripTime(t.date) == today).toList();
+    final todayTasks = _tasks.where((t) => t.isOnDay(today)).toList();
     final todayDone = todayTasks.where((t) => t.status == TaskStatus.completed).length;
     final todayInProgress = todayTasks.where((t) => t.status == TaskStatus.inProgress).length;
     final todayPending = todayTasks.where((t) => t.status == TaskStatus.pending || t.status == TaskStatus.overdue).length;
@@ -163,7 +163,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       final day = monday.add(Duration(days: i));
       return _tasks.where((t) {
         if (t.status != TaskStatus.completed) return false;
-        final finishDate = t.completedAt ?? t.date;
+        final finishDate = t.completedAt ?? t.ekhlekhOgnoo ?? t.ekhlekhTsag ?? t.date;
         return stripTime(finishDate) == day;
       }).length.toDouble();
     });

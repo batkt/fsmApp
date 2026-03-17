@@ -199,6 +199,10 @@ class ApiTask {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final DateTime? duussanOgnoo;
+  final DateTime? ekhlekhOgnoo;
+  final DateTime? duusakhOgnoo;
+  final bool isDay;
+  final bool isLoop;
 
   ApiTask({
     required this.id,
@@ -233,6 +237,10 @@ class ApiTask {
     this.createdAt,
     this.updatedAt,
     this.duussanOgnoo,
+    this.ekhlekhOgnoo,
+    this.duusakhOgnoo,
+    this.isDay = false,
+    this.isLoop = false,
   });
 
   factory ApiTask.fromJson(Map<String, dynamic> j) {
@@ -301,6 +309,10 @@ class ApiTask {
       createdAt: _tryParse(j['createdAt']),
       updatedAt: _tryParse(j['updatedAt']),
       duussanOgnoo: _tryParse(j['duussanOgnoo']),
+      ekhlekhOgnoo: _tryParse(j['ekhlekhOgnoo']),
+      duusakhOgnoo: _tryParse(j['duusakhOgnoo']),
+      isDay: j['isDay'] == true,
+      isLoop: j['isLoop'] == true,
     );
   }
 
@@ -344,8 +356,9 @@ class ApiTask {
   }
 
   bool get isOverdue {
-    if (khugatsaaDuusakhOgnoo == null) return false;
-    return DateTime.now().isAfter(khugatsaaDuusakhOgnoo!) && tuluv != 'duussan';
+    final deadline = duusakhOgnoo ?? khugatsaaDuusakhOgnoo;
+    if (deadline == null) return false;
+    return DateTime.now().isAfter(deadline) && tuluv != 'duussan' && tuluv != 'shalga';
   }
 }
 

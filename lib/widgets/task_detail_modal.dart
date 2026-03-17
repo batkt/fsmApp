@@ -337,6 +337,64 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                               ),
                             ),
                           ),
+                          if (t.isDay)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.rSpacing(10),
+                                vertical: context.rSpacing(4),
+                              ),
+                              decoration: BoxDecoration(
+                                color: c.info.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(context.rRadius(20)),
+                                border: Border.all(color: c.info.withOpacity(0.2)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.wb_sunny_rounded, size: context.rIconSize(12), color: c.info),
+                                  SizedBox(width: context.rSpacing(4)),
+                                  Text(
+                                    'Бүтэн өдөр',
+                                    style: TextStyle(
+                                      fontSize: context.rFontSize(11),
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FontStyle.italic,
+                                      decoration: TextDecoration.underline,
+                                      color: c.info,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (t.isLoop)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.rSpacing(10),
+                                vertical: context.rSpacing(4),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(context.rRadius(20)),
+                                border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.loop_rounded, size: context.rIconSize(12), color: Colors.purple),
+                                  SizedBox(width: context.rSpacing(4)),
+                                  Text(
+                                    'Давтагдах',
+                                    style: TextStyle(
+                                      fontSize: context.rFontSize(11),
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FontStyle.italic,
+                                      decoration: TextDecoration.underline,
+                                      color: Colors.purple,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -406,7 +464,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           label: done ? 'ДУУССАН ЦАГ' : 'ХУГАЦАА',
                           value: done && t.completedAt != null
                               ? '${t.completedAt!.hour.toString().padLeft(2, '0')}:${t.completedAt!.minute.toString().padLeft(2, '0')} (${t.completedAt!.year}/${t.completedAt!.month}/${t.completedAt!.day})'
-                              : '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
+                              : t.isDay ? 'Бүтэн өдөр' : '${_fmt(t.startTime)} - ${_fmt(t.endTime)}',
                         ),
                         Divider(
                           height: context.rSpacing(24),

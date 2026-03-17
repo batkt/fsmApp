@@ -975,9 +975,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   List<CleaningTask> get _todayTasks {
     var tasks = List<CleaningTask>.from(_tasks);
 
-    // Filter by selected day
+    // Filter by selected day (supports multi-day, full-day, and loop tasks)
     tasks = tasks
-        .where((t) => stripTime(t.date) == stripTime(_selectedDay))
+        .where((t) => t.isOnDay(_selectedDay))
         .toList();
 
     if (_filter == 'pending') {
