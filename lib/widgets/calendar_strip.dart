@@ -48,11 +48,36 @@ class _FullCalendarState extends State<FullCalendar>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   List<CleaningTask> _tasksForDay(DateTime day) {
-    return widget.tasks.where((t) => _same(t.date, day)).toList()..sort((a, b) {
-      final am = a.startTime.hour * 60 + a.startTime.minute;
-      final bm = b.startTime.hour * 60 + b.startTime.minute;
-      return am.compareTo(bm);
-    });
+    final d = stripTime(day);
+    return widget.tasks.where((t) {
+      // 1. Check if it's the specific single-day date
+      if (_same(t.date, d)) return true;
+
+      // 2. Check if it's a multi-day or looping task
+      if (t.isLoop || t.isDay) {
+        if (t.ekhlekhOgnoo == null) return false;
+        final start = stripTime(t.ekhlekhOgnoo!);
+        
+        // If it has an end date, check range. Otherwise, from start onwards?
+        // User said: "if it not loop but day it should also show in from start do end"
+        // Also: "it shows everyday until date is duusakh"
+        if (t.duusakhOgnoo != null) {
+          final end = stripTime(t.duusakhOgnoo!);
+          return (d.isAtSameMomentAs(start) || d.isAfter(start)) &&
+                 (d.isAtSameMomentAs(end) || d.isBefore(end));
+        } else {
+          // No end date - assume it's ongoing from start
+          return d.isAtSameMomentAs(start) || d.isAfter(start);
+        }
+      }
+
+      return false;
+    }).toList()
+      ..sort((a, b) {
+        final am = a.startTime.hour * 60 + a.startTime.minute;
+        final bm = b.startTime.hour * 60 + b.startTime.minute;
+        return am.compareTo(bm);
+      });
   }
 
   Color _statusColor(TaskStatus s, AppColorScheme c) {

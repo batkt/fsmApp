@@ -33,7 +33,7 @@ class Baraa {
       case 'ширхэг.':
         return 'Ширхэг';
       case 'box':
-      case 'haire':
+      case 'hairtsag':
       case 'хайрцаг':
         return 'Хайрцаг';
       case 'kg':
@@ -181,6 +181,10 @@ class ApiTask {
   final int? ekhlekhMinute; // Start minute (0-1439, minutes from midnight)
   final int? duusakhMinute; // End minute (0-1439, minutes from midnight)
   final DateTime? khugatsaaDuusakhOgnoo;
+  final DateTime? ekhlekhOgnoo;
+  final DateTime? duusakhOgnoo;
+  final bool isDay;
+  final bool isLoop;
   final List<TaskZurag> zurag; // Legacy field (for backward compatibility)
   final List<TaskZurag> hariutsagchZurag; // Images from task creator/assigner
   final List<TaskZurag> ajiltanZurag; // Images from employees
@@ -211,6 +215,10 @@ class ApiTask {
     this.ekhlekhMinute,
     this.duusakhMinute,
     this.khugatsaaDuusakhOgnoo,
+    this.ekhlekhOgnoo,
+    this.duusakhOgnoo,
+    this.isDay = false,
+    this.isLoop = false,
     this.zurag = const [],
     this.hariutsagchZurag = const [],
     this.ajiltanZurag = const [],
@@ -263,6 +271,10 @@ class ApiTask {
                 ? int.tryParse(j['duusakhMinute'].toString())
                 : null),
       khugatsaaDuusakhOgnoo: _tryParse(j['khugatsaaDuusakhOgnoo']),
+      ekhlekhOgnoo: _tryParse(j['ekhlekhOgnoo']),
+      duusakhOgnoo: _tryParse(j['duusakhOgnoo']),
+      isDay: j['isDay'] == true,
+      isLoop: j['isLoop'] == true,
       // Legacy zurag field (for backward compatibility)
       zurag: (j['zurag'] as List<dynamic>? ?? [])
           .map((z) => TaskZurag.fromJson(z is Map<String, dynamic> ? z : {}))
