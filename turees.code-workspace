@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../turees"
+		},
+		{
+			"path": "../tureesBack"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../fsmBack"
+		}
+	],
+	"settings": {}
+}

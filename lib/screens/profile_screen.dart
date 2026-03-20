@@ -121,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: 32,
               height: 32,
               child: Image.asset(
-                'assets/images/zev_logo.png',
+                'assets/images/workEase.png',
                 fit: BoxFit.contain,
               ),
             ),

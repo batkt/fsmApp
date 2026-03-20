@@ -431,13 +431,13 @@ class _LoginScreenState extends State<LoginScreen>
               ],
             ),
             child: Image.asset(
-              'assets/images/zev_logo.png',
+              'assets/images/workEase.png',
               height: isCompact ? 48 : (isShort ? 56 : 64),
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            'Цэвэрлэгээний апп',
+            'WorkEase - FSM',
             style: TextStyle(
               fontSize: isCompact ? 18 : (isShort ? 22 : 24),
               fontWeight: FontWeight.bold,
@@ -447,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           const SizedBox(height: 6),
           Text(
-            'Даалгавруудаа удирдаж, хянаж ажиллана уу',
+            'Ажил гүйцэтгэлийн цогц платформ',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isCompact ? 12 : (isShort ? 12 : 13),

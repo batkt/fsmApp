@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.2+10
+version: 1.0.2+11
 
 environment:
   sdk: ^3.10.0
@@ -66,10 +66,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/zev_logo.png"
+  image_path: "assets/images/workEase.png"
   remove_alpha_ios: true
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/zev_logo.png"
+  adaptive_icon_foreground: "assets/images/workEase.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -82,7 +82,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/zev_logo.png
+    - assets/images/workEase.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

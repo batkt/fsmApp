@@ -1704,7 +1704,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 width: context.rIconSize(28),
                 height: context.rIconSize(28),
                 child: Image.asset(
-                  'assets/images/zev_logo.png',
+                  'assets/images/workEase.png',
                   fit: BoxFit.contain,
                 ),
               ),
@@ -1712,7 +1712,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
               Flexible(
                 child: Text(
                   _isSameDay(_selectedDay, TimezoneService.nowMongolia())
-                      ? 'Өнөөдрийн цэвэрлэгээ'
+                      ? 'Өнөөдрийн ажил'
                       : '${_selectedDay.year}-${_selectedDay.month.toString().padLeft(2, '0')}-${_selectedDay.day.toString().padLeft(2, '0')} Даалгавар',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
