@@ -42,6 +42,10 @@ class CleaningTask {
     this.ajiltanTsag = const [],
     this.baraa = const [],
     this.completedAt,
+    this.ekhlekhOgnoo,
+    this.duusakhOgnoo,
+    this.isDay = false,
+    this.isLoop = false,
   }) : photoPaths = photoPaths ?? [];
 
   /// Convert an API task to a CleaningTask for the UI.
@@ -163,6 +167,14 @@ class CleaningTask {
       completedAt: t.duussanOgnoo != null 
           ? TimezoneService.toMongoliaTime(t.duussanOgnoo!.toUtc())
           : null,
+      ekhlekhOgnoo: t.ekhlekhOgnoo != null 
+          ? TimezoneService.toMongoliaTime(t.ekhlekhOgnoo!.toUtc()) 
+          : null,
+      duusakhOgnoo: t.duusakhOgnoo != null 
+          ? TimezoneService.toMongoliaTime(t.duusakhOgnoo!.toUtc()) 
+          : null,
+      isDay: t.isDay,
+      isLoop: t.isLoop,
     );
   }
 
@@ -195,6 +207,10 @@ class CleaningTask {
   List<AjiltanTsag> ajiltanTsag; // Time tracking entries
   final List<Baraa> baraa; // Items/materials assigned to the task
   final DateTime? completedAt;
+  final DateTime? ekhlekhOgnoo;
+  final DateTime? duusakhOgnoo;
+  final bool isDay;
+  final bool isLoop;
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;
