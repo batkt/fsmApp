@@ -6,7 +6,7 @@ import 'auth_service.dart';
 /// Minimal, reusable HTTP client for the FSM API.
 /// All endpoints go through here so headers/errors are handled once.
 class ApiService {
-  static const baseUrl = 'https://turees.zevtabs.mn/api';
+  static const baseUrl = 'http://103.143.40.175:8000';
   static const _timeout = Duration(seconds: 20);
 
   // ── Helpers ──
