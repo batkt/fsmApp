@@ -56,7 +56,7 @@ class AuthUser {
 }
 
 class AuthService {
-  static const _baseUrl = 'http://103.143.40.175:8000';
+  static const _baseUrl = 'https://turees.zevtabs.mn/api';
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
 
