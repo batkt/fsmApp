@@ -11,9 +11,9 @@ class AppToast {
     double? progress,
   }) {
     if (_manager == null) {
-      _manager = _AppToastManager(context);
+      _manager = _AppToastManager();
     }
-    _manager!.show(message, icon: icon, color: color, duration: duration, progress: progress);
+    _manager!.show(context, message, icon: icon, color: color, duration: duration, progress: progress);
   }
 
   static void hide() {
@@ -22,18 +22,18 @@ class AppToast {
 }
 
 class _AppToastManager {
-  final BuildContext context;
   OverlayEntry? _entry;
   final ValueNotifier<_ToastData?> _data = ValueNotifier(null);
 
-  _AppToastManager(this.context);
+  _AppToastManager();
 
-  void show(String message, {
+  void show(BuildContext context, String message, {
     IconData? icon,
     Color? color,
     Duration duration = const Duration(seconds: 3),
     double? progress,
   }) {
+    // Always use the latest context to get theme colors
     final theme = context.colors;
     final newData = _ToastData(
       message: message,
@@ -46,12 +46,14 @@ class _AppToastManager {
 
     if (_entry == null) {
       _entry = OverlayEntry(
-        builder: (context) => _ToastOverlay(
+        builder: (ctx) => _ToastOverlay(
           dataNotifier: _data,
           onDismiss: hide,
         ),
       );
-      Overlay.of(context, rootOverlay: true).insert(_entry!);
+      // Use rootOverlay: true to show above modals
+      final overlay = Overlay.of(context, rootOverlay: true);
+      overlay.insert(_entry!);
     }
 
     if (progress == null) {
@@ -65,8 +67,6 @@ class _AppToastManager {
 
   void hide() {
     _data.value = null;
-    // We delay the actual entry removal to allow for a fade-out animation if we had one, 
-    // but for now let's just clean up.
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_data.value == null) {
         _entry?.remove();

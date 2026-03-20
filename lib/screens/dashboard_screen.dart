@@ -1002,6 +1002,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     return tasks;
   }
 
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+      
   Color _statusColor(TaskStatus s, AppColorScheme c) {
     switch (s) {
       case TaskStatus.pending:
@@ -1228,19 +1231,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   void _handleNextStatus(CleaningTask t) {
     if (t.status == TaskStatus.pending || t.status == TaskStatus.overdue) {
-      final now = TimezoneService.nowMongolia();
-      if (t.date.year == now.year &&
-          t.date.month == now.month &&
-          t.date.day == now.day) {
-        _handleStart(t);
-      } else {
-        AppToast.show(
-          context,
-          'Зөвхөн өнөөдрийн даалгаврыг эхлүүлэх боломжтой.',
-          icon: Icons.info_outline_rounded,
-          color: context.colors.warning,
-        );
-      }
+      _handleStart(t);
     } else if (t.status == TaskStatus.inProgress) {
       _handleFinish(t);
     }
@@ -1720,7 +1711,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
               context.rWidth(6),
               Flexible(
                 child: Text(
-                  'Өнөөдрийн цэвэрлэгээ',
+                  _isSameDay(_selectedDay, TimezoneService.nowMongolia())
+                      ? 'Өнөөдрийн цэвэрлэгээ'
+                      : '${_selectedDay.year}-${_selectedDay.month.toString().padLeft(2, '0')}-${_selectedDay.day.toString().padLeft(2, '0')} Даалгавар',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: context.rFontSize(16),

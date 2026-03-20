@@ -700,7 +700,6 @@ class _FullCalendarState extends State<FullCalendar>
         return Expanded(
           child: GestureDetector(
             onTap: () {
-              setState(() => _weekOffset = 0);
               widget.onSelected(day);
             },
             child: AnimatedContainer(
