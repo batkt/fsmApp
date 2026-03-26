@@ -46,6 +46,7 @@ class CleaningTask {
     this.duusakhOgnoo,
     this.isDay = false,
     this.isLoop = false,
+    this.createdAt,
   }) : photoPaths = photoPaths ?? [];
 
   /// Convert an API task to a CleaningTask for the UI.
@@ -188,6 +189,9 @@ class CleaningTask {
           : null,
       isDay: t.isDay,
       isLoop: t.isLoop,
+      createdAt: t.createdAt != null
+          ? TimezoneService.toMongoliaTime(t.createdAt!.toUtc())
+          : null,
     );
   }
 
@@ -224,6 +228,7 @@ class CleaningTask {
   final DateTime? duusakhOgnoo;
   final bool isDay;
   final bool isLoop;
+  final DateTime? createdAt;
 
   double get subtaskProgress {
     if (subtasks.isEmpty) return 0;
