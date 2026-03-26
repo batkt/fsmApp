@@ -314,12 +314,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 12),
 
             // ── Other settings ──
-            _SettingTile(
-              c: c,
-              icon: Icons.language_rounded,
-              title: 'Хэл',
-              subtitle: 'Монгол',
-            ),
+            // _SettingTile(
+            //   c: c,
+            //   icon: Icons.language_rounded,
+            //   title: 'Хэл',
+            //   subtitle: 'Монгол',
+            // ),
             const SizedBox(height: 8),
             ListenableBuilder(
               listenable: SettingsService(),
