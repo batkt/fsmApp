@@ -67,9 +67,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final ct = CleaningTask.fromApi(t);
       final d = stripTime(ct.date);
 
-      // Include if past day OR today but completed/overdue/in-progress
-      if (d.isBefore(today) ||
-         (d == today && (ct.status != TaskStatus.pending))) {
+      // Include if past day OR today
+      if (d.isBefore(today) || d == today) {
         loaded.add(ct);
       }
     }

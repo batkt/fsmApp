@@ -592,15 +592,30 @@ class _BarsPainter extends CustomPainter {
     if (vals.isEmpty) return;
     final mx = vals.reduce(max);
     final h = sz.height - 28;
-    if (mx == 0) return;
+    if (mx == 0) {
+      final bw = sz.width / (vals.length * 2 + 1), sp = bw;
+      for (int i = 0; i < vals.length; i++) {
+        final x = sp+i*(bw+sp);
+        cv.drawRRect(RRect.fromRectAndRadius(
+            Rect.fromLTWH(x, h-4, bw, 4), const Radius.circular(6)),
+            Paint()..color = clr.withOpacity(0.1));
+        final lp = TextPainter(text: TextSpan(text: lbls[i],
+            style: TextStyle(fontSize: 10, color: mutedClr, fontWeight: FontWeight.normal)),
+            textDirection: TextDirection.ltr)..layout();
+        lp.paint(cv, Offset(x+(bw-lp.width)/2, h+6));
+      }
+      return;
+    }
     final bw = sz.width / (vals.length * 2 + 1), sp = bw;
     for (int i = 0; i < vals.length; i++) {
-      final bh = (vals[i]/mx)*h, x = sp+i*(bw+sp), y = h-bh;
+      double bh = (vals[i]/mx)*h;
+      if (bh < 4) bh = 4;
+      final x = sp+i*(bw+sp), y = h-bh;
       final hl = i == hi;
       cv.drawRRect(RRect.fromRectAndRadius(
           Rect.fromLTWH(x, y, bw, bh), const Radius.circular(6)),
           Paint()..color = hl ? clr : clr.withOpacity(0.3));
-      if (hl) {
+      if (hl && vals[i] > 0) {
         final tp = TextPainter(text: TextSpan(
             text: vals[i].toInt().toString(),
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold,
