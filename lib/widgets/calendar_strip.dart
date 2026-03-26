@@ -50,28 +50,9 @@ class _FullCalendarState extends State<FullCalendar>
   List<CleaningTask> _tasksForDay(DateTime day) {
     final d = stripTime(day);
     return widget.tasks.where((t) {
-      // 1. Check if it's the specific single-day date
-      if (_same(t.date, d)) return true;
-
-      // 2. Check if it's a multi-day or looping task
-      if (t.isLoop || t.isDay) {
-        if (t.ekhlekhOgnoo == null) return false;
-        final start = stripTime(t.ekhlekhOgnoo!);
-        
-        // If it has an end date, check range. Otherwise, from start onwards?
-        // User said: "if it not loop but day it should also show in from start do end"
-        // Also: "it shows everyday until date is duusakh"
-        if (t.duusakhOgnoo != null) {
-          final end = stripTime(t.duusakhOgnoo!);
-          return (d.isAtSameMomentAs(start) || d.isAfter(start)) &&
-                 (d.isAtSameMomentAs(end) || d.isBefore(end));
-        } else {
-          // No end date - assume it's ongoing from start
-          return d.isAtSameMomentAs(start) || d.isAfter(start);
-        }
-      }
-
-      return false;
+      // Use the unified isOnDay method which handles all cases:
+      // single-day, multi-day, loop, and full-day tasks
+      return t.isOnDay(d);
     }).toList()
       ..sort((a, b) {
         final am = a.startTime.hour * 60 + a.startTime.minute;
@@ -700,7 +681,12 @@ class _FullCalendarState extends State<FullCalendar>
         return Expanded(
           child: GestureDetector(
             onTap: () {
-              widget.onSelected(day);
+              if (isSelected) {
+                // Already selected - show day detail modal
+                _showDayModal(context, day);
+              } else {
+                widget.onSelected(day);
+              }
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),

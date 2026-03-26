@@ -51,7 +51,6 @@ class CleaningTask {
   /// Convert an API task to a CleaningTask for the UI.
   factory CleaningTask.fromApi(ApiTask t) {
     // Map API status → UI enum
-    // Trust the backend status - backend scheduler handles status updates
     TaskStatus status;
     switch (t.tuluv) {
       case 'khiigdej bui':
@@ -68,10 +67,20 @@ class CleaningTask {
         break;
       case 'shine':
       default:
-        // Trust backend status - if backend says 'shine', show as pending
-        // Backend scheduler will update to 'khugatsaa khetersen' when appropriate
         status = TaskStatus.pending;
         break;
+    }
+
+    // SPECIAL LOGIC FOR LOOPS/MULTI-DAY: 
+    // If the task status is "In Progress" but there's NO log for the current/selected day 
+    // for this specific worker, treat it as "Pending" for this instance/day.
+    if (status == TaskStatus.inProgress && (t.isLoop || t.ekhlekhOgnoo != t.duusakhOgnoo)) {
+      final now = TimezoneService.nowMongolia();
+      final hasLogToday = t.ajiltanTsag.any((log) {
+        final logDate = TimezoneService.toMongoliaTime(log.ekhlekhTsag.toUtc());
+        return logDate.year == now.year && logDate.month == now.month && logDate.day == now.day && log.duusakhTsag == null;
+      });
+      if (!hasLogToday) status = TaskStatus.pending;
     }
 
     // Map API priority → UI enum
@@ -100,12 +109,16 @@ class CleaningTask {
         ? TimezoneService.toMongoliaTime(utcEnd.toUtc())
         : null;
 
-    final startTime = start != null
-        ? TimeOfDay(hour: start.hour, minute: start.minute)
-        : const TimeOfDay(hour: 9, minute: 0);
-    final endTime = end != null
-        ? TimeOfDay(hour: end.hour, minute: end.minute)
-        : const TimeOfDay(hour: 18, minute: 0);
+    final startTime = t.isDay 
+        ? const TimeOfDay(hour: 0, minute: 0)
+        : (start != null
+            ? TimeOfDay(hour: start.hour, minute: start.minute)
+            : const TimeOfDay(hour: 9, minute: 0));
+    final endTime = t.isDay 
+        ? const TimeOfDay(hour: 23, minute: 59)
+        : (end != null
+            ? TimeOfDay(hour: end.hour, minute: end.minute)
+            : const TimeOfDay(hour: 18, minute: 0));
 
     // Subtasks
     final subs = t.subTasks

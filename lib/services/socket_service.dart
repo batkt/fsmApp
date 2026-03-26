@@ -19,7 +19,7 @@ class SocketService {
     if (_socket != null) return;
 
     _socket = IO.io(
-      ApiService.baseUrl,
+      ApiService.socketUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableAutoConnect()

@@ -95,7 +95,7 @@ class AuthService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'nevtrekhNer': nevtrekhNer, 'nuutsUg': nuutsUg}),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
 
       Map<String, dynamic> data;
       try {
@@ -108,6 +108,7 @@ class AuthService {
       if (response.statusCode == 200 && data['success'] == true) {
         final tokenVal = data['token'] as String;
         final result = data['result'] as Map<String, dynamic>;
+        // tureesBack might not return 'baiguullaga' object separately, so we handle it gracefully
         final baiguullaga = data['baiguullaga'] as Map<String, dynamic>?;
 
         final user = AuthUser(

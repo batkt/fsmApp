@@ -1997,6 +1997,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           .map((t) => CleaningTask.fromApi(t))
           .toList();
 
+      // Sort: Newest created first
+      newTasks.sort((a, b) => (b.createdAt ?? DateTime(2000)).compareTo(a.createdAt ?? DateTime(2000)));
+
       // Keep local state (like startedAtLocal and subtasks checkmarks) when refreshing
       for (var newTask in newTasks) {
         try {
@@ -2005,6 +2008,18 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           // Preserve startedAtLocal so timer doesn't reset to 0
           if (oldTask.status == newTask.status &&
               newTask.status == TaskStatus.inProgress) {
+            newTask.startedAtLocal = oldTask.startedAtLocal;
+          }
+
+          // Preserve optimistic status updates when API is behind local state
+          // If we locally set a task to completed/inProgress but API still returns pending,
+          // keep the local (more advanced) status to prevent UI flickering
+          if (oldTask.status == TaskStatus.completed && 
+              (newTask.status == TaskStatus.pending || newTask.status == TaskStatus.inProgress)) {
+            newTask.status = TaskStatus.completed;
+          } else if (oldTask.status == TaskStatus.inProgress && 
+              newTask.status == TaskStatus.pending) {
+            newTask.status = TaskStatus.inProgress;
             newTask.startedAtLocal = oldTask.startedAtLocal;
           }
 
