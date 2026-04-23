@@ -188,17 +188,16 @@ class AuthService {
           msg = 'Хэрэглэгч олдсонгүй';
         } else if (lowerMsg.contains('invalid password') || 
                    lowerMsg.contains('wrong password') ||
-                   lowerMsg.contains('нууц код буруу')) {
-          msg = 'Нууц код буруу байна';
+                   lowerMsg.contains('нууц код буруу') ||
+                   lowerMsg.contains('unauthorized')) {
+          msg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
         } else if (lowerMsg.contains('invalid credentials') ||
                    lowerMsg.contains('authentication failed')) {
           msg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
-        } else if (lowerMsg.contains('unauthorized')) {
-          msg = 'Хандах эрхгүй эсвэл эрх хүчингүй байна';
         } else if (lowerMsg.contains('forbidden')) {
           msg = 'Танд энэ үйлдлийг хийх зөвшөөрөл байхгүй байна';
         } else if (lowerMsg.contains('not found')) {
-          msg = 'Хэрэглэгч олдсонгүй';
+          msg = 'Мэдээлэл олдсонгүй';
         } else if (lowerMsg.contains('bad request')) {
           msg = 'Хүсэлт буруу байна';
         } else if (lowerMsg.contains('internal server error')) {

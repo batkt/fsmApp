@@ -1715,7 +1715,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                       ? 'Өнөөдрийн ажил'
                       : '${_selectedDay.year}-${_selectedDay.month.toString().padLeft(2, '0')}-${_selectedDay.day.toString().padLeft(2, '0')} Даалгавар',
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
                     fontSize: context.rFontSize(16),
                   ),
                   overflow: TextOverflow.ellipsis,

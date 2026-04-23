@@ -83,7 +83,7 @@ class Baraa {
         : (j['niitUne'] != null
               ? double.tryParse(j['niitUne'].toString()) ?? 0.0
               : 0.0),
-    tailbar: (j['tailbar'] ?? '').toString(),
+    tailbar: (j['tailbar'] ?? j['comment'] ?? j['note'] ?? '').toString(),
     ognoo: TaskZurag._tryParse(j['ognoo']),
     type: j['type']?.toString() ?? j['turul']?.toString(),
     uldegdel: j['uldegdel'] is num 

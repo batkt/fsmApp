@@ -87,13 +87,14 @@ class WorkEaseApp extends StatelessWidget {
               centerTitle: false,
               titleTextStyle: TextStyle(
                 color: AppColorScheme.light.primary,
-                fontSize: _isIOS ? 15 : 20, // Smaller on iOS
+                fontSize: _isIOS ? 15 : 18,
                 fontWeight: FontWeight.w600,
               ),
               iconTheme: IconThemeData(
-                size: _isIOS ? 20 : 24, // Smaller icons on iOS
+                size: _isIOS ? 20 : 24,
               ),
             ),
+
             textTheme: TextTheme(
               bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
               bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),
@@ -153,13 +154,14 @@ class WorkEaseApp extends StatelessWidget {
               centerTitle: false,
               titleTextStyle: TextStyle(
                 color: AppColorScheme.dark.primary,
-                fontSize: _isIOS ? 15 : 20, // Smaller on iOS
+                fontSize: _isIOS ? 15 : 18,
                 fontWeight: FontWeight.w600,
               ),
               iconTheme: IconThemeData(
-                size: _isIOS ? 20 : 24, // Smaller icons on iOS
+                size: _isIOS ? 20 : 24,
               ),
             ),
+
             textTheme: TextTheme(
               bodyLarge: TextStyle(fontSize: _isIOS ? 14 : 18),
               bodyMedium: TextStyle(fontSize: _isIOS ? 13 : 16),

@@ -909,13 +909,34 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                       ),
                                     ],
                                     if (baraa.tailbar.isNotEmpty) ...[
-                                      SizedBox(height: context.rSpacing(6)),
-                                      Text(
-                                        baraa.tailbar,
-                                        style: TextStyle(
-                                          fontSize: context.rFontSize(12),
-                                          color: c.mutedForeground,
-                                          fontStyle: FontStyle.italic,
+                                      SizedBox(height: context.rSpacing(10)),
+                                      Container(
+                                        padding: EdgeInsets.all(context.rSpacing(10)),
+                                        decoration: BoxDecoration(
+                                          color: c.brandGreen.withOpacity(0.05),
+                                          borderRadius: BorderRadius.circular(context.rRadius(8)),
+                                          border: Border.all(color: c.brandGreen.withOpacity(0.1)),
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Icon(
+                                              Icons.chat_bubble_outline_rounded,
+                                              size: context.rIconSize(14),
+                                              color: c.brandGreen,
+                                            ),
+                                            SizedBox(width: context.rSpacing(8)),
+                                            Expanded(
+                                              child: Text(
+                                                baraa.tailbar,
+                                                style: TextStyle(
+                                                  fontSize: context.rFontSize(12),
+                                                  color: c.primary.withOpacity(0.9),
+                                                  height: 1.4,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],

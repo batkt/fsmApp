@@ -102,13 +102,17 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      helpText: 'Өдөр сонгох',
+      cancelText: 'Цуцлах',
+      confirmText: 'Баталгаах',
       builder: (context, child) {
-        final c = Theme.of(context).colorScheme;
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: c.copyWith(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF10B981),
               primary: const Color(0xFF10B981),
               onPrimary: Colors.white,
+              brightness: Theme.of(context).brightness,
             ),
           ),
           child: child!,
@@ -122,6 +126,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final activeProject = ProjectService.activeProject.value;
@@ -130,12 +135,12 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('$title - Гүйцэтгэл',
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+          title: Text('$title - Гүйцэтгэл'),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
+
 
     final c = context.colors;
     
@@ -155,18 +160,25 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final monthTotal = monthTasks.length;
     final monthAttendance = monthTotal == 0 ? 0 : 100; // Simplified for now
 
-    // Weekly Chart - Align with Monday-Sunday week
+    // Weekly Chart - group by completion date (Mon-Sun current week)
     final currentWeekDay = now.weekday; // 1 (Mon) to 7 (Sun)
     final monday = stripTime(now.subtract(Duration(days: currentWeekDay - 1)));
     
+    // Weekly Chart - total workload for current week (Mon-Sun)
     final weekData = List.generate(7, (i) {
+      final day = monday.add(Duration(days: i));
+      return _tasks.where((t) => stripTime(t.date) == day).length.toDouble();
+    });
+
+    final completedWeekData = List.generate(7, (i) {
       final day = monday.add(Duration(days: i));
       return _tasks.where((t) {
         if (t.status != TaskStatus.completed) return false;
-        final finishDate = t.completedAt ?? t.ekhlekhOgnoo ?? t.ekhlekhTsag ?? t.date;
+        final finishDate = t.completedAt ?? t.date;
         return stripTime(finishDate) == day;
       }).length.toDouble();
     });
+
 
     // Monthly Quality/Completion Data (last 6 months)
     final monthlyData = List.generate(6, (i) {
@@ -212,27 +224,16 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         title: Text(
           'Гүйцэтгэл',
           style: TextStyle(
-            fontWeight: FontWeight.w600,
             fontSize: context.rFontSize(16),
           ),
         ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month_rounded),
             onPressed: () => _selectDate(context),
             tooltip: 'Өдөр сонгох',
           ),
-          if (_refreshingKpi)
-            const Center(child: Padding(
-              padding: EdgeInsets.only(right: 16.0),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-            ))
-          else
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              onPressed: _refreshKpi,
-              tooltip: 'Шинэчлэх',
-            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -335,6 +336,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 child: CustomPaint(size: const Size(double.infinity, 160),
                     painter: _BarsPainter(
                       weekData,
+                      completedWeekData,
                       ['Д', 'М', 'Л', 'П', 'Б', 'Бя', 'Н'],
                       c.brandGreen, now.weekday - 1, c.mutedForeground))),
               bottom: Text('Нийт: ${_tasks.length} даалгавар',
@@ -584,12 +586,17 @@ class _RingPainter extends CustomPainter {
 }
 
 class _BarsPainter extends CustomPainter {
-  _BarsPainter(this.vals, this.lbls, this.clr, this.hi, this.mutedClr);
-  final List<double> vals; final List<String> lbls;
+  _BarsPainter(this.vals, this.completedVals, this.lbls, this.clr, this.hi, this.mutedClr);
+  final List<double> vals; final List<double> completedVals; final List<String> lbls;
   final Color clr, mutedClr; final int hi;
   @override
   void paint(Canvas cv, Size sz) {
     if (vals.isEmpty) return;
+    
+    // Safety: clip to allocated size to prevent overlapping titles/headers
+    cv.save();
+    cv.clipRect(Offset.zero & sz);
+
     final mx = vals.reduce(max);
     final h = sz.height - 28;
     if (mx == 0) {
@@ -604,21 +611,42 @@ class _BarsPainter extends CustomPainter {
             textDirection: TextDirection.ltr)..layout();
         lp.paint(cv, Offset(x+(bw-lp.width)/2, h+6));
       }
+      cv.restore();
       return;
     }
     final bw = sz.width / (vals.length * 2 + 1), sp = bw;
     for (int i = 0; i < vals.length; i++) {
-      double bh = (vals[i]/mx)*h;
-      if (bh < 4) bh = 4;
+      final val = vals[i];
+      final comp = completedVals[i];
+      
+      double bh = (val / mx) * h;
+      if (bh < 4 && val > 0) bh = 4;
+      if (bh > h) bh = h; // Clamp to max height
+      
+      double ch = (comp / mx) * h;
+      if (ch < 4 && comp > 0) ch = 4;
+      if (ch > bh) ch = bh; // Clamp completed to total height
+      
       final x = sp+i*(bw+sp), y = h-bh;
       final hl = i == hi;
+      
+      // Draw background/total bar
       cv.drawRRect(RRect.fromRectAndRadius(
           Rect.fromLTWH(x, y, bw, bh), const Radius.circular(6)),
-          Paint()..color = hl ? clr : clr.withOpacity(0.3));
-      if (hl && vals[i] > 0) {
+          Paint()..color = hl ? clr.withOpacity(0.2) : clr.withOpacity(0.1));
+          
+      // Draw completed part
+      if (comp > 0) {
+        cv.drawRRect(RRect.fromRectAndRadius(
+            Rect.fromLTWH(x, h-ch, bw, ch), const Radius.circular(6)),
+            Paint()..color = hl ? clr : clr.withOpacity(0.5));
+      }
+
+      if (hl && val > 0) {
+        final label = comp == val ? comp.toInt().toString() : '${comp.toInt()}/${val.toInt()}';
         final tp = TextPainter(text: TextSpan(
-            text: vals[i].toInt().toString(),
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold,
+            text: label,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,
                 color: clr)), textDirection: TextDirection.ltr)..layout();
         tp.paint(cv, Offset(x+(bw-tp.width)/2, y-16));
       }
@@ -629,6 +657,7 @@ class _BarsPainter extends CustomPainter {
           textDirection: TextDirection.ltr)..layout();
       lp.paint(cv, Offset(x+(bw-lp.width)/2, h+6));
     }
+    cv.restore();
   }
   @override bool shouldRepaint(covariant CustomPainter o) => true;
 }

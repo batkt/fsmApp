@@ -190,8 +190,8 @@ class _OverlayPainter extends CustomPainter {
   }
 }
 
-/// Tooltip widget that shows step information
-class _TooltipWidget extends StatelessWidget {
+/// Tooltip widget that shows step information — draggable so user can move it
+class _TooltipWidget extends StatefulWidget {
   const _TooltipWidget({
     required this.step,
     required this.targetPosition,
@@ -217,158 +217,196 @@ class _TooltipWidget extends StatelessWidget {
   final VoidCallback onComplete;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    final screenSize = MediaQuery.of(context).size;
+  State<_TooltipWidget> createState() => _TooltipWidgetState();
+}
 
-    // Calculate tooltip position based on target and preferred position
-    Offset tooltipPosition;
-    double tooltipWidth = screenSize.width - 32;
+class _TooltipWidgetState extends State<_TooltipWidget> {
+  Offset? _dragOffset; // extra offset from dragging
 
-    switch (position) {
+  Offset _initialPosition(Size screenSize, double tooltipWidth) {
+    Offset pos;
+    switch (widget.position) {
       case WalkthroughPosition.top:
-        tooltipPosition = Offset(16, targetPosition.dy - 200);
+        pos = Offset(16, widget.targetPosition.dy - 200);
         break;
       case WalkthroughPosition.bottom:
-        tooltipPosition = Offset(
-          16,
-          targetPosition.dy + targetSize.height + 24,
-        );
+        pos = Offset(16, widget.targetPosition.dy + widget.targetSize.height + 24);
         break;
       case WalkthroughPosition.left:
-        tooltipPosition = Offset(
-          targetPosition.dx - tooltipWidth - 16,
-          targetPosition.dy + targetSize.height / 2 - 100,
+        pos = Offset(
+          widget.targetPosition.dx - tooltipWidth - 16,
+          widget.targetPosition.dy + widget.targetSize.height / 2 - 100,
         );
         break;
       case WalkthroughPosition.right:
-        tooltipPosition = Offset(
-          targetPosition.dx + targetSize.width + 16,
-          targetPosition.dy + targetSize.height / 2 - 100,
+        pos = Offset(
+          widget.targetPosition.dx + widget.targetSize.width + 16,
+          widget.targetPosition.dy + widget.targetSize.height / 2 - 100,
         );
         break;
       case WalkthroughPosition.center:
-        tooltipPosition = Offset(16, screenSize.height / 2 - 150);
+        pos = Offset(16, screenSize.height / 2 - 150);
         break;
     }
+    // Clamp to screen
+    if (pos.dy < 16) pos = Offset(pos.dx, 16);
+    if (pos.dy + 200 > screenSize.height - 16) {
+      pos = Offset(pos.dx, screenSize.height - 216);
+    }
+    return pos;
+  }
 
-    // Ensure tooltip stays on screen
-    if (tooltipPosition.dy < 16) {
-      tooltipPosition = Offset(tooltipPosition.dx, 16);
+  @override
+  void didUpdateWidget(_TooltipWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset drag when step changes
+    if (oldWidget.currentIndex != widget.currentIndex) {
+      _dragOffset = null;
     }
-    if (tooltipPosition.dy + 200 > screenSize.height - 16) {
-      tooltipPosition = Offset(tooltipPosition.dx, screenSize.height - 216);
-    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final screenSize = MediaQuery.of(context).size;
+    final tooltipWidth = screenSize.width - 32;
+    final base = _initialPosition(screenSize, tooltipWidth);
+    final drag = _dragOffset ?? Offset.zero;
+
+    // Clamp final position to screen bounds
+    double left = (base.dx + drag.dx).clamp(8.0, screenSize.width - tooltipWidth - 8);
+    double top = (base.dy + drag.dy).clamp(8.0, screenSize.height - 240.0);
 
     return Positioned(
-      left: tooltipPosition.dx,
-      top: tooltipPosition.dy,
+      left: left,
+      top: top,
       width: tooltipWidth,
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: c.background,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 20,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Step indicator
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+      child: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            _dragOffset = (_dragOffset ?? Offset.zero) + details.delta;
+          });
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: c.background,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag handle indicator
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: c.brandGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${currentIndex + 1} / $totalSteps',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: c.brandGreen,
-                      ),
+                      color: c.mutedForeground.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: onSkip,
-                    child: Text(
-                      'Алгасах',
-                      style: TextStyle(fontSize: 14, color: c.mutedForeground),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Title
-              Text(
-                step.title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: c.primary,
                 ),
-              ),
-              const SizedBox(height: 8),
-              // Description
-              Text(
-                step.description,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: c.mutedForeground,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Navigation buttons
-              Row(
-                children: [
-                  if (currentIndex > 0)
-                    TextButton(
-                      onPressed: onPrevious,
-                      child: Text(
-                        'Буцах',
-                        style: TextStyle(color: c.mutedForeground),
-                      ),
-                    ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: currentIndex == totalSteps - 1
-                        ? onComplete
-                        : onNext,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: c.brandGreen,
-                      foregroundColor: Colors.white,
+                // Step indicator
+                Row(
+                  children: [
+                    Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      decoration: BoxDecoration(
+                        color: c.brandGreen.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${widget.currentIndex + 1} / ${widget.totalSteps}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: c.brandGreen,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      currentIndex == totalSteps - 1 ? 'Дуусгах' : 'Дараах',
+                    const Spacer(),
+                    TextButton(
+                      onPressed: widget.onSkip,
+                      child: Text(
+                        'Алгасах',
+                        style: TextStyle(fontSize: 14, color: c.mutedForeground),
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Title
+                Text(
+                  widget.step.title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: c.primary,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 8),
+                // Description
+                Text(
+                  widget.step.description,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: c.mutedForeground,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Navigation buttons
+                Row(
+                  children: [
+                    if (widget.currentIndex > 0)
+                      TextButton(
+                        onPressed: widget.onPrevious,
+                        child: Text(
+                          'Буцах',
+                          style: TextStyle(color: c.mutedForeground),
+                        ),
+                      ),
+                    const Spacer(),
+                    ElevatedButton(
+                      onPressed: widget.currentIndex == widget.totalSteps - 1
+                          ? widget.onComplete
+                          : widget.onNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: c.brandGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        widget.currentIndex == widget.totalSteps - 1
+                            ? 'Дуусгах'
+                            : 'Дараах',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -60,10 +60,5 @@
 	<string>Бид таныг Face ID ашиглан баталгаажуулах шаардлагатай.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Бид тусламж хэсгийг нээхэд төхөөрөмжийн хөдөлгөөний мэдээллийг ашиглана.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 </dict>
 </plist>

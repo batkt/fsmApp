@@ -564,27 +564,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: c.primary,
               ),
             ),
-            Text(
-              SocketService.isConnected
-                  ? (() {
-                      final memberIds = _messages
-                          .map((m) => m.ajiltniiId)
-                          .where((id) => id.isNotEmpty)
-                          .toSet();
-                      if (memberIds.isEmpty) return 'Онлайн';
-                      int active = 0;
-                      for (var id in memberIds) {
-                        if (SocketService.onlineUsers[id] == 'online' ||
-                            id == _myId)
-                          active++;
-                      }
-                      int inactive = memberIds.length - active;
-                      if (inactive < 0) inactive = 0;
-                      return 'Идэвхтэй $active, Идэвхгүй $inactive';
-                    })()
-                  : 'Холбогдож байна...',
-              style: TextStyle(fontSize: 12, color: c.mutedForeground),
-            ),
           ],
         ),
         actions: [
@@ -960,17 +939,32 @@ class _ChatScreenState extends State<ChatScreen> {
             HapticFeedback.vibrate();
             final confirm = await showDialog<bool>(
               context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Мессеж устгах'),
-                content: const Text('Та энэ мессежийг устгахдаа итгэлтэй байна уу?'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Үгүй')),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, true), 
-                    child: const Text('Тийм', style: TextStyle(color: Colors.red))
+              builder: (ctx) {
+                final colorScheme = ctx.colors;
+                return AlertDialog(
+                  backgroundColor: colorScheme.cardBackground,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  title: Text(
+                    'Мессеж устгах',
+                    style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
                   ),
-                ],
-              ),
+                  content: Text(
+                    'Та энэ мессежийг устгахдаа итгэлтэй байна уу?',
+                    style: TextStyle(color: colorScheme.primary.withOpacity(0.8)),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text('Болих', style: TextStyle(color: colorScheme.mutedForeground)),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: TextButton.styleFrom(foregroundColor: colorScheme.destructive),
+                      child: const Text('Устгах', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                );
+              },
             );
             if (confirm == true) {
               _deleteMsg(msg.id);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class BaraaSelector extends StatefulWidget {
   final Baraa placeholder;
@@ -140,66 +141,140 @@ class _BaraaSelectorState extends State<BaraaSelector> {
     }
 
     return Container(
+      decoration: BoxDecoration(
+        color: c.background,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(context.rRadius(24))),
+      ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        top: 24,
-        left: 24,
-        right: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + context.rSpacing(24),
+        top: context.rSpacing(12),
+        left: context.rSpacing(24),
+        right: context.rSpacing(24),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: context.rSpacing(40),
+              height: context.rSpacing(4),
+              decoration: BoxDecoration(
+                color: c.border,
+                borderRadius: BorderRadius.circular(context.rRadius(2)),
+              ),
+            ),
+          ),
+          SizedBox(height: context.rSpacing(20)),
           Text(
             'Бараа материал сонгох',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: context.rFontSize(18),
               fontWeight: FontWeight.bold,
               color: c.primary,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<Baraa>(
-            decoration: InputDecoration(
-              labelText: 'Материал',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          SizedBox(height: context.rSpacing(20)),
+          
+          Theme(
+            data: Theme.of(context).copyWith(
+              hoverColor: c.brandGreen.withOpacity(0.05),
+              focusColor: c.brandGreen.withOpacity(0.05),
             ),
-            isExpanded: true,
-            value: _selectedBaraa,
-            items: _baraas.map((b) {
-              return DropdownMenuItem(
-                value: b,
-                child: Text('${b.ner} (Үлдэгдэл: ${b.uldegdel.toStringAsFixed(b.uldegdel.truncateToDouble() == b.uldegdel ? 0 : 2)} ${b.negjLabel})'),
-              );
-            }).toList(),
-            onChanged: (val) {
-              setState(() {
-                _selectedBaraa = val;
-                _validateInput();
-              });
-            },
+            child: DropdownButtonFormField<Baraa>(
+              dropdownColor: c.cardBackground,
+              borderRadius: BorderRadius.circular(context.rRadius(16)),
+              decoration: InputDecoration(
+                labelText: 'Материал',
+                labelStyle: TextStyle(color: c.mutedForeground, fontSize: context.rFontSize(14)),
+                filled: true,
+                fillColor: c.secondary.withOpacity(0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(context.rRadius(12)),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(context.rRadius(12)),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(context.rRadius(12)),
+                  borderSide: BorderSide(color: c.brandGreen.withOpacity(0.5), width: 1.5),
+                ),
+                prefixIcon: Icon(Icons.inventory_2_rounded, color: c.brandGreen, size: context.rIconSize(20)),
+              ),
+              isExpanded: true,
+              value: _selectedBaraa,
+              icon: Icon(Icons.keyboard_arrow_down_rounded, color: c.mutedForeground),
+              items: _baraas.map((b) {
+                return DropdownMenuItem(
+                  value: b,
+                  child: Text(
+                    '${b.ner} (Үлдэгдэл: ${b.uldegdel.toStringAsFixed(b.uldegdel.truncateToDouble() == b.uldegdel ? 0 : 2)} ${b.negjLabel})',
+                    style: TextStyle(
+                      fontSize: context.rFontSize(14),
+                      color: c.primary,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                setState(() {
+                  _selectedBaraa = val;
+                  _validateInput();
+                });
+              },
+            ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.rSpacing(16)),
           TextField(
             controller: _tooController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: TextStyle(color: c.primary, fontSize: context.rFontSize(14)),
             decoration: InputDecoration(
               labelText: 'Тоо хэмжээ',
+              labelStyle: TextStyle(color: c.mutedForeground, fontSize: context.rFontSize(14)),
+              filled: true,
+              fillColor: c.secondary.withOpacity(0.3),
               errorText: _validationError,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              errorStyle: TextStyle(fontSize: context.rFontSize(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(context.rRadius(12)),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(context.rRadius(12)),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(context.rRadius(12)),
+                borderSide: BorderSide(color: c.brandGreen.withOpacity(0.5), width: 1.5),
+              ),
+              prefixIcon: Icon(Icons.calculate_rounded, color: c.brandGreen, size: context.rIconSize(20)),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: context.rSpacing(24)),
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: context.rSpacing(50),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.brandGreen,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.rRadius(12))),
+                disabledBackgroundColor: c.brandGreen.withOpacity(0.3),
               ),
               onPressed: _selectedBaraa == null || _tooController.text.isEmpty || _validationError != null ? null : _save,
-              child: const Text('Сонгох', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text(
+                'Сонгох',
+                style: TextStyle(
+                  fontSize: context.rFontSize(16),
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           ),
         ],

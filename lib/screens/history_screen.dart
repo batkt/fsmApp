@@ -23,6 +23,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _loading = true;
   String _filter = 'all';
   String _searchQuery = '';
+  final ScrollController _scrollController = ScrollController();
+
 
   @override
   void initState() {
@@ -39,11 +41,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     ProjectService.activeProject.removeListener(_onProjectChanged);
     SocketService.offTaskCreated(_onSocketUpdate);
     SocketService.offTaskUpdated(_onSocketUpdate);
     super.dispose();
   }
+
 
   void _onProjectChanged() {
     if (mounted) {
@@ -162,12 +166,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} (${dayNames[d.weekday]})';
   }
 
+  void _setFilter(String filter) {
+    setState(() => _filter = filter);
+    // Scroll down past the stat cards to show the task list
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          220,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final grouped = _groupedTasks;
     final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
+    // Counts always from all tasks, not filtered
     final completedCount = _allTasks.where(
         (t) => t.status == TaskStatus.completed).length;
     final overdueCount = _allTasks.where(
@@ -175,17 +194,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final inProgressCount = _allTasks.where(
         (t) => t.status == TaskStatus.inProgress).length;
 
+
     final activeProject = ProjectService.activeProject.value;
     final title = activeProject?.ner ?? 'Бүх төсөл';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('$title - Түүх',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text('$title - Түүх'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -196,26 +217,54 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: CircularProgressIndicator(color: c.brandGreen, strokeWidth: 2.5),
                 ))
               else ...[
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(children: [
-                      _StatCard(c: c, label: 'Нийт', count: _allTasks.length,
-                          color: c.primary, icon: Icons.assignment_rounded),
-                      const SizedBox(width: 12),
-                      _StatCard(c: c, label: 'Дууссан', count: completedCount,
-                          color: c.success, icon: Icons.check_circle_rounded),
-                      const SizedBox(width: 12),
-                      _StatCard(c: c, label: 'Идэвхтэй', count: inProgressCount,
-                          color: c.info, icon: Icons.play_circle_rounded),
-                      const SizedBox(width: 12),
-                      _StatCard(c: c, label: 'Хэтэрсэн', count: overdueCount,
-                          color: c.destructive, icon: Icons.error_rounded),
-                    ]),
-                  ),
+                // ── Stat Cards ──
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.6,
+                  children: [
+                    _StatCard(
+                      c: c,
+                      label: 'Нийт',
+                      count: _allTasks.length,
+                      color: c.primary,
+                      icon: Icons.assignment_rounded,
+                      isActive: _filter == 'all',
+                      onTap: () => _setFilter('all'),
+                    ),
+                    _StatCard(
+                      c: c,
+                      label: 'Дууссан',
+                      count: completedCount,
+                      color: c.success,
+                      icon: Icons.check_circle_rounded,
+                      isActive: _filter == 'completed',
+                      onTap: () => _setFilter('completed'),
+                    ),
+                    _StatCard(
+                      c: c,
+                      label: 'Идэвхтэй',
+                      count: inProgressCount,
+                      color: c.info,
+                      icon: Icons.play_circle_rounded,
+                      isActive: _filter == 'inProgress',
+                      onTap: () => _setFilter('inProgress'),
+                    ),
+                    _StatCard(
+                      c: c,
+                      label: 'Хэтэрсэн',
+                      count: overdueCount,
+                      color: c.destructive,
+                      icon: Icons.error_rounded,
+                      isActive: _filter == 'overdue',
+                      onTap: () => _setFilter('overdue'),
+                    ),
+                  ],
                 ),
+
                 const SizedBox(height: 20),
 
               // ── Search ──
@@ -247,21 +296,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Row(children: [
                   _FilterChip(label: 'Бүгд', value: 'all',
                       selected: _filter, c: c,
-                      onTap: () => setState(() => _filter = 'all')),
+                      onTap: () => _setFilter('all')),
                   const SizedBox(width: 8),
                   _FilterChip(label: 'Дууссан', value: 'completed',
                       selected: _filter, c: c, color: c.success,
-                      onTap: () => setState(() => _filter = 'completed')),
+                      onTap: () => _setFilter('completed')),
                   const SizedBox(width: 8),
                   _FilterChip(label: 'Явагдаж буй', value: 'inProgress',
                       selected: _filter, c: c, color: c.info,
-                      onTap: () => setState(() => _filter = 'inProgress')),
+                      onTap: () => _setFilter('inProgress')),
                   const SizedBox(width: 8),
                   _FilterChip(label: 'Хэтэрсэн', value: 'overdue',
                       selected: _filter, c: c, color: c.destructive,
-                      onTap: () => setState(() => _filter = 'overdue')),
+                      onTap: () => _setFilter('overdue')),
                 ]),
               ),
+
               const SizedBox(height: 14),
 
               // ── Result count ──
@@ -327,67 +377,86 @@ class _HistoryScreenState extends State<HistoryScreen> {
 //  Stat Card
 // ═══════════════════════════════════════
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.c, required this.label,
-      required this.count, required this.color, required this.icon});
+  const _StatCard({
+    required this.c,
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.icon,
+    required this.onTap,
+    this.isActive = false,
+  });
   final AppColorScheme c;
   final String label;
   final int count;
   final Color color;
   final IconData icon;
+  final VoidCallback onTap;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 105,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.12)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+        decoration: BoxDecoration(
+          color: isActive ? color.withOpacity(0.12) : color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isActive ? color.withOpacity(0.5) : color.withOpacity(0.1),
+            width: isActive ? 1.5 : 1,
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+          boxShadow: isActive
+              ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))]
+              : [],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 18, color: color),
             ),
-            child: Icon(icon, size: 20, color: color),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: color,
-              letterSpacing: -0.5,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: c.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: c.mutedForeground.withOpacity(0.8),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            if (isActive)
+              Icon(Icons.chevron_right_rounded, color: color, size: 16),
+          ],
+        ),
       ),
     );
   }
 }
+
 
 // ═══════════════════════════════════════
 //  Filter Chip
