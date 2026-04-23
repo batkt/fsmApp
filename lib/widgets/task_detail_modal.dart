@@ -4,9 +4,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/cleaning_task.dart';
+import '../models/task_model.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import '../services/task_service.dart';
 import '../utils/responsive.dart';
+import 'baraa_selector.dart';
 
 class TaskDetailModal extends StatefulWidget {
   const TaskDetailModal({
@@ -39,6 +42,29 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
   void dispose() {
     _progressTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _updateBaraa(Baraa oldBaraa, Baraa newBaraa) async {
+    final List<Baraa> updatedList = t.baraa.map((b) => b == oldBaraa ? newBaraa : b).toList();
+    
+    // Update API
+    final success = await TaskService.update(t.id, {
+      'baraa': updatedList.map((b) => b.toJson()).toList(),
+    });
+
+    if (success) {
+      setState(() {
+        t.baraa.clear();
+        t.baraa.addAll(updatedList);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Материал амжилттай хадгалагдлаа')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Алдаа гарлаа')),
+      );
+    }
   }
 
   void _startProgressTimer() {
@@ -749,8 +775,58 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                             ),
                           ),
                         ] else ...[
-                          SizedBox(height: context.rSpacing(16)),
                           ...t.baraa.map((baraa) {
+                            if (baraa.ner.isEmpty) {
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: context.rSpacing(12)),
+                                child: InkWell(
+                                  onTap: () {
+                                    if (done) return;
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                      ),
+                                      builder: (_) => BaraaSelector(
+                                        placeholder: baraa,
+                                        baiguullagiinId: t.baiguullagiinId,
+                                        barilgiinId: t.buildingId,
+                                        onSelected: (updatedBaraa) {
+                                          Navigator.pop(context);
+                                          _updateBaraa(baraa, updatedBaraa);
+                                        },
+                                      ),
+                                    );  
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(context.rSpacing(12)),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.05),
+                                      borderRadius: BorderRadius.circular(context.rRadius(12)),
+                                      border: Border.all(color: Colors.blue.withOpacity(0.3), style: BorderStyle.solid),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.add_circle_outline, color: Colors.blue, size: context.rIconSize(20)),
+                                        SizedBox(width: context.rSpacing(12)),
+                                        Expanded(
+                                          child: Text(
+                                            'Материал сонгох',
+                                            style: TextStyle(
+                                              fontSize: context.rFontSize(14),
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
                             return Padding(
                               padding: EdgeInsets.only(
                                 bottom: context.rSpacing(12),
@@ -1397,6 +1473,12 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     height: context.rSpacing(54),
                     child: ElevatedButton(
                       onPressed: () {
+                        if (t.status != TaskStatus.inProgress && t.baraa.any((b) => b.ner.isEmpty)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Даалгавар эхлэхээс өмнө бараа материалаа бүрэн сонгоно уу')),
+                          );
+                          return;
+                        }
                         widget.onStatusChange();
                         Navigator.pop(context);
                       },

@@ -8,6 +8,8 @@ class Baraa {
   final double niitUne; // Total price
   final String tailbar; // Description
   final DateTime? ognoo; // Date
+  final String? type; // Category type
+  final double uldegdel; // Remaining stock
 
   Baraa({
     required this.baraaId,
@@ -18,6 +20,8 @@ class Baraa {
     required this.niitUne,
     this.tailbar = '',
     this.ognoo,
+    this.type,
+    this.uldegdel = 0.0,
   });
 
   String get negjLabel {
@@ -81,7 +85,24 @@ class Baraa {
               : 0.0),
     tailbar: (j['tailbar'] ?? '').toString(),
     ognoo: TaskZurag._tryParse(j['ognoo']),
+    type: j['type']?.toString() ?? j['turul']?.toString(),
+    uldegdel: j['uldegdel'] is num 
+        ? j['uldegdel'].toDouble() 
+        : (j['uldegdel'] != null ? double.tryParse(j['uldegdel'].toString()) ?? 0.0 : 0.0),
   );
+
+  Map<String, dynamic> toJson() => {
+    'baraaId': baraaId,
+    'ner': ner,
+    'negj': negj,
+    'too': too,
+    'une': une,
+    'niitUne': niitUne,
+    'tailbar': tailbar,
+    if (ognoo != null) 'ognoo': ognoo!.toIso8601String(),
+    if (type != null) 'type': type,
+    'uldegdel': uldegdel,
+  };
 }
 
 /// Task image/photo model

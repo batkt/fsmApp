@@ -33,6 +33,7 @@ class CleaningTask {
     required this.buildingId,
     this.taskCode = '',
     this.projectId = '',
+    this.baiguullagiinId = '',
     List<String>? photoPaths,
     this.ekhlekhTsag,
     this.duusakhTsag,
@@ -143,6 +144,7 @@ class CleaningTask {
       buildingId: t.barilgiinId,
       taskCode: t.taskId,
       projectId: t.projectId,
+      baiguullagiinId: t.baiguullagiinId,
       subtasks: subs,
       // Combine all image types for hasPhoto check
       hasPhoto:
@@ -210,6 +212,7 @@ class CleaningTask {
   final String buildingId;
   final String taskCode;
   final String projectId;
+  final String baiguullagiinId;
   final DateTime? ekhlekhTsag;
   final DateTime? duusakhTsag;
   // Local-only start time when user taps "Эхлэх" in the app.
