@@ -12,8 +12,12 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // Explicitly register plugins to fix MissingPluginException
+        io.flutter.plugins.GeneratedPluginRegistrant.registerWith(flutterEngine)
 
         // Existing widget update channel
+        println("[MainActivity] Registering WIDGET_CHANNEL: $WIDGET_CHANNEL")
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {

@@ -5,6 +5,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 import '../models/chat_model.dart';
 import '../services/auth_service.dart';
@@ -485,23 +486,31 @@ class _ChatScreenState extends State<ChatScreen> {
                   final msg = imageMessages[currentIndex];
                   final url = '${ApiService.baseUrl}/${msg.fileUrl}';
                   try {
+                    debugPrint('[Chat] Downloading image from: $url');
                     final appDocDir = await getApplicationDocumentsDirectory();
                     final savePath =
                         '${appDocDir.path}/${msg.fileName ?? 'image.jpg'}';
+                    debugPrint('[Chat] Saving to: $savePath');
                     await Dio().download(url, savePath);
+                    debugPrint('[Chat] Download successful, now saving to gallery...');
+                    
+                    final result = await ImageGallerySaver.saveFile(savePath);
+                    debugPrint('[Chat] Gallery save result: $result');
+
                     if (context.mounted) {
                       AppToast.show(
                         context,
-                        'Зураг татагдлаа',
+                        'Зураг галлерей руу хадгалагдлаа',
                         icon: Icons.check_circle_rounded,
                         color: context.colors.success,
                       );
                     }
                   } catch (e) {
+                    debugPrint('[Chat] Gallery save failed: $e');
                     if (context.mounted) {
                       AppToast.show(
                         context,
-                        'Татахад алдаа гарлаа',
+                        'Галлерей руу хадгалахад алдаа гарлаа: $e',
                         icon: Icons.error_outline_rounded,
                         color: context.colors.destructive,
                       );

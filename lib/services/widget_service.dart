@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, debugPrint;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +16,7 @@ class WidgetService {
 
   /// Update the task home screen widget with ALL tasks for today
   static Future<void> updateWidget(List<CleaningTask> tasks) async {
+    if (kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
 
     final total = tasks.length;
@@ -52,6 +53,7 @@ class WidgetService {
   static Future<void> updateNotificationWidget(
     List<AppNotification> notifications,
   ) async {
+    if (kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
 
     final unread = notifications.where((n) => !n.isRead).length;
