@@ -648,28 +648,24 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
           Divider(color: c.border, height: 1),
           const SizedBox(height: 12),
 
-          // ── Info grid ──
-          _DetailRow(icon: Icons.person_outline, label: 'Удирдагч',
-              value: t.supervisor, c: c),
-          const SizedBox(height: 8),
-          _DetailRow(icon: Icons.timer_outlined, label: 'Төлөвлөсөн',
-              value: '${t.estimatedMinutes} мин', c: c),
-          if (t.status == TaskStatus.completed && t.completedAt != null) ...[
-            const SizedBox(height: 8),
-            _DetailRow(
-              icon: Icons.check_circle_outline_rounded,
-              label: 'Дууссан',
-              value: '${t.completedAt!.hour.toString().padLeft(2, '0')}:${t.completedAt!.minute.toString().padLeft(2, '0')}',
-              c: c,
-            ),
-            const SizedBox(height: 8),
-            _DetailRow(
-              icon: Icons.hourglass_bottom_rounded,
-              label: 'Зарцуулсан',
-              value: t.formattedElapsedHMS,
-              c: c,
-            ),
-          ],
+          // ── Info grid using Table for perfect alignment ──
+          Table(
+            columnWidths: const {
+              0: FixedColumnWidth(24),
+              1: FlexColumnWidth(3),
+              2: FlexColumnWidth(4),
+            },
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            children: [
+              _buildTableRow(c, Icons.person_outline, 'Удирдагч', t.supervisor),
+              _buildTableRow(c, Icons.timer_outlined, 'Төлөвлөсөн', '${t.estimatedMinutes} мин'),
+              if (t.status == TaskStatus.completed && t.completedAt != null) ...[
+                _buildTableRow(c, Icons.check_circle_outline_rounded, 'Дууссан', 
+                    '${t.completedAt!.hour.toString().padLeft(2, '0')}:${t.completedAt!.minute.toString().padLeft(2, '0')}'),
+                _buildTableRow(c, Icons.hourglass_bottom_rounded, 'Зарцуулсан', t.formattedElapsedHMS, valueColor: c.brandGreen),
+              ],
+            ],
+          ),
 
           // ── Notes ──
           if (t.notes.isNotEmpty) ...[
@@ -774,23 +770,29 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                   ),
                 )),
                 if (t.photoPaths.isEmpty && t.hasPhoto)
-                  ...List.generate(t.photoCount, (i) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Stack(
-                        children: [
-                          Image.network(
-                            'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=200&auto=format&fit=crop',
-                            width: 80, height: 80, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(width: 80, height: 80, color: c.muted),
+                  ...List.generate(t.photoCount, (i) {
+                    const placeholderUrl = 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop';
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => _showFullPhoto(context, placeholderUrl, c),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Stack(
+                            children: [
+                              Image.network(
+                                placeholderUrl,
+                                width: 80, height: 80, fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(width: 80, height: 80, color: c.muted),
+                              ),
+                              Container(width: 80, height: 80, color: Colors.black12),
+                              const Positioned(right: 4, bottom: 4, child: Icon(Icons.verified_rounded, color: Colors.white70, size: 16)),
+                            ],
                           ),
-                          Container(width: 80, height: 80, color: Colors.black12),
-                          const Positioned(right: 4, bottom: 4, child: Icon(Icons.verified_rounded, color: Colors.white70, size: 16)),
-                        ],
+                        ),
                       ),
-                    ),
-                  )),
+                    );
+                  }),
               ]),
             ),
           ],
@@ -829,6 +831,33 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
       ),
     );
   }
+
+  TableRow _buildTableRow(AppColorScheme c, IconData icon, String label, String value, {Color? valueColor}) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Icon(icon, size: 16, color: c.mutedForeground),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Text(label, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? c.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ═══════════════════════════════════════
@@ -836,21 +865,44 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
 // ═══════════════════════════════════════
 class _DetailRow extends StatelessWidget {
   const _DetailRow({required this.icon, required this.label,
-      required this.value, required this.c});
+      required this.value, required this.c, this.valueColor});
   final IconData icon;
   final String label, value;
   final AppColorScheme c;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Icon(icon, size: 16, color: c.mutedForeground),
-      const SizedBox(width: 6),
-      SizedBox(width: 80, child: Text(label,
-          style: TextStyle(fontSize: 13, color: c.mutedForeground))),
-      Expanded(child: Text(value, style: TextStyle(fontSize: 14,
-          fontWeight: FontWeight.w500, color: c.primary))),
-    ]);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: c.mutedForeground),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 13, color: c.mutedForeground),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 4,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? c.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

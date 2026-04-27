@@ -8,6 +8,8 @@ import 'theme/app_theme.dart';
 import 'services/holiday_service.dart';
 import 'services/fcm_service.dart';
 import 'services/settings_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 // Helper to check if platform is iOS (web-compatible)
 bool get _isIOS {
@@ -53,6 +55,7 @@ void main() async {
 
   await HolidayService.init();
   await SettingsService().init();
+  await initializeDateFormatting('mn_MN', null);
   runApp(const WorkEaseApp());
 }
 
@@ -67,6 +70,16 @@ class WorkEaseApp extends StatelessWidget {
         return MaterialApp(
           title: 'workEase',
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('mn', 'MN'),
+            Locale('en', 'US'),
+          ],
+          locale: const Locale('mn', 'MN'),
           themeMode: SettingsService().themeMode,
           // ── Light Theme ──
           theme: ThemeData(

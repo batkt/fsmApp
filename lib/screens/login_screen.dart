@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -111,20 +112,27 @@ class _LoginScreenState extends State<LoginScreen>
     _animCtrl.forward();
     _initBiometric();
     _loadVersion();
+    _loadSavedUser();
+  }
+
+  Future<void> _loadSavedUser() async {
+    final saved = await AuthService.getSavedUsername();
+    if (saved != null && mounted && _emailCtrl.text.isEmpty) {
+      setState(() => _emailCtrl.text = saved);
+    }
   }
 
   Future<void> _initBiometric() async {
     final supported = await _bio.isDeviceSupported();
     final enabled = await _bio.isEnabled();
-    // Check if there's a saved session (user previously logged in via API)
-    final hasSession = await AuthService.restoreSession();
+    // Check if there's a saved session that can be restored via Biometrics
+    final hasSession = await AuthService.restoreBiometricSession();
     if (!mounted) return;
     setState(() {
       _bioSupported = supported;
       _bioEnabled =
           enabled && hasSession; // only enable if saved session exists
     });
-    if (_bioSupported && _bioEnabled) _handleBiometricLogin();
   }
 
   Future<void> _loadVersion() async {
@@ -173,11 +181,37 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleBiometricLogin() async {
-    if (!_bioSupported || !_bioEnabled) return;
-    // Only allow biometric if we have a valid saved session
-    if (!AuthService.isLoggedIn) return;
-    final authenticated = await _bio.authenticate();
-    if (authenticated && mounted) widget.onLoggedIn();
+    if (!_bioSupported) return;
+    
+    if (!_bioEnabled) {
+      AppToast.show(
+        context,
+        Platform.isIOS 
+            ? 'Face ID идэвхжүүлэхийн тулд эхлээд нэг удаа нэвтрэх шаардлагатай' 
+            : 'Хурууны хээ идэвхжүүлэхийн тулд эхлээд нэг удаа нэвтрэх шаардлагатай',
+        icon: Icons.info_outline_rounded,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final authenticated = await _bio.authenticate();
+      if (authenticated && mounted) {
+        // Check if we have a valid session after authentication
+        final hasSession = await AuthService.restoreBiometricSession();
+        if (hasSession && mounted) {
+          widget.onLoggedIn();
+          return;
+        } else {
+          if (mounted) {
+            AppToast.show(context, 'Сэсси хугацаа дууссан байна. Нууц кодоор нэвтэрнэ үү.');
+          }
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _showForgotPassword(BuildContext context) {
@@ -670,7 +704,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
 
                     // ── Biometric section ──
-                    if (_bioSupported && _bioEnabled) ...[
+                    if (_bioSupported) ...[
                       const SizedBox(height: 20),
                       Row(
                         children: [

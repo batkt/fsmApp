@@ -1,5 +1,7 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/cleaning_task.dart';
 import '../models/task_model.dart';
 import '../services/project_service.dart';
@@ -102,20 +104,32 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      locale: const Locale('mn'),
       helpText: 'Өдөр сонгох',
       cancelText: 'Цуцлах',
-      confirmText: 'Баталгаах',
+      confirmText: 'Сонгох',
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF10B981),
-              primary: const Color(0xFF10B981),
-              onPrimary: Colors.white,
-              brightness: Theme.of(context).brightness,
+        final c = context.colors;
+        return Localizations.override(
+          context: context,
+          locale: const Locale('mn'),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: c.brandGreen,
+                primary: c.brandGreen,
+                onPrimary: Colors.white,
+                surface: c.background,
+                onSurface: c.primary,
+                brightness: Theme.of(context).brightness,
+              ),
+              dialogBackgroundColor: c.background,
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(foregroundColor: c.brandGreen),
+              ),
             ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );
@@ -240,8 +254,37 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+          // ── Date Selector ──
+          GestureDetector(
+            onTap: () => _selectDate(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: c.cardBackground,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: c.border),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today_rounded, color: c.brandGreen, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      stripTime(_selectedDate) == stripTime(TimezoneService.nowMongolia())
+                          ? 'Өнөөдөр: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}'
+                          : 'Сонгосон өдөр: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.primary),
+                    ),
+                  ),
+                  Icon(Icons.keyboard_arrow_down_rounded, color: c.mutedForeground, size: 20),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
           Text(
-            '${ProjectService.activeProject.value?.ner ?? ""} төслийн тойм',
+            '${ProjectService.activeProject.value?.ner ?? "Бүх"} төслийн тойм',
             style: TextStyle(
               fontSize: context.rFontSize(14),
               color: c.mutedForeground,
@@ -608,7 +651,7 @@ class _BarsPainter extends CustomPainter {
             Paint()..color = clr.withOpacity(0.1));
         final lp = TextPainter(text: TextSpan(text: lbls[i],
             style: TextStyle(fontSize: 10, color: mutedClr, fontWeight: FontWeight.normal)),
-            textDirection: TextDirection.ltr)..layout();
+            textDirection: ui.TextDirection.ltr)..layout();
         lp.paint(cv, Offset(x+(bw-lp.width)/2, h+6));
       }
       cv.restore();
@@ -647,14 +690,14 @@ class _BarsPainter extends CustomPainter {
         final tp = TextPainter(text: TextSpan(
             text: label,
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,
-                color: clr)), textDirection: TextDirection.ltr)..layout();
+                color: clr)), textDirection: ui.TextDirection.ltr)..layout();
         tp.paint(cv, Offset(x+(bw-tp.width)/2, y-16));
       }
       final lp = TextPainter(text: TextSpan(text: lbls[i],
           style: TextStyle(fontSize: 10,
               color: hl ? clr : mutedClr,
               fontWeight: hl ? FontWeight.w600 : FontWeight.normal)),
-          textDirection: TextDirection.ltr)..layout();
+          textDirection: ui.TextDirection.ltr)..layout();
       lp.paint(cv, Offset(x+(bw-lp.width)/2, h+6));
     }
     cv.restore();
@@ -693,7 +736,7 @@ class _LinePainter extends CustomPainter {
     final tp = TextPainter(text: TextSpan(
         text: '${vals.last.toInt()}%',
         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold,
-            color: lc)), textDirection: TextDirection.ltr)..layout();
+            color: lc)), textDirection: ui.TextDirection.ltr)..layout();
     tp.paint(cv, Offset(pts.last.dx-tp.width-8, pts.last.dy-6));
   }
   @override bool shouldRepaint(covariant CustomPainter o) => true;

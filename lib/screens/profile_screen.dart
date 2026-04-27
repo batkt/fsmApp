@@ -37,6 +37,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _toggleBiometric(bool value) async {
+    if (value) {
+      // Authenticate before enabling
+      final authenticated = await _bio.authenticate();
+      if (!authenticated) {
+        if (mounted) {
+          AppToast.show(context, 'Баталгаажуулалт амжилтгүй боллоо');
+        }
+        return;
+      }
+    }
+
     await _bio.setEnabled(value);
     if (!mounted) return;
     setState(() => _bioEnabled = value);
@@ -142,48 +153,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── User info Header ──
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: c.brandGreen.withOpacity(0.1),
-                  child: Text(
-                    AuthService.currentUser?.ner
-                            .substring(0, 1)
-                            .toUpperCase() ??
-                        'U',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [c.brandGreen.withOpacity(0.1), c.brandGreen.withOpacity(0.05)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: c.brandGreen.withOpacity(0.1)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
                       color: c.brandGreen,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: c.brandGreen.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        AuthService.currentUser?.ner
+                                .substring(0, 1)
+                                .toUpperCase() ??
+                            'U',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${AuthService.currentUser?.ovog} ${AuthService.currentUser?.ner}',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: c.primary,
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${AuthService.currentUser?.ovog} ${AuthService.currentUser?.ner}',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: c.primary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Ажилтан',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: c.mutedForeground,
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: c.brandGreen.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Ажилтан',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: c.brandGreen,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 32),
 
@@ -225,57 +269,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // ── Biometric Toggle ──
             if (_bioSupported)
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: c.cardBackground,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: c.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: c.primary.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: c.brandGreen.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
                         Platform.isIOS ? Icons.face_unlock_rounded : Icons.fingerprint,
                         color: c.brandGreen,
-                        size: 22,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            Platform.isIOS ? 'Face ID' : 'Хурууны хээ',
+                            Platform.isIOS ? 'Face ID Тохиргоо' : 'Биометрик Тохиргоо',
                             style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                               color: c.primary,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
-                            Platform.isIOS ? 'Face ID-р нэвтрэх' : 'Хурууны хээгээр нэвтрэх',
+                            Platform.isIOS 
+                              ? 'Face ID ашиглан хурдан нэвтрэх' 
+                              : 'Хурууны хээ ашиглан хурдан нэвтрэх',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: c.mutedForeground,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Switch(
+                    Switch.adaptive(
                       value: _bioEnabled,
                       onChanged: _toggleBiometric,
                       activeColor: c.brandGreen,
-                      activeTrackColor: c.brandGreen.withOpacity(0.3),
                     ),
                   ],
                 ),

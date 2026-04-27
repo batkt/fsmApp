@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -21,11 +22,32 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   bool _isLoggedIn = false;
   bool _isCheckingSession = true;
+  Timer? _inactivityTimer;
 
   @override
   void initState() {
     super.initState();
     _checkSession();
+  }
+
+  @override
+  void dispose() {
+    _inactivityTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _inactivityTimer?.cancel();
+    if (_isLoggedIn) {
+      _inactivityTimer = Timer(const Duration(minutes: 15), () {
+        debugPrint('[AutoLogout] 15 mins of inactivity. Logging out...');
+        _handleLogout();
+      });
+    }
+  }
+
+  void _handleInteraction([_]) {
+    if (_isLoggedIn) _startTimer();
   }
 
   Future<void> _checkSession() async {
@@ -35,16 +57,21 @@ class _RootScreenState extends State<RootScreen> {
         _isLoggedIn = restored;
         _isCheckingSession = false;
       });
-      if (restored) SocketService.connect();
+      if (restored) {
+        SocketService.connect();
+        _startTimer();
+      }
     }
   }
 
   void _handleLoggedIn() {
     setState(() => _isLoggedIn = true);
     SocketService.connect();
+    _startTimer();
   }
 
   void _handleLogout() async {
+    _inactivityTimer?.cancel();
     SocketService.disconnect();
     // Deactivate FCM token before logout
     await FCMService.deactivateToken();
@@ -64,7 +91,11 @@ class _RootScreenState extends State<RootScreen> {
       );
     }
     if (!_isLoggedIn) return LoginScreen(onLoggedIn: _handleLoggedIn);
-    return _HomeShell(onLogout: _handleLogout);
+    return Listener(
+      onPointerDown: _handleInteraction,
+      behavior: HitTestBehavior.translucent,
+      child: _HomeShell(onLogout: _handleLogout),
+    );
   }
 }
 

@@ -10,6 +10,12 @@ const _kBiometricAsked = 'biometric_asked';         // true if user was asked
 
 class BiometricService {
   final LocalAuthentication _auth = LocalAuthentication();
+  static SharedPreferences? _prefs;
+
+  static Future<SharedPreferences> _getPrefs() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
 
   /// Check if device supports biometrics
   Future<bool> isDeviceSupported() async {
@@ -24,26 +30,26 @@ class BiometricService {
 
   /// Check if we already asked the user about biometric
   Future<bool> wasAsked() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     return prefs.getBool(_kBiometricAsked) ?? false;
   }
 
   /// Check if biometric is enabled
   Future<bool> isEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     return prefs.getBool(_kBiometricEnabled) ?? false;
   }
 
   /// Save user's choice (enable/disable) and mark as asked
   Future<void> setEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     await prefs.setBool(_kBiometricEnabled, enabled);
     await prefs.setBool(_kBiometricAsked, true);
   }
 
   /// Mark the user as having been asked (even if they said no)
   Future<void> markAsked() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     await prefs.setBool(_kBiometricAsked, true);
   }
 

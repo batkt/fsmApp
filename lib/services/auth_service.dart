@@ -59,9 +59,16 @@ class AuthService {
   static const _baseUrl = 'http://103.143.40.175:8000';
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
+  static const _bioTokenKey = 'auth_bio_token';
 
   static String? _token;
   static AuthUser? _currentUser;
+  static SharedPreferences? _prefs;
+
+  static Future<SharedPreferences> _getPrefs() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
 
   /// The currently logged-in user
   static AuthUser? get currentUser => _currentUser;
@@ -73,9 +80,35 @@ class AuthService {
   static bool get isLoggedIn => _token != null && _currentUser != null;
 
   /// Attempt to restore a previous session from local storage
+  /// Attempt to restore a previous session from local storage
   static Future<bool> restoreSession() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     final savedToken = prefs.getString(_tokenKey);
+    final savedUser = prefs.getString(_userKey);
+
+    if (savedToken != null && savedUser != null) {
+      _token = savedToken;
+      _currentUser = AuthUser.fromJson(json.decode(savedUser));
+      return true;
+    }
+    return false;
+  }
+
+  /// Get last saved user's phone number for login screen
+  static Future<String?> getSavedUsername() async {
+    final prefs = await _getPrefs();
+    final savedUser = prefs.getString(_userKey);
+    if (savedUser != null) {
+      final user = AuthUser.fromJson(json.decode(savedUser));
+      return user.utas;
+    }
+    return null;
+  }
+
+  /// Restores session using the persistent biometric token
+  static Future<bool> restoreBiometricSession() async {
+    final prefs = await _getPrefs();
+    final savedToken = prefs.getString(_bioTokenKey);
     final savedUser = prefs.getString(_userKey);
 
     if (savedToken != null && savedUser != null) {
@@ -131,9 +164,10 @@ class AuthService {
         _currentUser = user;
 
         // Persist locally
-        final prefs = await SharedPreferences.getInstance();
+        final prefs = await _getPrefs();
         await prefs.setString(_tokenKey, tokenVal);
         await prefs.setString(_userKey, json.encode(user.toJson()));
+        await prefs.setString(_bioTokenKey, tokenVal); // Always update biometric token on successful login
 
         return AuthResult.success(user);
       } else {
@@ -231,9 +265,9 @@ class AuthService {
   static Future<void> logout() async {
     _token = null;
     _currentUser = null;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    // Note: We keep _userKey and _bioTokenKey so biometric login can work after logout
   }
 }
 
