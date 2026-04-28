@@ -85,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _passCtrl = TextEditingController();
   bool _isLoading = false;
   bool _obscure = true;
+  bool _rememberMe = true;
   final _bio = BiometricService();
   bool _bioSupported = false;
   bool _bioEnabled = false;
@@ -117,8 +118,14 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _loadSavedUser() async {
     final saved = await AuthService.getSavedUsername();
-    if (saved != null && mounted && _emailCtrl.text.isEmpty) {
-      setState(() => _emailCtrl.text = saved);
+    final rememberMe = await AuthService.isRememberMeEnabled();
+    if (mounted) {
+      setState(() {
+        _rememberMe = rememberMe;
+        if (saved != null && _emailCtrl.text.isEmpty) {
+          _emailCtrl.text = saved;
+        }
+      });
     }
   }
 
@@ -164,6 +171,10 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (result.isSuccess) {
       setState(() => _isLoading = false);
+      await AuthService.saveRememberedUsername(
+        _emailCtrl.text.trim(),
+        _rememberMe,
+      );
       await _maybeAskBiometric();
       if (!mounted) return;
       widget.onLoggedIn();
@@ -647,24 +658,60 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 8),
 
-                    // Forgot password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => _showForgotPassword(context),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 30),
-                        ),
-                        child: Text(
-                          'Нууц код мартсан?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: c.brandGreen,
-                            fontWeight: FontWeight.w500,
+                    // Remember me & Forgot password
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => _rememberMe = !_rememberMe),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: (v) =>
+                                      setState(() => _rememberMe = v ?? false),
+                                  activeColor: c.brandGreen,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  side: BorderSide(
+                                    color: c.mutedForeground.withOpacity(0.5),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Сануулах',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: c.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () => _showForgotPassword(context),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 30),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Нууц код мартсан?',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: c.brandGreen,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: isShort ? 12 : 16),
 
@@ -1069,9 +1116,6 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
         _codeControllers[i].clear();
       }
     }
-
-    // Clear the first field since we distributed the digits
-    _codeControllers[0].clear();
 
     // Move focus to the last filled field or the first empty field
     if (limited.length == 6) {

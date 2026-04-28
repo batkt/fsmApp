@@ -60,6 +60,8 @@ class AuthService {
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
   static const _bioTokenKey = 'auth_bio_token';
+  static const _rememberMeKey = 'auth_remember_me';
+  static const _savedUsernameKey = 'auth_saved_username';
 
   static String? _token;
   static AuthUser? _currentUser;
@@ -97,12 +99,35 @@ class AuthService {
   /// Get last saved user's phone number for login screen
   static Future<String?> getSavedUsername() async {
     final prefs = await _getPrefs();
+    
+    // First try the specific saved username key
+    final saved = prefs.getString(_savedUsernameKey);
+    if (saved != null) return saved;
+
+    // Fallback to currently logged in user if exists
     final savedUser = prefs.getString(_userKey);
     if (savedUser != null) {
       final user = AuthUser.fromJson(json.decode(savedUser));
       return user.utas;
     }
     return null;
+  }
+
+  /// Save or clear the remembered username
+  static Future<void> saveRememberedUsername(String? username, bool enabled) async {
+    final prefs = await _getPrefs();
+    await prefs.setBool(_rememberMeKey, enabled);
+    if (enabled && username != null) {
+      await prefs.setString(_savedUsernameKey, username);
+    } else {
+      await prefs.remove(_savedUsernameKey);
+    }
+  }
+
+  /// Check if remember me is enabled
+  static Future<bool> isRememberMeEnabled() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(_rememberMeKey) ?? true; // Default to true
   }
 
   /// Restores session using the persistent biometric token
