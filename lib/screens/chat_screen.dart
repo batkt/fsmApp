@@ -5,7 +5,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 
 import '../models/chat_model.dart';
 import '../services/auth_service.dart';
@@ -494,7 +494,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     await Dio().download(url, savePath);
                     debugPrint('[Chat] Download successful, now saving to gallery...');
                     
-                    final result = await ImageGallerySaver.saveFile(savePath);
+                    final result = await ImageGallerySaverPlus.saveFile(savePath);
                     debugPrint('[Chat] Gallery save result: $result');
 
                     if (context.mounted) {
