@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "../fsmBack"
+		},
+		{
+			"path": "../tureesShine"
 		}
 	],
 	"settings": {}

@@ -71,26 +71,8 @@ class _BaraaSelectorState extends State<BaraaSelector> {
 
       final list = res.data is Map ? (res.data['data'] ?? res.data['result'] ?? []) : res.data;
       final allBaraas = (list as List).map((j) => Baraa.fromJson(j)).toList();
-
-      // Filter by type
-      final type = widget.placeholder.type;
-      final baraaTypeMap = {
-        'tseverlegch': 'Цэвэрлэгээ',
-        'ugaalgiin': 'Угаалгын',
-        'ariutgagch': 'Ариутгагч',
-        'bagaj': 'Багаж',
-        'busad': 'Бусад'
-      };
       
-      final filtered = allBaraas.where((b) {
-        if (type == null || type == 'all') return true;
-        if (type == 'tseverlegch') return ['tseverlegch', 'Цэвэрлэгч', 'Цэвэрлэгээ'].contains(b.type);
-        if (type == 'busad') {
-          final keys = ['tseverlegch', 'Цэвэрлэгч', 'Цэвэрлэгээ', 'ugaalgiin', 'Угаалгын', 'ariutgagch', 'Ариутгагч', 'bagaj', 'Багаж'];
-          return !keys.contains(b.type);
-        }
-        return b.type == type || b.type == baraaTypeMap[type];
-      }).toList();
+      final filtered = allBaraas;
 
       setState(() {
         _baraas = filtered;
