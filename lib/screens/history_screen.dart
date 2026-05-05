@@ -9,6 +9,7 @@ import '../services/project_service.dart';
 import '../services/task_service.dart';
 import '../services/socket_service.dart';
 import '../services/timezone_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_detail_modal.dart';
 
@@ -737,13 +738,13 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
           ],
 
           // ── Photos ──
-          if (t.photoPaths.isNotEmpty || t.hasPhoto) ...[
+          if (t.photoPaths.isNotEmpty || t.hariutsagchZurag.isNotEmpty || t.ajiltanZurag.isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(children: [
               Icon(Icons.camera_alt_rounded, size: 16,
                   color: c.mutedForeground),
               const SizedBox(width: 6),
-              Text('${t.photoPaths.isNotEmpty ? t.photoPaths.length : t.photoCount} зураг хавсаргасан',
+              Text('${t.photoPaths.length + t.hariutsagchZurag.length + t.ajiltanZurag.length} зураг хавсаргасан',
                 style: TextStyle(fontSize: 13,
                     color: c.mutedForeground)),
               const Spacer(),
@@ -757,42 +758,40 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(children: [
-                ...t.photoPaths.map((path) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => _showFullPhoto(context, path, c),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: File(path).existsSync()
-                        ? Image.file(File(path), width: 80, height: 80, fit: BoxFit.cover)
-                        : Container(width: 80, height: 80, color: c.muted, child: Icon(Icons.broken_image, color: c.mutedForeground, size: 20)),
-                    ),
-                  ),
-                )),
-                if (t.photoPaths.isEmpty && t.hasPhoto)
-                  ...List.generate(t.photoCount, (i) {
-                    const placeholderUrl = 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop';
+                // Local or legacy network photos
+                ...t.photoPaths.map((path) {
+                  if (path.isEmpty) return const SizedBox.shrink();
+                  final isLocal = File(path).existsSync();
+                  if (isLocal) {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: GestureDetector(
-                        onTap: () => _showFullPhoto(context, placeholderUrl, c),
+                        onTap: () => _showFullPhoto(context, path, c),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Stack(
-                            children: [
-                              Image.network(
-                                placeholderUrl,
-                                width: 80, height: 80, fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(width: 80, height: 80, color: c.muted),
-                              ),
-                              Container(width: 80, height: 80, color: Colors.black12),
-                              const Positioned(right: 4, bottom: 4, child: Icon(Icons.verified_rounded, color: Colors.white70, size: 16)),
-                            ],
-                          ),
+                          child: Image.file(File(path), width: 80, height: 80, fit: BoxFit.cover),
                         ),
                       ),
                     );
-                  }),
+                  } else {
+                    final fullUrl = path.startsWith('http') ? path : '${ApiService.baseUrl}/$path';
+                    return _NetworkImageThumbnail(url: fullUrl, c: c, onTap: (u) => _showFullPhoto(context, u, c));
+                  }
+                }),
+                // Network photos (hariutsagch)
+                ...t.hariutsagchZurag.map((z) {
+                  final imageUrl = z.zamNer ?? z.fileNer ?? '';
+                  if (imageUrl.isEmpty) return const SizedBox.shrink();
+                  final fullUrl = imageUrl.startsWith('http') ? imageUrl : '${ApiService.baseUrl}/$imageUrl';
+                  return _NetworkImageThumbnail(url: fullUrl, c: c, onTap: (u) => _showFullPhoto(context, u, c));
+                }),
+                // Network photos (ajiltan)
+                ...t.ajiltanZurag.map((z) {
+                  final imageUrl = z.zamNer ?? z.fileNer ?? '';
+                  if (imageUrl.isEmpty) return const SizedBox.shrink();
+                  final fullUrl = imageUrl.startsWith('http') ? imageUrl : '${ApiService.baseUrl}/$imageUrl';
+                  return _NetworkImageThumbnail(url: fullUrl, c: c, onTap: (u) => _showFullPhoto(context, u, c));
+                }),
               ]),
             ),
           ],
@@ -856,6 +855,72 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
           ),
         ),
       ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════
+//  Network Image Thumbnail
+// ═══════════════════════════════════════
+class _NetworkImageThumbnail extends StatelessWidget {
+  final String url;
+  final AppColorScheme c;
+  final Function(String) onTap;
+
+  const _NetworkImageThumbnail({
+    required this.url, 
+    required this.c, 
+    required this.onTap
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => onTap(url),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            children: [
+              Image.network(
+                url,
+                width: 80, height: 80, fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 80, height: 80, 
+                  color: c.muted, 
+                  child: Icon(Icons.broken_image_rounded, color: c.mutedForeground, size: 20)
+                ),
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return Container(
+                    width: 80, height: 80, 
+                    color: c.muted,
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          value: progress.expectedTotalBytes != null
+                              ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                              : null,
+                          strokeWidth: 2,
+                          color: c.brandGreen,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              Container(width: 80, height: 80, color: Colors.black12),
+              const Positioned(
+                right: 4, bottom: 4, 
+                child: Icon(Icons.verified_rounded, color: Colors.white70, size: 16)
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

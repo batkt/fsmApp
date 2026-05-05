@@ -39,7 +39,7 @@ class _RootScreenState extends State<RootScreen> {
   void _startTimer() {
     _inactivityTimer?.cancel();
     if (_isLoggedIn) {
-      _inactivityTimer = Timer(const Duration(minutes: 15), () {
+      _inactivityTimer = Timer(const Duration(minutes: 10), () {
         debugPrint('[AutoLogout] 15 mins of inactivity. Logging out...');
         _handleLogout();
       });

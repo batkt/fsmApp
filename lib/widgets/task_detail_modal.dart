@@ -31,6 +31,7 @@ class TaskDetailModal extends StatefulWidget {
 class _TaskDetailModalState extends State<TaskDetailModal> {
   CleaningTask get t => widget.task;
   Timer? _progressTimer;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -1488,6 +1489,50 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (_errorMessage != null)
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: context.rSpacing(12)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.rSpacing(16),
+                      vertical: context.rSpacing(10),
+                    ),
+                    decoration: BoxDecoration(
+                      color: c.destructive.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(context.rRadius(12)),
+                      border: Border.all(color: c.destructive.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          color: c.destructive,
+                          size: context.rIconSize(18),
+                        ),
+                        SizedBox(width: context.rSpacing(10)),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: c.destructive,
+                              fontSize: context.rFontSize(13),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => setState(() => _errorMessage = null),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: c.destructive,
+                            size: context.rIconSize(16),
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (!done)
                   SizedBox(
                     width: double.infinity,
@@ -1495,9 +1540,9 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (t.status != TaskStatus.inProgress && t.baraa.any((b) => b.ner.isEmpty)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Даалгавар эхлэхээс өмнө бараа материалаа бүрэн сонгоно уу')),
-                          );
+                          setState(() {
+                            _errorMessage = 'Даалгавар эхлэхээс өмнө бараа материалаа бүрэн сонгоно уу';
+                          });
                           return;
                         }
                         widget.onStatusChange();
