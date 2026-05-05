@@ -658,11 +658,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
             },
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             children: [
-              _buildTableRow(c, Icons.person_outline, 'Удирдагч', t.supervisor),
-              _buildTableRow(c, Icons.timer_outlined, 'Төлөвлөсөн', '${t.estimatedMinutes} мин'),
               if (t.status == TaskStatus.completed && t.completedAt != null) ...[
-                _buildTableRow(c, Icons.check_circle_outline_rounded, 'Дууссан', 
-                    '${t.completedAt!.hour.toString().padLeft(2, '0')}:${t.completedAt!.minute.toString().padLeft(2, '0')}'),
                 _buildTableRow(c, Icons.hourglass_bottom_rounded, 'Зарцуулсан', t.formattedElapsedHMS, valueColor: c.brandGreen),
               ],
             ],
