@@ -31,7 +31,14 @@ class _FAQScreenState extends State<FAQScreen> {
       constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.9),
       decoration: BoxDecoration(
         color: c.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 30,
+            offset: const Offset(0, -10),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -44,61 +51,78 @@ class _FAQScreenState extends State<FAQScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: c.border,
+                color: c.border.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.help_outline_rounded,
-                    color: c.brandGreen,
-                    size: 24,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: c.brandGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.help_outline_rounded,
+                      color: c.brandGreen,
+                      size: 24,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 16),
                   Text(
-                    'Түгээмэл асуулт хариулт',
+                    'Тусламж',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
                       color: c.primary,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: c.muted.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close_rounded, size: 20),
+                    ),
                     onPressed: () => Navigator.pop(context),
                     color: c.mutedForeground,
                   ),
                 ],
               ),
             ),
-            Divider(color: c.border, height: 1),
 
             // Search bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: TextField(
+                style: TextStyle(fontSize: 15, color: c.primary),
                 decoration: InputDecoration(
                   hintText: 'Асуултаа хайх...',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  hintStyle: TextStyle(color: c.mutedForeground.withOpacity(0.7)),
+                  prefixIcon: Icon(Icons.search_rounded, color: c.brandGreen, size: 20),
                   isDense: true,
                   filled: true,
-                  fillColor: c.muted,
+                  fillColor: c.secondary.withOpacity(0.3),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: c.border),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: c.border),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: c.brandGreen),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: c.brandGreen.withOpacity(0.5), width: 1.5),
                   ),
                 ),
                 onChanged: (value) {
@@ -113,45 +137,41 @@ class _FAQScreenState extends State<FAQScreen> {
             Flexible(
               child: ListView(
                 shrinkWrap: true,
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 children: [
-                  // Header card
+                  // Info card
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: c.brandGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: c.brandGreen.withOpacity(0.2)),
+                      gradient: LinearGradient(
+                        colors: [
+                          c.brandGreen.withOpacity(0.15),
+                          c.brandGreen.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: c.brandGreen.withOpacity(0.1)),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.help_outline_rounded,
-                          color: c.brandGreen,
-                          size: 32,
+                        Text(
+                          'Сайн байна уу? 👋',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: c.brandGreen,
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Тусламж хэрэгтэй байна уу?',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: c.primary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Доорх асуултууд танд туслах болно',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: c.mutedForeground,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 6),
+                        Text(
+                          'Танд ямар тусламж хэрэгтэй байна вэ? Бид таны асуултанд хариулахад бэлэн байна.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: c.primary.withOpacity(0.7),
+                            height: 1.5,
                           ),
                         ),
                       ],
@@ -159,39 +179,74 @@ class _FAQScreenState extends State<FAQScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // FAQ Items (filtered)
-                  ...filteredItems.map(
-                    (item) => _FAQItem(
-                      question: item['question']!,
-                      answer: item['answer']!,
+                  Text(
+                    'ТҮГЭЭМЭЛ АСУУЛТУУД',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: c.mutedForeground,
+                      letterSpacing: 1.2,
                     ),
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 20),
+                  // FAQ Items (filtered)
+                  if (filteredItems.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.search_off_rounded, size: 48, color: c.muted.withOpacity(0.5)),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Илэрц олдсонгүй',
+                              style: TextStyle(color: c.mutedForeground),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ...filteredItems.map(
+                      (item) => _FAQItem(
+                        question: item['question']!,
+                        answer: item['answer']!,
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
 
                   // Contact section
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: c.muted,
-                      borderRadius: BorderRadius.circular(12),
+                      color: c.cardBackground,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: c.border.withOpacity(0.5)),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.support_agent_rounded,
-                              color: c.brandGreen,
-                              size: 24,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.support_agent_rounded,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             Text(
-                              'Нэмэлт тусламж',
+                              'Бусад асуулт',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                                 color: c.primary,
                               ),
                             ),
@@ -199,11 +254,31 @@ class _FAQScreenState extends State<FAQScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Хэрэв таны асуулт энд байхгүй бол, дэмжлэгийн багтайгаа холбогдоорой.',
+                          'Хэрэв та өөрийн хайж буй хариултыг олж чадаагүй бол манай тусламжийн багтай холбогдоно уу.',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: c.mutedForeground,
                             height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: c.primary,
+                              foregroundColor: c.background,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text(
+                              'Холбоо барих',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
                       ],

@@ -95,7 +95,7 @@ class _BaraaSelectorState extends State<BaraaSelector> {
       baraaId: _selectedBaraa!.baraaId,
       ner: _selectedBaraa!.ner,
       negj: _selectedBaraa!.negj,
-      too: too.toInt(),
+      too: too,
       une: _selectedBaraa!.une,
       niitUne: _selectedBaraa!.une * too,
       type: widget.placeholder.type,
@@ -190,18 +190,22 @@ class _BaraaSelectorState extends State<BaraaSelector> {
               value: _selectedBaraa,
               icon: Icon(Icons.keyboard_arrow_down_rounded, color: c.mutedForeground),
               items: _baraas.map((b) {
-                return DropdownMenuItem(
+                final hasStock = b.uldegdel > 0;
+                return DropdownMenuItem<Baraa>(
                   value: b,
+                  enabled: hasStock,
                   child: Text(
                     '${b.ner} (Үлдэгдэл: ${b.uldegdel.toStringAsFixed(b.uldegdel.truncateToDouble() == b.uldegdel ? 0 : 2)} ${b.negjLabel})',
                     style: TextStyle(
                       fontSize: context.rFontSize(14),
-                      color: c.primary,
+                      color: hasStock ? c.primary : c.mutedForeground.withOpacity(0.5),
+                      decoration: hasStock ? null : TextDecoration.lineThrough,
                     ),
                   ),
                 );
               }).toList(),
               onChanged: (val) {
+                if (val != null && val.uldegdel <= 0) return; // Double check
                 setState(() {
                   _selectedBaraa = val;
                   _validateInput();

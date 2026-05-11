@@ -88,27 +88,27 @@ class ShakeDetectionService {
 
     // Check if acceleration exceeds threshold
     if (magnitude > _shakeThreshold) {
-      debugPrint(
-        '[ShakeDetection] Threshold exceeded! Magnitude: ${magnitude.toStringAsFixed(2)}',
-      );
+      // debugPrint(
+      //   '[ShakeDetection] Threshold exceeded! Magnitude: ${magnitude.toStringAsFixed(2)}',
+      // );
       if (_windowStart == null) {
         // Start new shake window
         _windowStart = now;
         _shakeCount = 1;
-        debugPrint('[ShakeDetection] Starting new shake window');
+        // debugPrint('[ShakeDetection] Starting new shake window');
       } else {
         // Check if still within window
         final elapsed = now.difference(_windowStart!).inMilliseconds;
         if (elapsed < _shakeWindowMs) {
           _shakeCount++;
-          debugPrint(
-            '[ShakeDetection] Shake count increased to $_shakeCount (elapsed: ${elapsed}ms)',
-          );
+          // debugPrint(
+          //   '[ShakeDetection] Shake count increased to $_shakeCount (elapsed: ${elapsed}ms)',
+          // );
         } else {
           // Window expired, start new one
           _windowStart = now;
           _shakeCount = 1;
-          debugPrint('[ShakeDetection] Window expired, starting new window');
+          // debugPrint('[ShakeDetection] Window expired, starting new window');
         }
       }
 
@@ -118,27 +118,21 @@ class ShakeDetectionService {
             ? now.difference(_lastShakeTime!).inMilliseconds
             : double.infinity;
 
-        debugPrint(
-          '[ShakeDetection] Enough shakes detected! Count: $_shakeCount, time since last: ${timeSinceLastShake}ms',
-        );
+        // debugPrint(
+        //   '[ShakeDetection] Enough shakes detected! Count: $_shakeCount, time since last: ${timeSinceLastShake}ms',
+        // );
 
         // Prevent multiple rapid triggers (debounce)
         if (timeSinceLastShake > _debounceMs) {
-          debugPrint('[ShakeDetection] ✅ Shake detected! Triggering callback');
+          // debugPrint('[ShakeDetection] ✅ Shake detected! Triggering callback');
           _lastShakeTime = now;
           _shakeCount = 0;
           _windowStart = null;
           if (_onShake != null) {
-            debugPrint('[ShakeDetection] Calling callback...');
+            // debugPrint('[ShakeDetection] Calling callback...');
             _onShake!();
-            debugPrint('[ShakeDetection] Cooldown active for ${_debounceMs}ms');
-          } else {
-            debugPrint('[ShakeDetection] ⚠️ Callback is null!');
+            // debugPrint('[ShakeDetection] Cooldown active for ${_debounceMs}ms');
           }
-        } else {
-          debugPrint(
-            '[ShakeDetection] Shake detected but debounced (${timeSinceLastShake}ms since last, need ${_debounceMs}ms)',
-          );
         }
       }
     } else {

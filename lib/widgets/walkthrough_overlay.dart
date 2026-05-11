@@ -277,7 +277,9 @@ class _TooltipWidgetState extends State<_TooltipWidget> {
     double left = (base.dx + drag.dx).clamp(8.0, screenSize.width - tooltipWidth - 8);
     double top = (base.dy + drag.dy).clamp(8.0, screenSize.height - 240.0);
 
-    return Positioned(
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
       left: left,
       top: top,
       width: tooltipWidth,

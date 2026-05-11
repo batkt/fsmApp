@@ -1908,6 +1908,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   // ── Project API ──
 
   Future<void> _loadProjects() async {
+    setState(() => _projectsLoading = true);
     final fetched = await ProjectService.myProjects();
     if (!mounted) return;
     setState(() {
@@ -2043,6 +2044,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   /// Refresh tasks for the current project (used by pull-to-refresh and socket events)
   Future<void> _refreshTasks() async {
+    await _loadProjects();
     final projectId = _selectedProjectId ?? 'all';
     await _loadTasks(projectId);
   }

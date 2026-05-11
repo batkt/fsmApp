@@ -23,15 +23,62 @@ class ProjectSelector extends StatelessWidget {
     final c = context.colors;
 
     if (isLoading) {
-      return SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2, color: c.brandGreen),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: c.brandGreen.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: c.brandGreen.withOpacity(0.5),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Уншиж байна...',
+              style: TextStyle(
+                fontSize: 12,
+                color: c.brandGreen.withOpacity(0.6),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (projects.isEmpty) {
-      return const SizedBox.shrink();
+      return GestureDetector(
+        onTap: () => onProjectSelected('all'),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: c.muted.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.refresh_rounded, size: 16, color: c.mutedForeground),
+              const SizedBox(width: 6),
+              Text(
+                'Төсөл олдсонгүй',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: c.mutedForeground,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final name = selectedProjectId == 'all' ? 'Бүх төсөл' : (currentProject?.ner ?? 'Төсөл');

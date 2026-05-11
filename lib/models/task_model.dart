@@ -3,7 +3,7 @@ class Baraa {
   final String baraaId;
   final String ner; // Name
   final String negj; // Unit
-  final int too; // Quantity
+  final double too; // Quantity
   final double une; // Price
   final double niitUne; // Total price
   final String tailbar; // Description
@@ -70,9 +70,9 @@ class Baraa {
     baraaId: (j['baraaId'] ?? j['_id'] ?? '').toString(),
     ner: (j['ner'] ?? '').toString(),
     negj: (j['negj'] ?? '').toString(),
-    too: j['too'] is int
-        ? j['too']
-        : (j['too'] != null ? int.tryParse(j['too'].toString()) ?? 0 : 0),
+    too: j['too'] is num
+        ? j['too'].toDouble()
+        : (j['too'] != null ? double.tryParse(j['too'].toString()) ?? 0.0 : 0.0),
     une: j['une'] is num
         ? j['une'].toDouble()
         : (j['une'] != null
