@@ -39,6 +39,7 @@ import '../services/task_tracker_service.dart';
 import '../services/timezone_service.dart';
 import '../utils/responsive.dart';
 import 'chat_screen.dart';
+import 'support_chat_screen.dart';
 import 'profile_screen.dart';
 import 'faq_screen.dart';
 
@@ -389,7 +390,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         }
 
         // Refresh tasks if it belongs to current project or "all" is selected
-        if (_selectedProjectId == null || _selectedProjectId == 'all' || task.projectId == _selectedProjectId) {
+        if (_selectedProjectId == null ||
+            _selectedProjectId == 'all' ||
+            task.projectId == _selectedProjectId) {
           _refreshTasks();
         }
 
@@ -419,7 +422,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         }
 
         // Refresh tasks if it belongs to current project or "all" is selected
-        if (_selectedProjectId == null || _selectedProjectId == 'all' || task.projectId == _selectedProjectId) {
+        if (_selectedProjectId == null ||
+            _selectedProjectId == 'all' ||
+            task.projectId == _selectedProjectId) {
           _refreshTasks();
         }
 
@@ -976,9 +981,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     var tasks = List<CleaningTask>.from(_tasks);
 
     // Filter by selected day (supports multi-day, full-day, and loop tasks)
-    tasks = tasks
-        .where((t) => t.isOnDay(_selectedDay))
-        .toList();
+    tasks = tasks.where((t) => t.isOnDay(_selectedDay)).toList();
 
     if (_filter == 'pending') {
       tasks = tasks
@@ -1004,7 +1007,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
 
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
-      
+
   Color _statusColor(TaskStatus s, AppColorScheme c) {
     switch (s) {
       case TaskStatus.pending:
@@ -1182,8 +1185,10 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             .subtract(const Duration(hours: 8))
             .toUtc()
             .toIso8601String(),
-        'duusakhTsag':
-            now.subtract(const Duration(hours: 8)).toUtc().toIso8601String(),
+        'duusakhTsag': now
+            .subtract(const Duration(hours: 8))
+            .toUtc()
+            .toIso8601String(),
         'tsagMinute': actualElapsedMinutes,
       },
     ];
@@ -1492,7 +1497,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
         if (notification.taskId != null && notification.taskId!.isNotEmpty) {
           // Check if task exists in our local list first
           try {
-            final existingTask = _tasks.firstWhere((t) => t.id == notification.taskId);
+            final existingTask = _tasks.firstWhere(
+              (t) => t.id == notification.taskId,
+            );
             Navigator.pop(context); // Close notification modal
             _openTaskDetail(existingTask);
             return;
@@ -1532,7 +1539,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 createdAt: apiTask.createdAt,
                 updatedAt: apiTask.updatedAt,
               );
-              
+
               if (mounted) {
                 Navigator.pop(context); // Close notification modal
                 _openTaskDetail(CleaningTask.fromApi(fullTask));
@@ -1714,9 +1721,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                   _isSameDay(_selectedDay, TimezoneService.nowMongolia())
                       ? 'Өнөөдрийн ажил'
                       : '${_selectedDay.year}-${_selectedDay.month.toString().padLeft(2, '0')}-${_selectedDay.day.toString().padLeft(2, '0')} Даалгавар',
-                  style: TextStyle(
-                    fontSize: context.rFontSize(16),
-                  ),
+                  style: TextStyle(fontSize: context.rFontSize(16)),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1901,6 +1906,17 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             ),
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SupportChatScreen()),
+            );
+          },
+          backgroundColor: c.brandGreen,
+          tooltip: 'Тусламжийн чат',
+          child: const Icon(Icons.support_agent_rounded, color: Colors.white),
+        ),
       ),
     );
   }
@@ -1914,7 +1930,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     setState(() {
       _apiProjects = fetched;
       _projectsLoading = false;
-      
+
       if (_selectedProjectId == null) {
         if (_apiProjects.isNotEmpty) {
           _selectedProjectId = _apiProjects.first.id;
@@ -1932,11 +1948,13 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           }
         } else {
           // Update active project details in case name was changed
-          ProjectService.activeProject.value = _apiProjects.firstWhere((p) => p.id == _selectedProjectId);
+          ProjectService.activeProject.value = _apiProjects.firstWhere(
+            (p) => p.id == _selectedProjectId,
+          );
         }
       }
     });
-    
+
     // Load tasks for the active project
     if (_selectedProjectId != null || _apiProjects.isEmpty) {
       _loadTasks(_selectedProjectId ?? 'all');
@@ -1998,7 +2016,11 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           .toList();
 
       // Sort: Newest created first
-      newTasks.sort((a, b) => (b.createdAt ?? DateTime(2000)).compareTo(a.createdAt ?? DateTime(2000)));
+      newTasks.sort(
+        (a, b) => (b.createdAt ?? DateTime(2000)).compareTo(
+          a.createdAt ?? DateTime(2000),
+        ),
+      );
 
       // Keep local state (like startedAtLocal and subtasks checkmarks) when refreshing
       for (var newTask in newTasks) {
@@ -2014,10 +2036,11 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           // Preserve optimistic status updates when API is behind local state
           // If we locally set a task to completed/inProgress but API still returns pending,
           // keep the local (more advanced) status to prevent UI flickering
-          if (oldTask.status == TaskStatus.completed && 
-              (newTask.status == TaskStatus.pending || newTask.status == TaskStatus.inProgress)) {
+          if (oldTask.status == TaskStatus.completed &&
+              (newTask.status == TaskStatus.pending ||
+                  newTask.status == TaskStatus.inProgress)) {
             newTask.status = TaskStatus.completed;
-          } else if (oldTask.status == TaskStatus.inProgress && 
+          } else if (oldTask.status == TaskStatus.inProgress &&
               newTask.status == TaskStatus.pending) {
             newTask.status = TaskStatus.inProgress;
             newTask.startedAtLocal = oldTask.startedAtLocal;
