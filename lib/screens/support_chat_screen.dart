@@ -64,7 +64,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       final res = await http.post(
         Uri.parse('$chatApiBase/conversations'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'guestId': _guestId, 'displayName': displayName}),
+        body: json.encode({
+          'guestId': _guestId,
+          'displayName': displayName,
+          'project': 'fsmApp',
+        }),
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -151,7 +155,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           '$chatApiBase/conversations/${_conversation!['id']}/messages',
         ),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'text': text, 'guestId': _guestId}),
+        body: json.encode({
+          'text': text,
+          'guestId': _guestId,
+          'project': 'fsmApp',
+        }),
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -333,6 +341,32 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                         fontSize: 14,
                                       ),
                                     ),
+                                    if (m['createdAt'] != null) ...[
+                                      const SizedBox(height: 4),
+                                      Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: Text(
+                                          (() {
+                                            try {
+                                              final dt = DateTime.parse(m['createdAt'].toString()).toLocal();
+                                              final month = dt.month.toString().padLeft(2, '0');
+                                              final day = dt.day.toString().padLeft(2, '0');
+                                              final hour = dt.hour.toString().padLeft(2, '0');
+                                              final minute = dt.minute.toString().padLeft(2, '0');
+                                              return "$month/$day $hour:$minute";
+                                            } catch (_) {
+                                              return "";
+                                            }
+                                          })(),
+                                          style: TextStyle(
+                                            color: isUser
+                                                ? Colors.white.withOpacity(0.7)
+                                                : c.mutedForeground,
+                                            fontSize: 9,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
