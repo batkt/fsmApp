@@ -56,7 +56,7 @@ class AuthUser {
 }
 
 class AuthService {
-  static const _baseUrl = 'http://103.143.40.175:8000';
+  static const _baseUrl = 'http://103.236.194.26:8000';
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
   static const _bioTokenKey = 'auth_bio_token';
