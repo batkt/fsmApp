@@ -404,7 +404,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           ),
           backgroundColor: c.cardBackground,
           elevation: 1,
-          shadowColor: Colors.black10,
+          shadowColor: Colors.black.withOpacity(0.1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -634,20 +634,22 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                                 ),
                                               );
                                             },
-                                            child: Image.network(
-                                              'https://admin.zevtabs.mn/api/file?path=${m['fileUrl']}',
-                                              maxHeight: 200,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (ctx, err, stack) => Container(
-                                                padding: const EdgeInsets.all(8),
-                                                color: Colors.black10,
-                                                child: const Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Icon(Icons.broken_image, color: Colors.grey),
-                                                    SizedBox(width: 8),
-                                                    Text('Зураг харуулахад алдаа гарлаа', style: TextStyle(fontSize: 12)),
-                                                  ],
+                                            child: ConstrainedBox(
+                                              constraints: const BoxConstraints(maxHeight: 200),
+                                              child: Image.network(
+                                                'https://admin.zevtabs.mn/api/file?path=${m['fileUrl']}',
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (ctx, err, stack) => Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  color: Colors.black.withOpacity(0.1),
+                                                  child: const Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(Icons.broken_image, color: Colors.grey),
+                                                      SizedBox(width: 8),
+                                                      Text('Зураг харуулахад алдаа гарлаа', style: TextStyle(fontSize: 12)),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
