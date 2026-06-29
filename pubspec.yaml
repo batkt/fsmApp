@@ -57,6 +57,9 @@ dependencies:
   record: ^5.0.5
   audioplayers: ^5.2.1
 
+dependency_overrides:
+  record_platform_interface: 1.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
