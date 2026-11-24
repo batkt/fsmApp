@@ -103,6 +103,7 @@ class _FAQScreenState extends State<FAQScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: TextField(
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 style: TextStyle(fontSize: 15, color: c.primary),
                 decoration: InputDecoration(
                   hintText: 'Асуултаа хайх...',

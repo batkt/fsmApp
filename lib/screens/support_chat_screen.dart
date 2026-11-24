@@ -789,6 +789,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                           child: TextField(
                             controller: _msgCtrl,
                             focusNode: _focusNode,
+                            onTapOutside: (_) => FocusScope.of(context).unfocus(),
                             decoration: InputDecoration(
                               hintText: 'Мессеж бичих...',
                               hintStyle: TextStyle(color: c.mutedForeground),

@@ -276,6 +276,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   border: Border.all(color: c.border),
                 ),
                 child: TextField(
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   onChanged: (v) => setState(() => _searchQuery = v),
                   style: TextStyle(color: c.primary, fontSize: 15),
                   decoration: InputDecoration(

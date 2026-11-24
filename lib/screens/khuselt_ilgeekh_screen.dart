@@ -24,6 +24,7 @@ const khuseltTurluud = [
 
 /// Төрөл сонгох доод цонх (бүлэглэсэн жагсаалт)
 Future<KhuseltTurul?> khuseltTurulSongokh(BuildContext context, {KhuseltTurul? odoo}) {
+  FocusManager.instance.primaryFocus?.unfocus();
   final c = context.colors;
   return showModalBottomSheet<KhuseltTurul>(
     context: context,
@@ -179,7 +180,10 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
-          child: ListView(padding: const EdgeInsets.all(16), children: [
+          child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.all(16),
+            children: [
             _Kart(
               onTap: () async {
                 final t = await khuseltTurulSongokh(context, odoo: _turul);
@@ -217,6 +221,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: _tailbar,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               minLines: 4,
               maxLines: 6,
               maxLength: 300,

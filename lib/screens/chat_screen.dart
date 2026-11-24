@@ -820,6 +820,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             child: TextField(
                               controller: _msgCtrl,
+                              onTapOutside: (_) => FocusScope.of(context).unfocus(),
                               style: TextStyle(color: c.primary, fontSize: 15),
                               textInputAction: TextInputAction.send,
                               onSubmitted: (_) => _sendText(),

@@ -216,6 +216,7 @@ class _BaraaSelectorState extends State<BaraaSelector> {
           SizedBox(height: context.rSpacing(16)),
           TextField(
             controller: _tooController,
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             style: TextStyle(color: c.primary, fontSize: context.rFontSize(14)),
             decoration: InputDecoration(

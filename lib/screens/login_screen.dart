@@ -450,6 +450,7 @@ class _LoginScreenState extends State<LoginScreen>
             const SizedBox(height: 22),
             TextFormField(
               controller: _emailCtrl,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               style: TextStyle(color: c.primary, fontSize: 16),
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.username],
@@ -1634,6 +1635,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
         const SizedBox(height: 20),
         TextField(
           controller: _phoneCtrl,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           keyboardType: TextInputType.number,
           maxLength: 8,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -1772,6 +1774,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
               child: TextField(
                 controller: _codeControllers[i],
                 focusNode: _codeFocuses[i],
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.number,
                 maxLength: i == 0
@@ -2007,6 +2010,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
         TextField(
           controller: _newPassCtrl,
           focusNode: _newPassFocus,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           keyboardType: TextInputType.number,
           maxLength: 4,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -2067,6 +2071,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
         TextField(
           controller: _confirmPassCtrl,
           focusNode: _confirmPassFocus,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           keyboardType: TextInputType.number,
           maxLength: 4,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -2281,6 +2286,7 @@ class _PinKhairtsag extends StatelessWidget {
                 child: TextField(
                   controller: controller,
                   focusNode: focusNode,
+                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.done,
                   autofillHints: const [AutofillHints.password],

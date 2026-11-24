@@ -96,6 +96,7 @@ class _UdirdlagaScreenState extends State<UdirdlagaScreen> {
         title: const Text('Татгалзах шалтгаан'),
         content: TextField(
           controller: ctrl,
+          onTapOutside: (_) => FocusScope.of(ctx).unfocus(),
           autofocus: true,
           maxLines: 3,
           maxLength: 300,
