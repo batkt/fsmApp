@@ -77,7 +77,7 @@ class _FAQScreenState extends State<FAQScreen> {
                     'Тусламж',
                     style: TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w500,
                       color: c.primary,
                       letterSpacing: -0.5,
                     ),
@@ -161,7 +161,7 @@ class _FAQScreenState extends State<FAQScreen> {
                           'Сайн байна уу? 👋',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             color: c.brandGreen,
                           ),
                         ),
@@ -183,7 +183,7 @@ class _FAQScreenState extends State<FAQScreen> {
                     'ТҮГЭЭМЭЛ АСУУЛТУУД',
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: c.mutedForeground,
                       letterSpacing: 1.2,
                     ),
@@ -246,7 +246,7 @@ class _FAQScreenState extends State<FAQScreen> {
                               'Бусад асуулт',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 color: c.primary,
                               ),
                             ),
@@ -277,7 +277,7 @@ class _FAQScreenState extends State<FAQScreen> {
                             ),
                             child: const Text(
                               'Холбоо барих',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(fontWeight: FontWeight.w500),
                             ),
                           ),
                         ),
@@ -386,7 +386,7 @@ class _FAQItemState extends State<_FAQItem> {
                       widget.question,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         color: c.primary,
                       ),
                     ),

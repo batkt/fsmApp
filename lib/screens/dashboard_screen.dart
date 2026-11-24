@@ -595,7 +595,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                               'Шинэ хувилбар гарсан байна',
                               style: TextStyle(
                                 fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 color: c.primary,
                               ),
                             ),
@@ -1272,7 +1272,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                   'Зураг нэмэх',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: c.primary,
                   ),
                 ),
@@ -1303,7 +1303,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                                 'Камер',
                                 style: TextStyle(
                                   color: c.primary,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -1336,7 +1336,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                                 'Цомог',
                                 style: TextStyle(
                                   color: c.primary,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -1711,7 +1711,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 width: context.rIconSize(28),
                 height: context.rIconSize(28),
                 child: Image.asset(
-                  'assets/images/workEase.png',
+                  'assets/images/app_logo_round.png',
                   fit: BoxFit.contain,
                 ),
               ),
@@ -1795,7 +1795,7 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: context.rFontSize(9),
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w500,
                             letterSpacing: -0.5,
                           ),
                         ),

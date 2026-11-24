@@ -342,7 +342,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                             child: Text(_fmtDate(date),
                                 style: TextStyle(fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                     color: c.brandGreen)),
                           ),
                           const SizedBox(width: 8),
@@ -350,7 +350,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           const SizedBox(width: 8),
                           Text('${dayTasks.length}',
                               style: TextStyle(fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                   color: c.mutedForeground)),
                         ]),
                       ),
@@ -433,7 +433,7 @@ class _StatCard extends StatelessWidget {
                     '$count',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: color,
                       letterSpacing: -0.5,
                     ),
@@ -442,7 +442,7 @@ class _StatCard extends StatelessWidget {
                     label,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       color: c.mutedForeground,
                     ),
                   ),
@@ -486,7 +486,7 @@ class _FilterChip extends StatelessWidget {
           border: Border.all(color: isActive ? chipColor : c.border),
         ),
         child: Text(label, style: TextStyle(fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
             color: isActive ? Colors.white : c.mutedForeground)),
       ),
     );
@@ -551,7 +551,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(t.title, style: TextStyle(fontSize: 15,
-                        fontWeight: FontWeight.w600, color: c.primary),
+                        fontWeight: FontWeight.w500, color: c.primary),
                         maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
                     Row(children: [
@@ -577,7 +577,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                   child: Text(widget.statusLabel,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: Colors.white)),
                 ),
               ]),
@@ -609,7 +609,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                           ? c.brandGreen : c.mutedForeground.withOpacity(0.4)),
                   const SizedBox(width: 4),
                   Text('${t.photoPaths.isNotEmpty ? t.photoPaths.length : t.photoCount}', style: TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600,
+                      fontSize: 13, fontWeight: FontWeight.w500,
                       color: (t.photoPaths.isNotEmpty || t.hasPhoto)
                           ? c.brandGreen : c.mutedForeground.withOpacity(0.4))),
                   const Spacer(),
@@ -679,7 +679,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Тэмдэглэл', style: TextStyle(fontSize: 13,
-                      fontWeight: FontWeight.w600, color: c.primary)),
+                      fontWeight: FontWeight.w500, color: c.primary)),
                   const SizedBox(height: 4),
                   Text(t.notes, style: TextStyle(fontSize: 14,
                       color: c.primary, height: 1.4)),
@@ -693,11 +693,11 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
             const SizedBox(height: 12),
             Row(children: [
               Text('☑ Дэд даалгавар', style: TextStyle(fontSize: 13,
-                  fontWeight: FontWeight.w600, color: c.primary)),
+                  fontWeight: FontWeight.w500, color: c.primary)),
               const Spacer(),
               Text('${t.subtasksDone}/${t.subtasks.length}',
                   style: TextStyle(fontSize: 13,
-                      fontWeight: FontWeight.w600, color: c.brandGreen)),
+                      fontWeight: FontWeight.w500, color: c.brandGreen)),
             ]),
             const SizedBox(height: 6),
             // Progress bar
@@ -845,7 +845,7 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
             textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: valueColor ?? c.primary,
             ),
           ),
@@ -956,7 +956,7 @@ class _DetailRow extends StatelessWidget {
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: valueColor ?? c.primary,
               ),
             ),
@@ -983,7 +983,7 @@ class _EmptyState extends StatelessWidget {
           Icon(Icons.history_rounded, size: 56, color: c.border),
           const SizedBox(height: 12),
           Text('Даалгавар олдсонгүй', style: TextStyle(fontSize: 16,
-              fontWeight: FontWeight.w600, color: c.mutedForeground)),
+              fontWeight: FontWeight.w500, color: c.mutedForeground)),
           const SizedBox(height: 4),
           Text('Шүүлтүүрийг өөрчилж үзнэ үү', style: TextStyle(
               fontSize: 14, color: c.mutedForeground)),

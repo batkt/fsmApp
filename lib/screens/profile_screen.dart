@@ -83,7 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Гарах',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: c.primary,
               ),
             ),
@@ -132,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: 32,
               height: 32,
               child: Image.asset(
-                'assets/images/workEase.png',
+                'assets/images/app_logo_round.png',
                 fit: BoxFit.contain,
               ),
             ),
@@ -140,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Flexible(
               child: Text(
                 'Профайл',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -188,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'U',
                         style: const TextStyle(
                           fontSize: 32,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
                       ),
@@ -203,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           '${AuthService.currentUser?.ovog} ${AuthService.currentUser?.ner}',
                           style: TextStyle(
                             fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             color: c.primary,
                           ),
                         ),
@@ -218,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Ажилтан',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: c.brandGreen,
                             ),
                           ),
@@ -236,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Ерөнхий мэдээлэл',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 color: c.primary,
               ),
             ),
@@ -260,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Тохиргоо',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: c.primary,
               ),
             ),
@@ -306,7 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Platform.isIOS ? 'Face ID Тохиргоо' : 'Биометрик Тохиргоо',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                               color: c.primary,
                             ),
                           ),
@@ -412,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               'Харанхуй горим',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: c.primary,
                               ),
                             ),
@@ -469,7 +469,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text('${(factor * 100).toInt()}%', style: TextStyle(
                             fontSize: context.rFontSize(14),
                             color: c.brandGreen,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           )),
                         ],
                       ),
@@ -568,7 +568,7 @@ class _StatCard extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: color,
               ),
             ),
@@ -622,7 +622,7 @@ class _InfoRow extends StatelessWidget {
                   value,
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     color: c.primary,
                   ),
                 ),

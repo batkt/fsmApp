@@ -56,6 +56,9 @@ dependencies:
   intl: ^0.20.2
   record: ^5.0.5
   audioplayers: ^5.2.1
+  geolocator: ^14.0.2
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
 
 dependency_overrides:
   record_linux:
@@ -76,16 +79,20 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/workEase.png"
+  image_path: "assets/images/app_logo.png"
   remove_alpha_ios: true
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/workEase.png"
+  adaptive_icon_background: "#059669"
+  adaptive_icon_foreground: "assets/images/app_logo_foreground.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Энэ төсөл CocoaPods ашигладаг — SPM руу автоматаар шилжүүлэхгүй
+  config:
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -93,6 +100,7 @@ flutter:
 
   assets:
     - assets/images/workEase.png
+    - assets/images/app_logo_round.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

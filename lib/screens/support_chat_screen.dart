@@ -415,7 +415,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               label,
               style: TextStyle(
                 color: c.brandGreen,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 fontSize: 14,
               ),
             ),
@@ -496,7 +496,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                             'Чат эхлүүлэх',
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                               color: c.primary,
                             ),
                           ),
@@ -559,7 +559,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: c.brandGreen,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
@@ -603,7 +603,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                           m['agentDisplayName'],
                                           style: TextStyle(
                                             fontSize: 11,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w500,
                                             color: c.brandGreen,
                                           ),
                                         ),
@@ -745,7 +745,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                               '${(_recordingTime ~/ 60).toString().padLeft(2, '0')}:${(_recordingTime % 60).toString().padLeft(2, '0')}',
                               style: const TextStyle(
                                 color: Colors.red,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 fontSize: 16,
                                 fontFamily: 'monospace',
                               ),

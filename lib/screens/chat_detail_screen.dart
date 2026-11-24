@@ -103,7 +103,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         title: Text(
           'Дэлгэрэнгүй',
           style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w600, color: c.primary),
+              fontSize: 16, fontWeight: FontWeight.w500, color: c.primary),
         ),
         bottom: TabBar(
           controller: _tabController,
@@ -144,7 +144,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                           member['name']![0].toUpperCase(),
                           style: TextStyle(
                             color: c.brandGreen,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),

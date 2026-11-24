@@ -42,7 +42,7 @@ class TaskProgressBar extends StatelessWidget {
                       'Өнөөдрийн явц',
                       style: TextStyle(
                         fontSize: context.rFontSize(15),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         color: c.primary,
                       ),
                     ),
@@ -51,7 +51,7 @@ class TaskProgressBar extends StatelessWidget {
                       '$completedCount / $totalCount',
                       style: TextStyle(
                         fontSize: context.rFontSize(15),
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: c.brandGreen,
                       ),
                     ),

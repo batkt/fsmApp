@@ -94,7 +94,7 @@ class _TaskCardState extends State<TaskCard> {
                     Expanded(child: Text(t.title,
                         style: TextStyle(
                           fontSize: context.rFontSize(17),
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: c.primary))),
                     // Priority indicator
                     Row(
@@ -170,7 +170,7 @@ class _TaskCardState extends State<TaskCard> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: context.rFontSize(13),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         color: Colors.white)),
                 ),
                 context.rWidth(8),
@@ -183,7 +183,7 @@ class _TaskCardState extends State<TaskCard> {
                 context.rWidth(3),
                 Text('${t.photoPaths.isNotEmpty ? t.photoPaths.length : t.photoCount}', style: TextStyle(
                     fontSize: context.rFontSize(13),
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     color: (t.photoPaths.isNotEmpty || t.hasPhoto)
                         ? c.brandGreen : c.mutedForeground.withOpacity(0.4))),
                 context.rWidth(8),
@@ -256,7 +256,7 @@ class _TaskCardState extends State<TaskCard> {
                       Row(children: [
                         Text('Дэд даалгавар', style: TextStyle(
                             fontSize: context.rFontSize(14),
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: c.primary)),
                         const Spacer(),
                         SizedBox(

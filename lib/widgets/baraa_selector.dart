@@ -152,7 +152,7 @@ class _BaraaSelectorState extends State<BaraaSelector> {
             'Бараа материал сонгох',
             style: TextStyle(
               fontSize: context.rFontSize(18),
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: c.primary,
               letterSpacing: -0.5,
             ),
@@ -257,7 +257,7 @@ class _BaraaSelectorState extends State<BaraaSelector> {
                 'Сонгох',
                 style: TextStyle(
                   fontSize: context.rFontSize(16),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
               ),

@@ -336,7 +336,7 @@ class _TooltipWidgetState extends State<_TooltipWidget> {
                         '${widget.currentIndex + 1} / ${widget.totalSteps}',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: c.brandGreen,
                         ),
                       ),
@@ -357,7 +357,7 @@ class _TooltipWidgetState extends State<_TooltipWidget> {
                   widget.step.title,
                   style: TextStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: c.primary,
                   ),
                 ),

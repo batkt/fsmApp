@@ -569,7 +569,7 @@ class _ChatScreenState extends State<ChatScreen> {
               widget.title,
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: c.primary,
               ),
             ),
@@ -588,7 +588,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 'Дэлгэрэнгүй',
                 style: TextStyle(
                   color: c.brandGreen,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
               ),
@@ -710,7 +710,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         _replyingTo!.ajiltniiNer,
                                         style: const TextStyle(
                                           fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w500,
                                           color: Colors.teal,
                                         ),
                                       ),
@@ -768,7 +768,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   'Засаж байна',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                     color: Colors.blue,
                                   ),
                                 ),
@@ -955,7 +955,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   title: Text(
                     'Мессеж устгах',
-                    style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w500),
                   ),
                   content: Text(
                     'Та энэ мессежийг устгахдаа итгэлтэй байна уу?',
@@ -969,7 +969,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
                       style: TextButton.styleFrom(foregroundColor: colorScheme.destructive),
-                      child: const Text('Устгах', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('Устгах', style: TextStyle(fontWeight: FontWeight.w500)),
                     ),
                   ],
                 );
@@ -1041,7 +1041,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 backgroundColor: c.brandGreen.withOpacity(0.15),
                 child: Text(
                   msg.ajiltniiNer.isNotEmpty ? msg.ajiltniiNer[0].toUpperCase() : '?',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c.brandGreen),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: c.brandGreen),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1056,7 +1056,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.only(left: 4, bottom: 4),
                       child: Text(
                         msg.ajiltniiNer,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: c.brandGreen),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: c.brandGreen),
                       ),
                     ),
   
@@ -1103,7 +1103,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       msg.replyTo!.ajiltniiNer,
                                       style: TextStyle(
                                         fontSize: 11,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w500,
                                         color: isMine ? Colors.white : c.brandGreen,
                                       ),
                                     ),
@@ -1195,7 +1195,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       : 'Б',
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
@@ -1333,7 +1333,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 'Уншсан хүмүүс',
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: c.primary,
                 ),
               ),
@@ -1366,7 +1366,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: TextStyle(
                             color: c.brandGreen,
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),

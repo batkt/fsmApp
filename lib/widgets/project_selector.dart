@@ -104,7 +104,7 @@ class ProjectSelector extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: c.brandGreen,
                 ),
               ),
@@ -179,7 +179,7 @@ class ProjectSelector extends StatelessWidget {
                               'Төсөл сонгох',
                               style: TextStyle(
                                 fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 color: mc.primary,
                               ),
                             ),
@@ -254,7 +254,7 @@ class ProjectSelector extends StatelessWidget {
                                       'Бүх төсөл',
                                       style: TextStyle(
                                         fontSize: 15,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                         color: selectedProjectId == 'all'
                                             ? mc.brandGreen
                                             : mc.primary,
@@ -354,7 +354,7 @@ class ProjectSelector extends StatelessWidget {
                                         project.ner,
                                         style: TextStyle(
                                           fontSize: 15,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w500,
                                           color: isSelected
                                               ? mc.brandGreen
                                               : mc.primary,

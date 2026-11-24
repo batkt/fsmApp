@@ -31,7 +31,7 @@ class DashboardHeader extends StatelessWidget {
                 'Таны хуваарь',
                 style: TextStyle(
                   fontSize: context.rFontSize(24),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: c.primary,
                 ),
               ),

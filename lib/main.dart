@@ -101,7 +101,7 @@ class WorkEaseApp extends StatelessWidget {
               titleTextStyle: TextStyle(
                 color: AppColorScheme.light.primary,
                 fontSize: _isIOS ? 15 : 18,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
               iconTheme: IconThemeData(
                 size: _isIOS ? 20 : 24,
@@ -114,11 +114,11 @@ class WorkEaseApp extends StatelessWidget {
               bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
               titleLarge: TextStyle(
                 fontSize: _isIOS ? 18 : 24,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
               ),
               titleMedium: TextStyle(
                 fontSize: _isIOS ? 16 : 20,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
               titleSmall: TextStyle(
                 fontSize: _isIOS ? 14 : 18,
@@ -168,7 +168,7 @@ class WorkEaseApp extends StatelessWidget {
               titleTextStyle: TextStyle(
                 color: AppColorScheme.dark.primary,
                 fontSize: _isIOS ? 15 : 18,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
               iconTheme: IconThemeData(
                 size: _isIOS ? 20 : 24,
@@ -181,11 +181,11 @@ class WorkEaseApp extends StatelessWidget {
               bodySmall: TextStyle(fontSize: _isIOS ? 11 : 14),
               titleLarge: TextStyle(
                 fontSize: _isIOS ? 18 : 24,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
               ),
               titleMedium: TextStyle(
                 fontSize: _isIOS ? 16 : 20,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
               titleSmall: TextStyle(
                 fontSize: _isIOS ? 14 : 18,

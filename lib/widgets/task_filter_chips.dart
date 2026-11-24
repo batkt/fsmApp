@@ -107,7 +107,7 @@ class _FilterChip extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: context.rFontSize(13),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontWeight: isSelected ? FontWeight.w500 : FontWeight.w500,
             color: isSelected ? Colors.white : c.mutedForeground,
           ),
         ),

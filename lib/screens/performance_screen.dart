@@ -273,7 +273,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                       stripTime(_selectedDate) == stripTime(TimezoneService.nowMongolia())
                           ? 'Өнөөдөр: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}'
                           : 'Сонгосон өдөр: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.primary),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.primary),
                     ),
                   ),
                   Icon(Icons.keyboard_arrow_down_rounded, color: c.mutedForeground, size: 20),
@@ -304,7 +304,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     ? 'Өнөөдрийн гүйцэтгэл' 
                     : '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day} гүйцэтгэл',
                   style: const TextStyle(color: Colors.white, fontSize: 18,
-                      fontWeight: FontWeight.w600)),
+                      fontWeight: FontWeight.w500)),
               ],
             ),
             const SizedBox(height: 20),
@@ -323,7 +323,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                         children: [
                           Text('${(todayPercent * 100).round()}%', style: TextStyle(
                               fontSize: context.rFontSize(48),
-                              fontWeight: FontWeight.w900, color: Colors.white,
+                              fontWeight: FontWeight.w500, color: Colors.white,
                               letterSpacing: -1)),
                           Text('$todayDone/${todayTasks.length} даалгавар', style: TextStyle(
                               fontSize: context.rFontSize(14), color: Colors.white.withOpacity(0.8),
@@ -464,7 +464,7 @@ class _Mini extends StatelessWidget {
       value,
       style: TextStyle(
         fontSize: context.rFontSize(16),
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w500,
         color: Colors.white,
       ),
     ),
@@ -520,7 +520,7 @@ class _Card extends StatelessWidget {
         SizedBox(width: context.rSpacing(8)),
         Expanded(
           child: Text(title, style: TextStyle(fontSize: context.rFontSize(18),
-              fontWeight: FontWeight.w600, color: c.primary),
+              fontWeight: FontWeight.w500, color: c.primary),
               maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ]),
@@ -545,7 +545,7 @@ class _AreaRow extends StatelessWidget {
       Expanded(child: Text(area, style: TextStyle(fontSize: context.rFontSize(15),
           color: c.primary), overflow: TextOverflow.ellipsis)),
       Text('$count/$total', style: TextStyle(fontSize: context.rFontSize(14),
-          fontWeight: FontWeight.w600, color: color)),
+          fontWeight: FontWeight.w500, color: color)),
     ]),
     SizedBox(height: context.rSpacing(6)),
     ClipRRect(borderRadius: BorderRadius.circular(context.rRadius(4)),
@@ -590,7 +590,7 @@ class _InfoCard extends StatelessWidget {
         spacing: 4,
         children: [
           Text(value, style: TextStyle(fontSize: context.rFontSize(26),
-              fontWeight: FontWeight.bold, color: c.primary)),
+              fontWeight: FontWeight.w500, color: c.primary)),
           if (unit.isNotEmpty) 
             Padding(padding: EdgeInsets.only(bottom: context.rSpacing(4)),
               child: Text(unit, style: TextStyle(fontSize: context.rFontSize(14),
@@ -689,14 +689,14 @@ class _BarsPainter extends CustomPainter {
         final label = comp == val ? comp.toInt().toString() : '${comp.toInt()}/${val.toInt()}';
         final tp = TextPainter(text: TextSpan(
             text: label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500,
                 color: clr)), textDirection: ui.TextDirection.ltr)..layout();
         tp.paint(cv, Offset(x+(bw-tp.width)/2, y-16));
       }
       final lp = TextPainter(text: TextSpan(text: lbls[i],
           style: TextStyle(fontSize: 10,
               color: hl ? clr : mutedClr,
-              fontWeight: hl ? FontWeight.w600 : FontWeight.normal)),
+              fontWeight: hl ? FontWeight.w500 : FontWeight.normal)),
           textDirection: ui.TextDirection.ltr)..layout();
       lp.paint(cv, Offset(x+(bw-lp.width)/2, h+6));
     }
@@ -735,7 +735,7 @@ class _LinePainter extends CustomPainter {
     }
     final tp = TextPainter(text: TextSpan(
         text: '${vals.last.toInt()}%',
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold,
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500,
             color: lc)), textDirection: ui.TextDirection.ltr)..layout();
     tp.paint(cv, Offset(pts.last.dx-tp.width-8, pts.last.dy-6));
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
@@ -10,6 +11,11 @@ import '../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'dashboard_screen.dart';
 import 'history_screen.dart';
+import 'irts_screen.dart';
+import 'nuur_screen.dart';
+import 'tsalin_screen.dart';
+import 'udirdlaga_screen.dart';
+import 'zuvshuurul_screen.dart';
 import 'login_screen.dart';
 import 'performance_screen.dart';
 
@@ -58,7 +64,8 @@ class _RootScreenState extends State<RootScreen> {
         _isCheckingSession = false;
       });
       if (restored) {
-        SocketService.connect();
+        if (!(AuthService.currentUser?.irtsEsekh ?? false))
+          SocketService.connect();
         _startTimer();
       }
     }
@@ -66,15 +73,17 @@ class _RootScreenState extends State<RootScreen> {
 
   void _handleLoggedIn() {
     setState(() => _isLoggedIn = true);
-    SocketService.connect();
+    // irts хэрэглэгчийн токен fsmBack-д хүчингүй тул FSM socket холбохгүй
+    if (!(AuthService.currentUser?.irtsEsekh ?? false)) SocketService.connect();
     _startTimer();
   }
 
   void _handleLogout() async {
     _inactivityTimer?.cancel();
     SocketService.disconnect();
-    // Deactivate FCM token before logout
-    await FCMService.deactivateToken();
+    // Deactivate FCM token before logout (FSM хэрэглэгч л бүртгүүлдэг)
+    if (!(AuthService.currentUser?.irtsEsekh ?? false))
+      await FCMService.deactivateToken();
     await AuthService.logout();
     if (mounted) setState(() => _isLoggedIn = false);
   }
@@ -85,9 +94,7 @@ class _RootScreenState extends State<RootScreen> {
       final c = context.colors;
       return Scaffold(
         backgroundColor: c.background,
-        body: Center(
-          child: CircularProgressIndicator(color: c.brandGreen),
-        ),
+        body: Center(child: CircularProgressIndicator(color: c.brandGreen)),
       );
     }
     if (!_isLoggedIn) return LoginScreen(onLoggedIn: _handleLoggedIn);
@@ -106,61 +113,435 @@ class _HomeShell extends StatefulWidget {
   State<_HomeShell> createState() => _HomeShellState();
 }
 
+/// Аппын модуль. [systemuud]: аль системийн хэрэглэгчид харагдах, тус бүрийн
+/// шаардах цонхны эрх (zevtabs/turees эсвэл irts-ийн tsonkhniiErkhuud).
+/// Эрхийн жагсаалт null бол тухайн системийн бүх ажилтанд харагдана;
+/// байвал аль нэг зам нь ажилтны tsonkhniiErkhuud-д байх ёстой.
+class FsmModul {
+  const FsmModul(
+    this.icon,
+    this.ner,
+    this.khuudas, {
+    this.systemuud = const {'fsm': null},
+    this.zuvkhunAdmin = false,
+    this.zevtabsShaardlagatai = false,
+  });
+  final IconData icon;
+  final String ner;
+  final Widget khuudas;
+  final Map<String, List<String>?> systemuud;
+
+  /// FSM-д зөвхөн Admin; irts-д Admin эсвэл заасан удирдлагын цонхтой хүн
+  final bool zuvkhunAdmin;
+
+  /// true бол zevtabs-ийн байгууллагын цонхны мэдээлэл заавал байх ёстой
+  /// (мэдэгдэхгүй үед харуулахгүй) — Цалин зэрэг лицензтэй модуль.
+  final bool zevtabsShaardlagatai;
+
+  bool kharagdakh(AuthUser? user) {
+    if (user == null || !systemuud.containsKey(user.system)) return false;
+    if (zuvkhunAdmin && !user.irtsEsekh && user.role != 'Admin') return false;
+    final erkhuud = systemuud[user.system];
+    if (erkhuud == null) return true;
+    bool taarakh(Iterable<String> jagsaalt) => erkhuud.any(
+      (zam) => jagsaalt.any((t) => t == zam || t.startsWith('$zam/')),
+    );
+    // 1) zevtabs-ийн "Цонхны эрх"-д байгууллагад сонгогдсон байх (мэдэгдэж байвал)
+    final org = user.moduluud;
+    if (org == null && zevtabsShaardlagatai) return false;
+    if (org != null && !taarakh(org)) return false;
+    // 2) Admin бүх сонгогдсон цонхыг харна (вэбтэй ижил)
+    if (user.role == 'Admin' && (org != null || user.irtsEsekh)) return true;
+    // 3) Ажилтанд тухайн цонх (эсвэл дэд цонх) олгогдсон байх
+    return taarakh(user.tsonkhniiErkhuud);
+  }
+}
+
 class _HomeShellState extends State<_HomeShell> {
   int _idx = 0;
+  List<String> _moduliinNeruud = const [];
+
+  /// Нүүр хуудаснаас модулийн таб руу шилжих
+  void _modulNeey(String ner) {
+    final i = _moduliinNeruud.indexOf(ner);
+    if (i >= 0) setState(() => _idx = i);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.wait([
+      AuthService.erkhShinechlekh(),
+      AuthService.moduluudShinechlekh(),
+    ]).then((_) {
+      if (mounted) setState(() {});
+    });
+    // Анх нэвтэрсний дараа байршил, мэдэгдлийн зөвшөөрлийг тайлбартай асууна
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ZuvshuurulScreen.shaardlagatai(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final pages = [
-      CleanerDashboardScreen(onLogout: widget.onLogout),
-      const HistoryScreen(),
-      ValueListenableBuilder<Project?>(
-        valueListenable: ProjectService.activeProject,
-        builder: (context, Project? activeProject, _) {
-          if (activeProject == null) {
-            return const Scaffold(
-              body: Center(child: Text('Төсөл сонгоогүй байна')),
-            );
-          }
-          // Using a unique key forces the ChatScreen to re-mount if the project changes,
-          // which re-initializes _loadMessages() and SocketService rooms.
-          return ChatScreen(
-            key: ValueKey(activeProject.id),
-            projectId: activeProject.id,
-            barilgiinId: activeProject.barilgiinId,
-            baiguullagiinId: activeProject.baiguullagiinId,
-            title: '${activeProject.ner} Чат',
-            showBackButton: false,
-          );
+    final user = AuthService.currentUser;
+    final irtsModul = FsmModul(
+      Icons.fingerprint_rounded,
+      'Ирц',
+      IrtsScreen(onLogout: widget.onLogout),
+      systemuud: const {
+        'fsm': ['/khyanalt/uilchilgee/irts'],
+        'irts': ['/khyanalt/irts', '/khyanalt/chuluu'],
+      },
+    );
+    final irtsKharagdakh = irtsModul.kharagdakh(user);
+    const tsalinModul = FsmModul(
+      Icons.account_balance_wallet_outlined,
+      'Цалин',
+      TsalinScreen(),
+      zevtabsShaardlagatai: true,
+      // Цалин одоогоор зөвхөн Ирцтэй хамт; FSM-д цалин байхгүй
+      systemuud: {
+        'irts': ['/khyanalt/tsalin'],
+      },
+    );
+    final tsalinKharagdakh = tsalinModul.kharagdakh(user);
+    // Нүүр нь хэд хэдэн модулийг холбох төв: зөвхөн FSM-ийн хэрэглэгчид
+    // (Ирц, Цалингүй) хэрэггүй тул тэд шууд Даалгавраас эхэлнэ.
+    final nuurKhereg = irtsKharagdakh || tsalinKharagdakh;
+    // Шинэ модуль нэмэхдээ энд нэг мөр (erkh-тэй) нэмнэ.
+    final moduluud = <FsmModul>[
+      if (nuurKhereg)
+        FsmModul(
+          Icons.home_rounded,
+          'Нүүр',
+          NuurScreen(
+            key: ValueKey('nuur-${user?.id}'),
+            irtsKharagdakh: irtsKharagdakh,
+            daalgavarKharagdakh: !(user?.irtsEsekh ?? false),
+            tsalinKharagdakh: tsalinKharagdakh,
+            onModulNeey: _modulNeey,
+            onLogout: widget.onLogout,
+          ),
+          systemuud: const {'fsm': null, 'irts': null},
+        ),
+      FsmModul(
+        Icons.checklist_rounded,
+        'Даалгавар',
+        CleanerDashboardScreen(onLogout: widget.onLogout),
+      ),
+      irtsModul,
+      const FsmModul(
+        Icons.dashboard_customize_rounded,
+        'Удирдлага',
+        UdirdlagaScreen(),
+        zuvkhunAdmin: true,
+        systemuud: {
+          'fsm': ['/khyanalt/uilchilgee/irts'],
+          'irts': [
+            '/khyanalt/irts/jagsaalt',
+            '/khyanalt/irts/khyanalt',
+            '/khyanalt/irts/khuraangui',
+          ],
         },
       ),
-      const PerformanceScreen(),
-    ];
+      tsalinModul,
+      const FsmModul(Icons.calendar_today_rounded, 'Түүх', HistoryScreen()),
+      FsmModul(
+        Icons.chat_bubble_outline_rounded,
+        'Чат',
+        ValueListenableBuilder<Project?>(
+          valueListenable: ProjectService.activeProject,
+          builder: (context, Project? activeProject, _) {
+            if (activeProject == null) {
+              return const Scaffold(
+                body: Center(child: Text('Төсөл сонгоогүй байна')),
+              );
+            }
+            // Using a unique key forces the ChatScreen to re-mount if the project changes,
+            // which re-initializes _loadMessages() and SocketService rooms.
+            return ChatScreen(
+              key: ValueKey(activeProject.id),
+              projectId: activeProject.id,
+              barilgiinId: activeProject.barilgiinId,
+              baiguullagiinId: activeProject.baiguullagiinId,
+              title: '${activeProject.ner} Чат',
+              showBackButton: false,
+            );
+          },
+        ),
+      ),
+      const FsmModul(Icons.insights_rounded, 'Гүйцэтгэл', PerformanceScreen()),
+    ].where((m) => m.kharagdakh(user)).toList();
+    _moduliinNeruud = [for (final m in moduluud) m.ner];
+
+    if (moduluud.isEmpty) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    size: 40,
+                    color: c.mutedForeground,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Танд нээлттэй цонх алга байна.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: c.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Удирдлагаасаа цонхны эрх авсны дараа дахин нэвтэрнэ үү.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: c.mutedForeground),
+                  ),
+                  const SizedBox(height: 20),
+                  OutlinedButton(
+                    onPressed: widget.onLogout,
+                    child: const Text('Гарах'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final idx = _idx.clamp(0, moduluud.length - 1);
+    final body = IndexedStack(
+      index: idx,
+      children: [for (final m in moduluud) m.khuudas],
+    );
+
+    // Ганц модультай бол цэс хэрэггүй
+    if (moduluud.length == 1) return Scaffold(body: body);
+
+    // iPad, Galaxy Fold (дэлгэж), хэвтээ утас: хажуугийн цэс
+    if (MediaQuery.sizeOf(context).width >= 720) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              right: false,
+              child: NavigationRail(
+                selectedIndex: idx,
+                onDestinationSelected: (i) => setState(() => _idx = i),
+                backgroundColor: c.cardBackground,
+                labelType: NavigationRailLabelType.all,
+                indicatorColor: c.brandGreen.withValues(alpha: 0.14),
+                selectedIconTheme: IconThemeData(color: c.brandGreen),
+                unselectedIconTheme: IconThemeData(color: c.mutedForeground),
+                selectedLabelTextStyle: TextStyle(
+                  color: c.brandGreen,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                unselectedLabelTextStyle: TextStyle(
+                  color: c.mutedForeground,
+                  fontSize: 12,
+                ),
+                destinations: [
+                  for (final m in moduluud)
+                    NavigationRailDestination(
+                      icon: Icon(m.icon),
+                      label: Text(m.ner),
+                    ),
+                ],
+              ),
+            ),
+            VerticalDivider(width: 1, color: c.border),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
-      body: IndexedStack(index: _idx, children: pages),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _idx,
-        backgroundColor: c.cardBackground,
-        selectedItemColor: c.brandGreen,
-        unselectedItemColor: c.mutedForeground,
-        selectedFontSize: 12,
-        unselectedFontSize: 11,
-        iconSize: 26,
-        type: BottomNavigationBarType.fixed,
+      body: body,
+      bottomNavigationBar: _PillNav(
+        moduluud: moduluud,
+        idx: idx,
         onTap: (i) => setState(() => _idx = i),
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.checklist_rounded), label: 'Даалгавар'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_rounded), label: 'Түүх'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline_rounded), label: 'Чат'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.insights_rounded), label: 'Гүйцэтгэл'),
-        ],
       ),
+    );
+  }
+}
+
+/// Хөвөгч капсул доод цэс: сонгосон таб руу emerald заагч гулсаж очно.
+/// 5 хүртэл таб бол нэр бүгд харагдана; түүнээс олон бол зөвхөн сонгосных.
+class _PillNav extends StatelessWidget {
+  const _PillNav({
+    required this.moduluud,
+    required this.idx,
+    required this.onTap,
+  });
+  final List<FsmModul> moduluud;
+  final int idx;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final n = moduluud.length;
+    final bugdNer = n <= 5;
+    final doodZai = MediaQuery.paddingOf(context).bottom;
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    final khugatsaa = reduce
+        ? Duration.zero
+        : const Duration(milliseconds: 320);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(14, 0, 14, doodZai > 0 ? doodZai : 12),
+      child: Container(
+        height: 68,
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: c.cardBackground,
+          borderRadius: BorderRadius.circular(34),
+          border: Border.all(color: c.border.withValues(alpha: 0.7)),
+          boxShadow: [
+            BoxShadow(
+              color: c.brandGreen.withValues(alpha: 0.10),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: LayoutBuilder(
+          builder: (context, box) {
+            // Олон табтай үед сонгосон нь 2 дахин өргөн (нэр нь багтахын тулд)
+            final flexes = [
+              for (var i = 0; i < n; i++) (!bugdNer && i == idx) ? 2.0 : 1.0,
+            ];
+            final niit = flexes.fold<double>(0, (a, b) => a + b);
+            final negj = box.maxWidth / niit;
+            final zuun =
+                flexes.take(idx).fold<double>(0, (a, b) => a + b) * negj;
+            return Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: khugatsaa,
+                  curve: Curves.easeOutBack,
+                  left: zuun,
+                  top: 0,
+                  bottom: 0,
+                  width: flexes[idx] * negj,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          c.brandGreen.withValues(alpha: 0.16),
+                          c.brandGreen.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    for (var i = 0; i < n; i++)
+                      Expanded(
+                        flex: (flexes[i] * 2).round(),
+                        child: Semantics(
+                          selected: i == idx,
+                          button: true,
+                          label: moduluud[i].ner,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(28),
+                            onTap: () {
+                              if (i != idx) HapticFeedback.selectionClick();
+                              onTap(i);
+                            },
+                            child: _NavTab(
+                              modul: moduluud[i],
+                              songogdson: i == idx,
+                              nerKharuulakh: bugdNer || i == idx,
+                              bosoo: bugdNer,
+                              khugatsaa: khugatsaa,
+                              jijig: n == 5,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _NavTab extends StatelessWidget {
+  const _NavTab({
+    required this.modul,
+    required this.songogdson,
+    required this.nerKharuulakh,
+    required this.bosoo,
+    required this.khugatsaa,
+    required this.jijig,
+  });
+  final FsmModul modul;
+  final bool songogdson, nerKharuulakh, bosoo, jijig;
+  final Duration khugatsaa;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final ungu = songogdson ? c.brandGreen : c.mutedForeground;
+    final icon = AnimatedScale(
+      scale: songogdson ? 1.12 : 1,
+      duration: khugatsaa,
+      curve: Curves.easeOutBack,
+      child: Icon(modul.icon, size: 22, color: ungu),
+    );
+    final ner = Text(
+      modul.ner,
+      maxLines: 1,
+      overflow: TextOverflow.fade,
+      softWrap: false,
+      style: TextStyle(
+        fontSize: jijig ? 10.5 : 11.5,
+        fontWeight: FontWeight.w500,
+        color: ungu,
+        letterSpacing: -0.1,
+      ),
+    );
+    if (bosoo) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(height: 3),
+          FittedBox(fit: BoxFit.scaleDown, child: ner),
+        ],
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        icon,
+        if (nerKharuulakh) ...[const SizedBox(width: 6), Flexible(child: ner)],
+      ],
     );
   }
 }

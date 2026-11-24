@@ -91,7 +91,7 @@ class _NotificationModalState extends State<NotificationModal> {
                     'Мэдэгдэл',
                     style: TextStyle(
                       fontSize: context.rFontSize(20),
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       color: c.primary,
                     ),
                   ),
@@ -113,7 +113,7 @@ class _NotificationModalState extends State<NotificationModal> {
                         '$unread шинэ',
                         style: TextStyle(
                           fontSize: context.rFontSize(13),
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: c.destructive,
                         ),
                       ),
@@ -257,7 +257,7 @@ class _NotifTile extends StatelessWidget {
                             fontSize: context.rFontSize(16),
                             fontWeight: notif.isRead
                                 ? FontWeight.w500
-                                : FontWeight.w700,
+                                : FontWeight.w500,
                             color: c.primary,
                           ),
                         ),

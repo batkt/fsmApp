@@ -148,7 +148,7 @@ class _FullCalendarState extends State<FullCalendar>
                           '${date.day}',
                           style: TextStyle(
                             fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             color: c.brandGreen,
                           ),
                         ),
@@ -164,7 +164,7 @@ class _FullCalendarState extends State<FullCalendar>
                           '$dayName, $monthName сар',
                           style: TextStyle(
                             fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             color: c.primary,
                           ),
                         ),
@@ -179,7 +179,7 @@ class _FullCalendarState extends State<FullCalendar>
                                   holiday.name,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                     color: c.blueAccent,
                                   ),
                                 ),
@@ -251,7 +251,7 @@ class _FullCalendarState extends State<FullCalendar>
                                 t.timeRange.split(' - ')[0],
                                 style: TextStyle(
                                   fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
                                   color: c.primary,
                                 ),
                               ),
@@ -280,7 +280,7 @@ class _FullCalendarState extends State<FullCalendar>
                                   t.title,
                                   style: TextStyle(
                                     fontSize: 15,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                     color: c.primary,
                                   ),
                                   maxLines: 1,
@@ -328,7 +328,7 @@ class _FullCalendarState extends State<FullCalendar>
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: Colors.white,
                               ),
                             ),
@@ -424,7 +424,7 @@ class _FullCalendarState extends State<FullCalendar>
                             '${_monthNames[displayDate.month]} сар, ${displayDate.year}',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                               color: c.primary,
                             ),
                           );
@@ -721,7 +721,7 @@ class _FullCalendarState extends State<FullCalendar>
                     '${day.day}',
                     style: TextStyle(
                       fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       color: isSelected ? Colors.white : c.primary,
                     ),
                   ),
@@ -800,7 +800,7 @@ class _FullCalendarState extends State<FullCalendar>
                       d,
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         color: d == 'Бям' || d == 'Ням'
                             ? c.destructive.withOpacity(0.7)
                             : c.mutedForeground,
@@ -884,7 +884,7 @@ class _FullCalendarState extends State<FullCalendar>
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: isToday || isSelected
-                                  ? FontWeight.bold
+                                  ? FontWeight.w500
                                   : FontWeight.w500,
                               color: isSelected
                                   ? Colors.white

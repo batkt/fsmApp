@@ -14,6 +14,12 @@ class AuthUser {
   final String baiguullagaNer;
   final List<String> barilguud;
   final String role;
+  /// zevtabs/turees-ээс олгосон цонхны эрх (FSM модулийн табуудыг шийднэ)
+  final List<String> tsonkhniiErkhuud;
+  /// Нэвтэрсэн систем: 'fsm' (turees/FSM) эсвэл 'irts' (irts.zevtabs.mn)
+  final String system;
+  /// zevtabs-д байгууллагад сонгосон цонхнууд (Цонхны эрх). null = мэдэгдэхгүй
+  final List<String>? moduluud;
 
   AuthUser({
     required this.id,
@@ -26,7 +32,14 @@ class AuthUser {
     required this.baiguullagaNer,
     required this.barilguud,
     required this.role,
+    this.tsonkhniiErkhuud = const [],
+    this.system = 'fsm',
+    this.moduluud,
   });
+
+  bool get irtsEsekh => system == 'irts';
+
+  bool erkhtei(String zam) => tsonkhniiErkhuud.contains(zam);
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -39,6 +52,9 @@ class AuthUser {
     'baiguullagaNer': baiguullagaNer,
     'barilguud': barilguud,
     'role': role,
+    'tsonkhniiErkhuud': tsonkhniiErkhuud,
+    'system': system,
+    'moduluud': moduluud,
   };
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
@@ -52,6 +68,11 @@ class AuthUser {
     baiguullagaNer: (json['baiguullagaNer'] ?? '').toString(),
     barilguud: List<String>.from(json['barilguud'] ?? []),
     role: (json['role'] ?? json['erkh'] ?? '').toString(),
+    tsonkhniiErkhuud: List<String>.from(
+      (json['tsonkhniiErkhuud'] as List? ?? []).map((e) => e.toString()),
+    ),
+    system: (json['system'] ?? 'fsm').toString(),
+    moduluud: (json['moduluud'] as List?)?.map((e) => e.toString()).toList(),
   );
 }
 
@@ -94,6 +115,60 @@ class AuthService {
       return true;
     }
     return false;
+  }
+
+  /// tureesBack (TureesTest) — FSM байгууллагын zevtabs модулиудыг эндээс авна
+  static const _tureesUrl = 'http://103.236.194.26:8081';
+
+  /// zevtabs-ийн "Цонхны эрх"-д байгууллагад сонгосон цонхнуудыг татаж хадгална.
+  /// Алдаа гарвал өмнөх утга хэвээр (null бол апп ажилтны эрхээр л шийднэ).
+  static Future<void> moduluudShinechlekh() async {
+    final user = _currentUser;
+    if (_token == null || user == null) return;
+    try {
+      final url = user.irtsEsekh ? '$irtsUrl/erkhiinMedeelelAvya' : '$_tureesUrl/erkhiinMedeelelAvya';
+      final res = await http
+          .post(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Authorization': 'bearer $_token'}, body: '{}')
+          .timeout(const Duration(seconds: 15));
+      if (res.statusCode != 200) return;
+      final data = json.decode(res.body);
+      final list = data is Map ? data['moduluud'] : null;
+      if (list is! List) return;
+      final zamuud = [for (final m in list) if (m is Map && m['zam'] != null) m['zam'].toString()];
+      _currentUser = AuthUser.fromJson({...user.toJson(), 'moduluud': zamuud});
+      final prefs = await _getPrefs();
+      await prefs.setString(_userKey, json.encode(_currentUser!.toJson()));
+    } catch (e) {
+      debugPrint('[Auth] модуль шинэчилж чадсангүй: $e');
+    }
+  }
+
+  /// Цонхны эрхийг серверээс дахин уншина (/me). Алдаа гарвал хадгалсан эрх хэвээр.
+  static Future<AuthUser?> erkhShinechlekh() async {
+    final user = _currentUser;
+    if (_token == null || user == null || user.irtsEsekh) return user;
+    try {
+      final res = await http.get(
+        Uri.parse('$_baseUrl/me'),
+        headers: {'Authorization': 'Bearer $_token'},
+      ).timeout(const Duration(seconds: 15));
+      if (res.statusCode != 200) return user;
+      final ajiltan = (json.decode(res.body) as Map)['ajiltan'] as Map?;
+      if (ajiltan == null) return user;
+      final shine = AuthUser.fromJson({
+        ...user.toJson(),
+        'barilguud': ajiltan['barilguud'] ?? user.barilguud,
+        'role': ajiltan['erkh'] ?? user.role,
+        'tsonkhniiErkhuud': ajiltan['tsonkhniiErkhuud'] ?? const [],
+      });
+      _currentUser = shine;
+      final prefs = await _getPrefs();
+      await prefs.setString(_userKey, json.encode(shine.toJson()));
+      return shine;
+    } catch (e) {
+      debugPrint('[Auth] эрх шинэчилж чадсангүй: $e');
+      return user;
+    }
   }
 
   /// Get last saved user's phone number for login screen
@@ -144,8 +219,71 @@ class AuthService {
     return false;
   }
 
-  /// Login with username and password
+  /// irts.zevtabs.mn-ийн API (irts-ийн бүртгэлтэй ажилтан)
+  static const irtsUrl = 'https://irts.zevtabs.mn/api';
+
+  /// Нэвтрэх: эхлээд FSM (turees) бүртгэл, таарахгүй бол irts бүртгэлээр.
+  /// TODO: FSM, irts хэрэглэгчдийг утасны дугаараар нэгтгэсний дараа нэг л бүртгэлтэй болно.
   static Future<AuthResult> login(String nevtrekhNer, String nuutsUg) async {
+    final fsm = await _fsmNevtrey(nevtrekhNer, nuutsUg);
+    if (fsm.isSuccess) return fsm;
+    final irts = await _irtsNevtrey(nevtrekhNer, nuutsUg);
+    if (irts.isSuccess) return irts;
+    // Хоёулаа татгалзвал энгийн мессеж; сүлжээний алдааг тэр чигээр нь харуулна
+    return irts.errorMessage == _buruuMsg ? AuthResult.failure(_buruuMsg) : fsm;
+  }
+
+  static const _buruuMsg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
+
+  static Future<AuthResult> _irtsNevtrey(String nevtrekhNer, String nuutsUg) async {
+    try {
+      final res = await http
+          .post(
+            Uri.parse('$irtsUrl/ajiltanNevtrey'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'nevtrekhNer': nevtrekhNer, 'nuutsUg': nuutsUg}),
+          )
+          .timeout(const Duration(seconds: 15));
+      Map<String, dynamic>? data;
+      try {
+        data = json.decode(res.body) as Map<String, dynamic>;
+      } catch (_) {}
+      if (res.statusCode == 200 && data?['token'] != null && data?['result'] is Map) {
+        final r = data!['result'] as Map<String, dynamic>;
+        final user = AuthUser(
+          id: (r['_id'] ?? '').toString(),
+          ner: (r['ner'] ?? '').toString(),
+          ovog: (r['ovog'] ?? '').toString(),
+          register: (r['register'] ?? '').toString(),
+          utas: (r['utas'] ?? '').toString(),
+          albanTushaal: (r['albanTushaal'] ?? '').toString(),
+          baiguullagaId: (r['baiguullagiinId'] ?? '').toString(),
+          baiguullagaNer: (r['baiguullagiinNer'] ?? r['zogsoolNer'] ?? '').toString(),
+          barilguud: List<String>.from((r['barilguud'] as List? ?? []).map((e) => e.toString())),
+          role: (r['erkh'] ?? '').toString(),
+          tsonkhniiErkhuud: List<String>.from((r['tsonkhniiErkhuud'] as List? ?? []).map((e) => e.toString())),
+          system: 'irts',
+        );
+        _token = data['token'] as String;
+        _currentUser = user;
+        final prefs = await _getPrefs();
+        await prefs.setString(_tokenKey, _token!);
+        await prefs.setString(_userKey, json.encode(user.toJson()));
+        await prefs.setString(_bioTokenKey, _token!);
+        return AuthResult.success(user);
+      }
+      final aldaa = data?['aldaa']?.toString() ?? '';
+      // Буруу нэр/нууц үг бол нэг ижил мессеж; лицензийн гэх мэт бусад алдааг тэр чигээр
+      if (aldaa.isEmpty || aldaa.contains('буруу')) return AuthResult.failure(_buruuMsg);
+      return AuthResult.failure(aldaa);
+    } catch (e) {
+      debugPrint('[Auth] irts нэвтрэлт: $e');
+      return AuthResult.failure('Сервертэй холбогдож чадсангүй');
+    }
+  }
+
+  /// FSM (turees) бүртгэлээр нэвтрэх
+  static Future<AuthResult> _fsmNevtrey(String nevtrekhNer, String nuutsUg) async {
     try {
       final response = await http
           .post(
@@ -182,6 +320,9 @@ class AuthService {
           baiguullagaNer: (baiguullaga?['ner'] ?? '').toString(),
           barilguud: List<String>.from(result['barilguud'] ?? []),
           role: (result['erkh'] ?? '').toString(),
+          tsonkhniiErkhuud: List<String>.from(
+            (result['tsonkhniiErkhuud'] as List? ?? []).map((e) => e.toString()),
+          ),
         );
 
         // Save to state

@@ -58,6 +58,8 @@
 	<string>Бид даалгаврын зураг хадгалахад галлерей ашиглах шаардлагатай.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Бид таныг Face ID ашиглан баталгаажуулах шаардлагатай.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ирц бүртгүүлэхэд таныг ажлын байрандаа байгааг шалгахын тулд байршлыг ашиглана.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Бид тусламж хэсгийг нээхэд төхөөрөмжийн хөдөлгөөний мэдээллийг ашиглана.</string>
 </dict>

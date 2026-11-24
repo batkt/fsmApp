@@ -298,7 +298,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                         t.title,
                         style: TextStyle(
                           fontSize: context.rFontSize(18),
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           color: c.primary,
                           letterSpacing: -0.5,
                         ),
@@ -336,7 +336,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   _statusLabel(t.status),
                                   style: TextStyle(
                                     fontSize: context.rFontSize(11),
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w500,
                                     color: sc,
                                   ),
                                 ),
@@ -359,7 +359,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                               _prioLabel(t.priority),
                               style: TextStyle(
                                 fontSize: context.rFontSize(11),
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                                 color: pc,
                               ),
                             ),
@@ -384,7 +384,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                     'Бүтэн өдөр',
                                     style: TextStyle(
                                       fontSize: context.rFontSize(11),
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       fontStyle: FontStyle.italic,
                                       decoration: TextDecoration.underline,
                                       color: c.info,
@@ -413,7 +413,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                     'Давтагдах',
                                     style: TextStyle(
                                       fontSize: context.rFontSize(11),
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       fontStyle: FontStyle.italic,
                                       decoration: TextDecoration.underline,
                                       color: Colors.purple,
@@ -534,7 +534,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                 'ТАЙЛБАР',
                                 style: TextStyle(
                                   fontSize: context.rFontSize(12),
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w500,
                                   color: c.mutedForeground,
                                   letterSpacing: 0.5,
                                 ),
@@ -587,7 +587,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                 'ДЭД ДААЛГАВАРУУД',
                                 style: TextStyle(
                                   fontSize: context.rFontSize(12),
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w500,
                                   color: c.mutedForeground,
                                   letterSpacing: 0.5,
                                 ),
@@ -608,7 +608,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   '${t.subtasksDone}/${t.subtasks.length}',
                                   style: TextStyle(
                                     fontSize: context.rFontSize(12),
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                     color: c.brandGreen,
                                   ),
                                 ),
@@ -749,7 +749,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                               'БАРАА',
                               style: TextStyle(
                                 fontSize: context.rFontSize(12),
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                                 color: c.mutedForeground,
                                 letterSpacing: 0.5,
                               ),
@@ -759,7 +759,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                               '${t.baraa.length}',
                               style: TextStyle(
                                 fontSize: context.rFontSize(12),
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 color: Colors.blue,
                               ),
                             ),
@@ -816,7 +816,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             'Материал сонгох',
                                             style: TextStyle(
                                               fontSize: context.rFontSize(14),
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: FontWeight.w500,
                                               color: Colors.blue,
                                             ),
                                           ),
@@ -853,7 +853,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             baraa.ner,
                                             style: TextStyle(
                                               fontSize: context.rFontSize(14),
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: FontWeight.w500,
                                               color: c.primary,
                                             ),
                                           ),
@@ -873,7 +873,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             '${baraa.too} ${baraa.negjLabel}',
                                             style: TextStyle(
                                               fontSize: context.rFontSize(12),
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: FontWeight.w500,
                                               color: Colors.blue,
                                             ),
                                           ),
@@ -902,7 +902,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                               'Нийт үнэ: ${baraa.niitUne.toStringAsFixed(0)}₮',
                                               style: TextStyle(
                                                 fontSize: context.rFontSize(12),
-                                                fontWeight: FontWeight.w600,
+                                                fontWeight: FontWeight.w500,
                                                 color: c.primary,
                                               ),
                                             ),
@@ -971,7 +971,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                     'АНХНЫ ЗУРГУУД',
                                     style: TextStyle(
                                       fontSize: context.rFontSize(12),
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       color: c.mutedForeground,
                                       letterSpacing: 0.5,
                                     ),
@@ -981,7 +981,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                     '${t.hariutsagchZurag.length}',
                                     style: TextStyle(
                                       fontSize: context.rFontSize(12),
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w500,
                                       color: c.info,
                                     ),
                                   ),
@@ -1115,7 +1115,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                                         fontSize: context
                                                             .rFontSize(10),
                                                         fontWeight:
-                                                            FontWeight.w600,
+                                                            FontWeight.w500,
                                                       ),
                                                       maxLines: 1,
                                                       overflow:
@@ -1155,7 +1155,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                     'АЖИЛТНЫ ЗУРГУУД',
                                     style: TextStyle(
                                       fontSize: context.rFontSize(12),
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       color: c.mutedForeground,
                                       letterSpacing: 0.5,
                                     ),
@@ -1165,7 +1165,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                     '${t.ajiltanZurag.length}',
                                     style: TextStyle(
                                       fontSize: context.rFontSize(12),
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w500,
                                       color: c.brandGreen,
                                     ),
                                   ),
@@ -1299,7 +1299,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                                         fontSize: context
                                                             .rFontSize(10),
                                                         fontWeight:
-                                                            FontWeight.w600,
+                                                            FontWeight.w500,
                                                       ),
                                                       maxLines: 1,
                                                       overflow:
@@ -1338,7 +1338,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   'ОДООГИЙН ЗУРГУУД',
                                   style: TextStyle(
                                     fontSize: context.rFontSize(12),
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w500,
                                     color: c.mutedForeground,
                                     letterSpacing: 0.5,
                                   ),
@@ -1348,7 +1348,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   '${t.photoPaths.length}',
                                   style: TextStyle(
                                     fontSize: context.rFontSize(12),
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                     color: c.brandGreen,
                                   ),
                                 ),
@@ -1400,7 +1400,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                               'Нэмэх',
                                               style: TextStyle(
                                                 fontSize: context.rFontSize(12),
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w500,
                                                 color: c.brandGreen,
                                               ),
                                             ),
@@ -1516,7 +1516,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                             style: TextStyle(
                               color: c.destructive,
                               fontSize: context.rFontSize(13),
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -1578,7 +1578,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                 : 'ЭХЛЭХ',
                             style: TextStyle(
                               fontSize: context.rFontSize(16),
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               letterSpacing: 1.2,
                             ),
                           ),
@@ -1610,7 +1610,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                           'ДААЛГАВАР ДУУССАН',
                           style: TextStyle(
                             fontSize: context.rFontSize(14),
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                             color: c.success,
                             letterSpacing: 1,
                           ),
@@ -1631,7 +1631,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                     'ХААХ',
                     style: TextStyle(
                       fontSize: context.rFontSize(14),
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                       color: c.mutedForeground,
                       letterSpacing: 0.5,
                     ),
@@ -1690,7 +1690,7 @@ class _InfoRow extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: context.rFontSize(14),
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: c.primary,
               ),
               maxLines: 2,
@@ -1765,7 +1765,7 @@ class _ProgressRow extends StatelessWidget {
                         'ЗАРЦУУЛСАН',
                         style: TextStyle(
                           fontSize: context.rFontSize(11),
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: c.mutedForeground,
                           letterSpacing: 0.5,
                         ),
@@ -1775,7 +1775,7 @@ class _ProgressRow extends StatelessWidget {
                           '${(progress * 100).toInt()}%',
                           style: TextStyle(
                             fontSize: context.rFontSize(12),
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             color: textColor,
                           ),
                         ),
@@ -1788,7 +1788,7 @@ class _ProgressRow extends StatelessWidget {
                         elapsed,
                         style: TextStyle(
                           fontSize: context.rFontSize(14),
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: c.primary,
                         ),
                       ),

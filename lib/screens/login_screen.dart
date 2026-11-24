@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -79,38 +80,35 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _pinFocus = FocusNode();
   bool _isLoading = false;
-  bool _obscure = true;
+  final bool _obscure = true;
   bool _rememberMe = true;
   final _bio = BiometricService();
   bool _bioSupported = false;
   bool _bioEnabled = false;
   String _appVersion = '';
 
+  /// Нээгдэх үеийн нэг удаагийн хөдөлгөөн (sheet дээш гулсах, гарчиг гарах)
   late AnimationController _animCtrl;
-  late Animation<double> _fadeAnim;
-  late Animation<Offset> _slideAnim;
+  /// Hero зургийн тасралтгүй давталт (араа, утас, даалгаврын чагт)
+  late AnimationController _loopCtrl;
 
   @override
   void initState() {
     super.initState();
     _animCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnim = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut));
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
-    _animCtrl.forward();
+      duration: const Duration(milliseconds: 1100),
+    )..forward();
+    _loopCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
     _initBiometric();
     _loadVersion();
     _loadSavedUser();
@@ -151,13 +149,16 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void dispose() {
     _animCtrl.dispose();
+    _loopCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _pinFocus.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate() || _isLoading) return;
+    FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
     });
@@ -181,6 +182,7 @@ class _LoginScreenState extends State<LoginScreen>
     } else {
       setState(() {
         _isLoading = false;
+        _passCtrl.clear();
       });
       AppToast.show(
         context,
@@ -193,12 +195,12 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _handleBiometricLogin() async {
     if (!_bioSupported) return;
-    
+
     if (!_bioEnabled) {
       AppToast.show(
         context,
-        Platform.isIOS 
-            ? 'Face ID идэвхжүүлэхийн тулд эхлээд нэг удаа нэвтрэх шаардлагатай' 
+        Platform.isIOS
+            ? 'Face ID идэвхжүүлэхийн тулд эхлээд нэг удаа нэвтрэх шаардлагатай'
             : 'Хурууны хээ идэвхжүүлэхийн тулд эхлээд нэг удаа нэвтрэх шаардлагатай',
         icon: Icons.info_outline_rounded,
       );
@@ -248,23 +250,16 @@ class _LoginScreenState extends State<LoginScreen>
         return AlertDialog(
           backgroundColor: c.cardBackground,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           title: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: c.brandGreen.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  defaultTargetPlatform == TargetPlatform.iOS
-                      ? Icons.face_unlock_rounded
-                      : Icons.fingerprint,
-                  color: c.brandGreen,
-                  size: 28,
-                ),
+              Icon(
+                defaultTargetPlatform == TargetPlatform.iOS
+                    ? Icons.face_unlock_rounded
+                    : Icons.fingerprint,
+                color: c.brandGreen,
+                size: 28,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -274,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen>
                       : 'Хурууны хээ',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: c.primary,
                   ),
                 ),
@@ -308,23 +303,15 @@ class _LoginScreenState extends State<LoginScreen>
               onPressed: () => Navigator.pop(ctx, false),
               child: Text('Үгүй', style: TextStyle(color: c.mutedForeground)),
             ),
-            ElevatedButton.icon(
+            FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              icon: Icon(
-                defaultTargetPlatform == TargetPlatform.iOS
-                    ? Icons.face_unlock_rounded
-                    : Icons.fingerprint,
-                size: 18,
-              ),
-              label: const Text('Идэвхжүүлэх'),
-              style: ElevatedButton.styleFrom(
+              style: FilledButton.styleFrom(
                 backgroundColor: c.brandGreen,
-                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                elevation: 0,
               ),
+              child: const Text('Идэвхжүүлэх'),
             ),
           ],
         );
@@ -338,590 +325,882 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  bool get _khudulguunKhasakh => MediaQuery.of(context).disableAnimations;
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final size = MediaQuery.of(context).size;
-    final isLandscape = size.width > size.height;
-    final isTablet = size.shortestSide > 600;
-    final isShortScreen =
-        size.height < 750; // Increased threshold for iPhone 11 compact feel
-    final maxFormWidth = isTablet
-        ? 480.0
-        : 380.0; // Slightly smaller max width for mobile
-
+    if (_khudulguunKhasakh) {
+      _loopCtrl.stop();
+      _animCtrl.value = 1;
+    } else if (!_loopCtrl.isAnimating) {
+      _loopCtrl.repeat();
+    }
     return Scaffold(
-      backgroundColor: c.loginBackground,
-      body: Stack(
-        children: [
-          // ── Background gradient with decorative circles ──
-          Positioned.fill(
-            child: CustomPaint(painter: _BgPainter(c: c)),
-          ),
-
-          // ── Main content ──
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (isLandscape) {
-                  // ── Landscape: Side-by-side ──
-                  return Row(
-                    children: [
-                      // Left: branding
-                      Expanded(
-                        flex: 4,
-                        child: _buildBranding(c, isCompact: true),
-                      ),
-                      // Right: form
-                      Expanded(
-                        flex: 5,
-                        child: Center(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(24),
-                            child: _buildFormCard(c, maxFormWidth),
-                          ),
+      backgroundColor: _heroUngu,
+      resizeToAvoidBottomInset: true,
+      body: LayoutBuilder(builder: (context, box) {
+        final urgun = box.maxWidth >= 720 || box.maxWidth > box.maxHeight * 1.3;
+        if (urgun) {
+          // iPad, Galaxy Fold (дэлгэж), хэвтээ утас: hero зүүн, форм баруун
+          return Row(children: [
+            Expanded(
+              flex: 5,
+              child: _Hero(
+                loop: _loopCtrl,
+                intro: _animCtrl,
+                compact: box.maxHeight < 520,
+                deedZai: MediaQuery.paddingOf(context).top,
+                zuunZai: MediaQuery.paddingOf(context).left,
+              ),
+            ),
+            Expanded(
+              flex: 6,
+              child: _SheetSlide(
+                intro: _animCtrl,
+                fromRight: true,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: c.cardBackground,
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(36)),
+                  ),
+                  child: SafeArea(
+                    left: false,
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 28),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 420),
+                          child: _buildForm(c),
                         ),
                       ),
-                    ],
-                  );
-                }
-
-                // ── Portrait ──
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: isTablet ? 40 : (isShortScreen ? 12 : 20),
-                        ),
-                        _buildBranding(
-                          c,
-                          isCompact: false,
-                          isShort: isShortScreen,
-                        ),
-                        SizedBox(
-                          height: isTablet ? 40 : (isShortScreen ? 16 : 24),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isTablet ? 60 : 12,
-                          ),
-                          child: _buildFormCard(
-                            c,
-                            maxFormWidth,
-                            isShort: isShortScreen,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Footer
-                        Text(
-                          '© ${DateTime.now().year} Zevtabs LLC',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.mutedForeground.withOpacity(0.5),
-                          ),
-                        ),
-                        if (_appVersion.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'v$_appVersion',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: c.mutedForeground.withOpacity(0.35),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
+          ]);
+        }
+
+        // Утас босоо: hero дээр, цагаан sheet доороос гулсаж гарна
+        final deed = MediaQuery.paddingOf(context).top;
+        final dood = MediaQuery.paddingOf(context).bottom;
+        // Формд хэрэгтэй өндрийг (хувилбарын мөр хүртэл) эхэлж өгөөд үлдсэнийг hero авна
+        final formKheregtei = 500.0 + dood;
+        final heroH = (box.maxHeight - formKheregtei + 32).clamp(210.0, 380.0);
+        return Stack(children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: heroH,
+            // Hero статус мөрийн доор хүртэл үргэлжилнэ
+            child: _Hero(loop: _loopCtrl, intro: _animCtrl, compact: false, deedZai: deed),
           ),
-        ],
-      ),
+          SingleChildScrollView(
+            padding: EdgeInsets.only(top: heroH - 32),
+            child: _SheetSlide(
+                intro: _animCtrl,
+                child: Container(
+                  constraints: BoxConstraints(minHeight: box.maxHeight - heroH + 32),
+                  decoration: BoxDecoration(
+                    color: c.cardBackground,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+                  ),
+                  padding: EdgeInsets.fromLTRB(
+                    box.maxWidth < 360 ? 20 : 28,
+                    28,
+                    box.maxWidth < 360 ? 20 : 28,
+                    16 + dood,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 460),
+                      child: _buildForm(c),
+                    ),
+                  ),
+                ),
+              ),
+          ),
+        ]);
+      }),
     );
   }
 
-  // ══════════════════════════════════════════
-  //  Branding Section
-  // ══════════════════════════════════════════
-  Widget _buildBranding(
-    AppColorScheme c, {
-    required bool isCompact,
-    bool isShort = false,
-  }) {
-    return FadeTransition(
-      opacity: _fadeAnim,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Logo container with glow
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.15),
-              boxShadow: [
-                BoxShadow(
-                  color: c.brandGreen.withOpacity(0.3),
-                  blurRadius: 40,
-                  spreadRadius: 5,
+  Widget _buildForm(AppColorScheme c) {
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
+    return AutofillGroup(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Нэвтрэх',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500, letterSpacing: -0.8, color: c.primary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Ажлын бүртгэлээрээ нэвтэрнэ үү',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, color: c.mutedForeground),
+            ),
+            const SizedBox(height: 22),
+            TextFormField(
+              controller: _emailCtrl,
+              style: TextStyle(color: c.primary, fontSize: 16),
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.username],
+              autovalidateMode: AutovalidateMode.onUserInteractionIfError,
+              onFieldSubmitted: (_) => _pinFocus.requestFocus(),
+              decoration: _pillDeco(c, 'Нэвтрэх нэр', Icons.person_outline_rounded),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Нэвтрэх нэрээ оруулна уу' : null,
+            ),
+            const SizedBox(height: 14),
+            FormField<String>(
+              autovalidateMode: AutovalidateMode.onUserInteractionIfError,
+              validator: (_) {
+                final v = _passCtrl.text;
+                if (v.isEmpty) return 'Нууц кодыг оруулна уу';
+                if (v.length != 4) return 'Нууц код 4 оронтой байх ёстой';
+                return null;
+              },
+              builder: (field) => _PinKhairtsag(
+                controller: _passCtrl,
+                focusNode: _pinFocus,
+                obscure: _obscure,
+                aldaa: field.errorText,
+                idevkhteiUngu: _heroUngu,
+                onSubmitted: _handleLogin,
+                onChanged: (v) {
+                  field.didChange(v);
+                  // 4 орон бүрэн, нэр бөглөгдсөн бол шууд нэвтэрнэ
+                  if (v.length == 4 && _emailCtrl.text.trim().isNotEmpty) _handleLogin();
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 2,
+              children: [
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() => _rememberMe = !_rememberMe),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          value: _rememberMe,
+                          onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                          activeColor: _heroUngu,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                          side: BorderSide(color: c.mutedForeground.withValues(alpha: 0.5), width: 1.5),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('Намайг сана', style: TextStyle(fontSize: 14, color: c.mutedForeground)),
+                    ]),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _showForgotPassword(context),
+                  style: TextButton.styleFrom(
+                    foregroundColor: c.brandGreen,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: const Text('Нууц код мартсан?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                 ),
               ],
             ),
-            child: Image.asset(
-              'assets/images/workEase.png',
-              height: isCompact ? 48 : (isShort ? 56 : 64),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'WorkEase - FSM',
-            style: TextStyle(
-              fontSize: isCompact ? 18 : (isShort ? 22 : 24),
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Ажил гүйцэтгэлийн цогц платформ',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: isCompact ? 12 : (isShort ? 12 : 13),
-              color: Colors.white.withOpacity(0.7),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  //  Form Card
-  // ══════════════════════════════════════════
-  Widget _buildFormCard(
-    AppColorScheme c,
-    double maxWidth, {
-    bool isShort = false,
-  }) {
-    return SlideTransition(
-      position: _slideAnim,
-      child: FadeTransition(
-        opacity: _fadeAnim,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxWidth),
-            child: Container(
-              padding: EdgeInsets.all(isShort ? 16 : 20),
-              decoration: BoxDecoration(
-                color: c.cardBackground,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: c.border.withOpacity(0.5)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                child: SizedBox(
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _heroUngu,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: _heroUngu.withValues(alpha: 0.6),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: _isLoading
+                          ? const SizedBox(
+                              key: ValueKey('ach'),
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                            )
+                          : const Text('Нэвтрэх', key: ValueKey('txt')),
+                    ),
                   ),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: c.brandGreen.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.login_rounded,
-                            color: c.brandGreen,
-                            size: isShort ? 18 : 22,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Нэвтрэх',
-                                style: TextStyle(
-                                  fontSize: isShort ? 18 : 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: c.primary,
-                                ),
-                              ),
-                              Text(
-                                'Бүртгэлтэй мэдээллээ оруулна уу',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: c.mutedForeground,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: isShort ? 16 : 24),
-
-                    // Username field
-                    Text(
-                      'Нэвтрэх нэр',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: c.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextFormField(
-                      controller: _emailCtrl,
-                      style: TextStyle(color: c.primary, fontSize: 16),
-                      textInputAction: TextInputAction.next,
-                      decoration: _inputDeco(
-                        c,
-                        'Нэвтрэх нэрээ оруулна уу',
-                        Icons.person_outline,
-                      ),
-                      validator: (v) => (v == null || v.isEmpty)
-                          ? 'Нэвтрэх нэрээ оруулна уу'
-                          : null,
-                    ),
-                    SizedBox(height: isShort ? 14 : 18),
-
-                    // PIN code field
-                    Text(
-                      'Нууц код',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: c.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextFormField(
-                      controller: _passCtrl,
-                      style: TextStyle(color: c.primary, fontSize: 16),
-                      textInputAction: TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [PinCodeFormatter()],
-                      onFieldSubmitted: (_) => _handleLogin(),
-                      decoration:
-                          _inputDeco(
-                            c,
-                            'Нууц код оруулна уу',
-                            Icons.lock_outline,
-                          ).copyWith(
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscure
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: c.mutedForeground,
-                                size: 20,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _obscure = !_obscure),
-                            ),
-                            counterText: '',
-                          ),
-                      obscureText: _obscure,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) {
-                          return 'Нууц кодыг оруулна уу';
-                        }
-                        if (v.length != 4) {
-                          return 'Нууц код 4 оронтой байх ёстой';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Remember me & Forgot password
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () => setState(() => _rememberMe = !_rememberMe),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: Checkbox(
-                                  value: _rememberMe,
-                                  onChanged: (v) =>
-                                      setState(() => _rememberMe = v ?? false),
-                                  activeColor: c.brandGreen,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  side: BorderSide(
-                                    color: c.mutedForeground.withOpacity(0.5),
-                                    width: 1.5,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Сануулах',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: c.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => _showForgotPassword(context),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 30),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Нууц код мартсан?',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: c.brandGreen,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: isShort ? 12 : 16),
-
-                    // ── Login button ──
-                    SizedBox(
-                      width: double.infinity,
-                      height: isShort ? 48 : 52,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: c.brandGreen,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text(
-                                'Нэвтрэх',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                      ),
-                    ),
-
-                    // ── Biometric section ──
-                    if (_bioSupported) ...[
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: c.border)),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'эсвэл',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: c.mutedForeground,
-                              ),
-                            ),
-                          ),
-                          Expanded(child: Divider(color: c.border)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: isShort ? 44 : 48,
-                        child: OutlinedButton(
-                          onPressed: _handleBiometricLogin,
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: c.brandGreen.withOpacity(0.3),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                defaultTargetPlatform == TargetPlatform.iOS
-                                    ? Icons.face_unlock_rounded
-                                    : Icons.fingerprint,
-                                color: c.brandGreen,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  defaultTargetPlatform == TargetPlatform.iOS
-                                      ? 'Face ID-аар нэвтрэх'
-                                      : 'Хурууны хээгээр нэвтрэх',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: c.brandGreen,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
                 ),
               ),
+              // Face ID / хурууны хээ — нэвтрэх товчны хажууд дугуй товч
+              if (_bioSupported) ...[
+                const SizedBox(width: 12),
+                Tooltip(
+                  message: ios ? 'Face ID-аар нэвтрэх' : 'Хурууны хээгээр нэвтрэх',
+                  child: SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: OutlinedButton(
+                      onPressed: _isLoading ? null : _handleBiometricLogin,
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        foregroundColor: _heroUngu,
+                        side: const BorderSide(color: _heroUngu, width: 1.5),
+                        shape: const CircleBorder(),
+                      ),
+                      child: Icon(ios ? Icons.face_unlock_rounded : Icons.fingerprint, size: 26),
+                    ),
+                  ),
+                ),
+              ],
+            ]),
+            const SizedBox(height: 18),
+            Text(
+              _appVersion.isEmpty
+                  ? '© ${DateTime.now().year} Zevtabs LLC'
+                  : '© ${DateTime.now().year} Zevtabs LLC, v$_appVersion',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: c.mutedForeground.withValues(alpha: 0.7)),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  InputDecoration _inputDeco(AppColorScheme c, String hint, IconData icon) {
+  InputDecoration _pillDeco(AppColorScheme c, String hint, IconData icon) {
+    OutlineInputBorder border(Color color, [double w = 1.5]) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: BorderSide(color: color, width: w),
+        );
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(
-        color: c.mutedForeground.withOpacity(0.6),
-        fontSize: 14,
+      hintStyle: TextStyle(color: c.mutedForeground.withValues(alpha: 0.8), fontSize: 15),
+      prefixIcon: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 10),
+        child: Icon(icon, color: c.mutedForeground, size: 22),
       ),
-      prefixIcon: Icon(icon, color: c.mutedForeground, size: 20),
+      prefixIconConstraints: const BoxConstraints(minWidth: 0),
       filled: true,
       fillColor: c.muted,
-      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: c.inputBorder),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: c.inputBorder),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: c.brandGreen, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: c.destructive),
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      border: border(Colors.transparent),
+      enabledBorder: border(Colors.transparent),
+      focusedBorder: border(_heroUngu, 2),
+      errorBorder: border(c.destructive),
+      focusedErrorBorder: border(c.destructive, 2),
+      errorStyle: const TextStyle(height: 1.2),
     );
   }
 }
 
-// ══════════════════════════════════════════
-//  Background Painter with gradient + circles
-// ══════════════════════════════════════════
-class _BgPainter extends CustomPainter {
-  _BgPainter({required this.c});
-  final AppColorScheme c;
+const _heroUngu = Color(0xFF0E9F7A);
+const _heroGeree = Color(0xFF9FF3D6);
+
+/// Нээгдэхэд доороос (эсвэл баруунаас) гулсаж гарах
+class _SheetSlide extends StatelessWidget {
+  const _SheetSlide({required this.intro, required this.child, this.fromRight = false});
+  final Animation<double> intro;
+  final Widget child;
+  final bool fromRight;
+  @override
+  Widget build(BuildContext context) {
+    final a = CurvedAnimation(parent: intro, curve: const Interval(0.15, 0.85, curve: Curves.easeOutCubic));
+    return AnimatedBuilder(
+      animation: a,
+      builder: (context, ch) => FractionalTranslation(
+        translation: fromRight ? Offset(0.25 * (1 - a.value), 0) : Offset(0, 0.35 * (1 - a.value)),
+        child: Opacity(opacity: a.value.clamp(0, 1), child: ch),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Hero-д ээлжлэн харагдах модуль. Шинэ модуль нэмэхдээ [_heroModuluud]-д нэг мөр нэмнэ.
+class _HeroModul {
+  const _HeroModul({
+    required this.ner,
+    required this.tuvgerUg,
+    required this.uldsen,
+    required this.ungu,
+    required this.zurag,
+  });
+  final String ner;
+  /// Гарчгийн тодруулсан эхний үг
+  final String tuvgerUg;
+  final String uldsen;
+  /// Арын градиентийн гол өнгө
+  final Color ungu;
+  /// (өргөн, өндөр, модуль доторх явц 0..1, бүх давталтын явц 0..1)
+  final Widget Function(double w, double h, double yavts, double t) zurag;
+}
+
+final _heroModuluud = <_HeroModul>[
+  _HeroModul(
+    ner: 'FSM',
+    tuvgerUg: 'Даалгавраа',
+    uldsen: ' нэг дор хяна.',
+    ungu: _heroUngu,
+    zurag: (w, h, yavts, t) => _FsmZurag(w: w, h: h, yavts: yavts, t: t),
+  ),
+  _HeroModul(
+    ner: 'Ирц',
+    tuvgerUg: 'Ирцээ',
+    uldsen: ' нэг товчоор бүртгэ.',
+    ungu: const Color(0xFF0D9488),
+    zurag: (w, h, yavts, t) => _IrtsZurag(w: w, h: h, yavts: yavts),
+  ),
+  _HeroModul(
+    ner: 'Цалин',
+    tuvgerUg: 'Цалингаа',
+    uldsen: ' цаг алдалгүй хар.',
+    ungu: const Color(0xFF047857),
+    zurag: (w, h, yavts, t) => _TsalinZurag(w: w, h: h, yavts: yavts),
+  ),
+];
+
+/// Дээд ногоон хэсэг: модуль бүрийн гарчиг + хөдөлгөөнт зураг ээлжлэн солигдоно
+class _Hero extends StatelessWidget {
+  const _Hero({
+    required this.loop,
+    required this.intro,
+    required this.compact,
+    this.deedZai = 0,
+    this.zuunZai = 0,
+  });
+  final Animation<double> loop;
+  final Animation<double> intro;
+  final bool compact;
+  final double deedZai;
+  final double zuunZai;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    // Main gradient bg
-    final bgPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          c.brandGreen,
-          c.brandGreen.withOpacity(0.85),
-          c.loginBackground,
-          c.loginBackground,
-        ],
-        stops: const [0.0, 0.35, 0.45, 1.0],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+  Widget build(BuildContext context) {
+    final n = _heroModuluud.length;
+    return AnimatedBuilder(
+      animation: Listenable.merge([loop, intro]),
+      builder: (context, _) {
+        final bairlal = loop.value * n;
+        final idx = bairlal.floor() % n;
+        final yavts = bairlal - bairlal.floor();
+        final modul = _heroModuluud[idx];
+        final introA = CurvedAnimation(parent: intro, curve: const Interval(0, 0.6, curve: Curves.easeOut)).value;
 
-    // Decorative circles
-    final circlePaint = Paint()..color = Colors.white.withOpacity(0.05);
+        return TweenAnimationBuilder<Color?>(
+          tween: ColorTween(end: modul.ungu),
+          duration: const Duration(milliseconds: 700),
+          builder: (context, ungu, child) => Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: const Alignment(-0.7, -0.2),
+                radius: 1.3,
+                colors: [
+                  Color.lerp(ungu, Colors.white, 0.18)!,
+                  ungu!,
+                  Color.lerp(ungu, Colors.black, 0.22)!,
+                ],
+                stops: const [0.0, 0.55, 1.0],
+              ),
+            ),
+            child: child,
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(top: deedZai, left: zuunZai),
+            child: LayoutBuilder(builder: (context, box) {
+              final w = box.maxWidth;
+              final h = box.maxHeight;
+              final garchigFont = compact ? 24.0 : (w < 360 ? 27.0 : 32.0);
+              final garchigDeed = compact ? 16.0 : 24.0;
+              // Зураг гарчгийн доорх зайд багтана
+              final zuragDeed = garchigDeed + 2 * garchigFont * 1.15 + 8;
+              return Stack(clipBehavior: Clip.hardEdge, children: [
+                // Гогцоо зураас (бүх модульд нийтлэг)
+                Positioned(
+                  right: -20,
+                  top: 0,
+                  width: w * 0.5,
+                  height: h * 0.45,
+                  child: CustomPaint(
+                    painter: _GogtsooPainter(
+                      zurakh: CurvedAnimation(parent: intro, curve: Curves.easeInOut).value,
+                      shiljilt: loop.value,
+                    ),
+                  ),
+                ),
+                // Модулийн зураг — солигдохдоо уусч орно
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: zuragDeed,
+                  bottom: 0,
+                  child: Opacity(
+                    opacity: CurvedAnimation(parent: intro, curve: const Interval(0.3, 1)).value,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 550),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (ch, a) => FadeTransition(
+                        opacity: a,
+                        child: ScaleTransition(scale: Tween(begin: 0.94, end: 1.0).animate(a), child: ch),
+                      ),
+                      child: KeyedSubtree(
+                        key: ValueKey(modul.ner),
+                        child: LayoutBuilder(
+                          builder: (context, zb) => modul.zurag(zb.maxWidth, zb.maxHeight, yavts, loop.value),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Гарчиг
+                Positioned(
+                  left: compact ? 24 : 28,
+                  right: w * 0.1,
+                  top: garchigDeed,
+                  child: Opacity(
+                    opacity: introA,
+                    child: Transform.translate(
+                      offset: Offset(0, 12 * (1 - introA)),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 450),
+                        layoutBuilder: (cur, prev) => Stack(alignment: Alignment.topLeft, children: [...prev, ?cur]),
+                        transitionBuilder: (ch, a) => FadeTransition(
+                          opacity: a,
+                          child: SlideTransition(
+                            position: Tween(begin: const Offset(0, 0.15), end: Offset.zero).animate(a),
+                            child: ch,
+                          ),
+                        ),
+                        child: Text.rich(
+                          key: ValueKey(modul.ner),
+                          TextSpan(children: [
+                            TextSpan(text: modul.tuvgerUg, style: const TextStyle(color: _heroGeree)),
+                            TextSpan(text: modul.uldsen),
+                          ]),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: garchigFont,
+                            height: 1.15,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: -0.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ]);
+            }),
+          ),
+        );
+      },
+    );
+  }
+}
 
-    canvas.drawCircle(
-      Offset(size.width * 0.85, size.height * 0.08),
-      size.width * 0.35,
-      circlePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.1, size.height * 0.22),
-      size.width * 0.25,
-      circlePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.7, size.height * 0.3),
-      size.width * 0.15,
-      circlePaint,
-    );
+/// FSM: эргэх араа + даалгавар чагтлагдах утас
+class _FsmZurag extends StatelessWidget {
+  const _FsmZurag({required this.w, required this.h, required this.yavts, required this.t});
+  final double w, h, yavts, t;
+  @override
+  Widget build(BuildContext context) {
+    final gTom = (math.min(w, h) * 0.62).clamp(60.0, 170.0);
+    return Stack(clipBehavior: Clip.none, children: [
+      Positioned(
+        left: w * 0.06,
+        bottom: h * 0.08,
+        child: SizedBox(
+          width: gTom * 1.6,
+          height: gTom * 1.4,
+          child: Stack(children: [
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: Transform.rotate(
+                angle: t * 2 * math.pi * 2,
+                child: CustomPaint(size: Size.square(gTom), painter: _AraaPainter(shud: 10)),
+              ),
+            ),
+            Positioned(
+              left: gTom * 0.78,
+              top: 0,
+              child: Transform.rotate(
+                angle: -t * 2 * math.pi * 2 * 10 / 7 + 0.2,
+                child: CustomPaint(size: Size.square(gTom * 0.68), painter: _AraaPainter(shud: 7)),
+              ),
+            ),
+          ]),
+        ),
+      ),
+      Positioned(
+        right: -w * 0.08,
+        top: h * 0.02 + math.sin(t * 2 * math.pi * 3) * 6,
+        child: _MiniUtas(
+          urgun: (w * 0.46).clamp(140.0, 260.0),
+          undur: (h * 1.0).clamp(120.0, 320.0),
+          t: yavts,
+        ),
+      ),
+    ]);
+  }
+}
 
-    // Wave separator
-    final wavePaint = Paint()..color = c.loginBackground;
-    final wavePath = Path();
-    final waveY = size.height * 0.38;
-    wavePath.moveTo(0, waveY);
-    wavePath.quadraticBezierTo(
-      size.width * 0.25,
-      waveY + 30,
-      size.width * 0.5,
-      waveY - 10,
+/// Ирц: том хурууны хээ импульстэй + ирсэн/явсан цагийн чипүүд
+class _IrtsZurag extends StatelessWidget {
+  const _IrtsZurag({required this.w, required this.h, required this.yavts});
+  final double w, h, yavts;
+  @override
+  Widget build(BuildContext context) {
+    final r = (math.min(w, h) * 0.42).clamp(44.0, 110.0);
+    final p = (yavts * 2) % 1; // 2 импульс
+    final yawsanKharagdakh = yavts > 0.5;
+    return Stack(clipBehavior: Clip.none, children: [
+      Positioned(
+        left: w * (w < 380 ? 0.06 : 0.12),
+        top: (h - r * 2) / 2,
+        width: r * 2,
+        height: r * 2,
+        child: Stack(alignment: Alignment.center, children: [
+          for (final k in [0.0, 0.5])
+            Builder(builder: (_) {
+              final q = (p + k) % 1;
+              return Container(
+                width: r * 2 * (0.55 + q * 0.45),
+                height: r * 2 * (0.55 + q * 0.45),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.5 * (1 - q)), width: 2),
+                ),
+              );
+            }),
+          Container(
+            width: r * 1.1,
+            height: r * 1.1,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))],
+            ),
+            child: Icon(Icons.fingerprint_rounded, size: r * 0.75, color: const Color(0xFF0D9488)),
+          ),
+        ]),
+      ),
+      Positioned(
+        // Чипүүд баруун захаас — нарийн дэлгэцэд ч бүтэн харагдана
+        right: w * 0.05 + 22,
+        top: h * 0.18,
+        child: const _TsagChip(ner: 'Цагтаа ирлээ', tsag: '08:52', ikon: Icons.verified_rounded),
+      ),
+      Positioned(
+        right: w * 0.05,
+        top: h * 0.18 + 56,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 400),
+          opacity: yawsanKharagdakh ? 1 : 0,
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutBack,
+            offset: yawsanKharagdakh ? Offset.zero : const Offset(0, 0.4),
+            child: const _TsagChip(ner: 'Ажил дууслаа', tsag: '18:04', ikon: Icons.wb_twilight_rounded),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _TsagChip extends StatelessWidget {
+  const _TsagChip({required this.ner, required this.tsag, required this.ikon});
+  final String ner, tsag;
+  final IconData ikon;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(40),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.14), blurRadius: 16, offset: const Offset(0, 6))],
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFCCFBF1)),
+          child: Icon(ikon, size: 16, color: const Color(0xFF0D9488)),
+        ),
+        const SizedBox(width: 8),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Text(ner, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: Color(0xFF0F172A))),
+          Text(tsag,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF64748B),
+                fontFeatures: [FontFeature.tabularFigures()],
+              )),
+        ]),
+      ]),
     );
-    wavePath.quadraticBezierTo(
-      size.width * 0.75,
-      waveY - 50,
-      size.width,
-      waveY + 10,
-    );
-    wavePath.lineTo(size.width, size.height);
-    wavePath.lineTo(0, size.height);
-    wavePath.close();
-    canvas.drawPath(wavePath, wavePaint);
+  }
+}
+
+/// Цалин: дүн нь тоологдож өсөх цалингийн карт + хөвөх зоос
+class _TsalinZurag extends StatelessWidget {
+  const _TsalinZurag({required this.w, required this.h, required this.yavts});
+  final double w, h, yavts;
+
+  static String _mungu(int v) {
+    final s = v.toString();
+    final b = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
+      b.write(s[i]);
+    }
+    return '₮ $b';
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    final tooloo = Curves.easeOutCubic.transform((yavts / 0.6).clamp(0.0, 1.0));
+    final dun = (1850000 * tooloo).round();
+    final kartW = (w * 0.56).clamp(170.0, 280.0);
+    final kartH = (h * 0.78).clamp(90.0, 150.0);
+    return Stack(clipBehavior: Clip.none, children: [
+      // Зоосууд
+      for (final (dx, dy, r, phase) in [
+        (0.08, 0.15, 22.0, 0.0),
+        (0.20, 0.55, 15.0, 1.7),
+        (0.86, 0.10, 18.0, 3.1),
+      ])
+        Positioned(
+          left: w * dx,
+          top: h * dy + math.sin(yavts * 2 * math.pi * 2 + phase) * 6,
+          child: Container(
+            width: r * 2,
+            height: r * 2,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFFCD34D),
+              border: Border.all(color: const Color(0xFFF59E0B), width: 2),
+            ),
+            child: Text('₮',
+                style: TextStyle(fontSize: r * 0.9, fontWeight: FontWeight.w500, color: const Color(0xFFB45309))),
+          ),
+        ),
+      Positioned(
+        right: w * 0.06,
+        top: (h - kartH) / 2,
+        child: Transform.rotate(
+          angle: -0.05,
+          child: Container(
+            width: kartW,
+            height: kartH,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 24, offset: const Offset(0, 10))],
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Icon(Icons.account_balance_wallet_rounded, size: 16, color: Color(0xFF047857)),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Text('11-р сарын цалин',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF334155))),
+                ),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: tooloo >= 1 ? 1 : 0,
+                  child: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF10B981)),
+                ),
+              ]),
+              const Spacer(),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(_mungu(dun),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.5,
+                      color: Color(0xFF0F172A),
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    )),
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: tooloo,
+                  minHeight: 6,
+                  backgroundColor: const Color(0xFFE2E8F0),
+                  color: const Color(0xFF10B981),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _AraaPainter extends CustomPainter {
+  _AraaPainter({required this.shud});
+  final int shud;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final rGadna = size.width / 2;
+    final rDotor = rGadna * 0.78;
+    final path = Path();
+    final n = shud * 2;
+    for (var i = 0; i <= n * 2; i++) {
+      final a = i * math.pi / n;
+      final r = (i ~/ 2).isEven ? rGadna : rDotor;
+      final p = c + Offset(math.cos(a), math.sin(a)) * r;
+      i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+    }
+    path.close();
+    path.addOval(Rect.fromCircle(center: c, radius: rGadna * 0.34));
+    path.fillType = PathFillType.evenOdd;
+    canvas.drawPath(path, Paint()..color = Colors.white.withValues(alpha: 0.22));
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _AraaPainter o) => o.shud != shud;
+}
+
+class _GogtsooPainter extends CustomPainter {
+  _GogtsooPainter({required this.zurakh, required this.shiljilt});
+  final double zurakh;
+  final double shiljilt;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final dy = math.sin(shiljilt * 2 * math.pi) * 4;
+    final path = Path()
+      ..moveTo(w * 0.05, h * 0.95 + dy)
+      ..cubicTo(w * 0.35, h * 0.7 + dy, w * 0.15, h * 0.25 + dy, w * 0.45, h * 0.3 + dy)
+      ..cubicTo(w * 0.75, h * 0.35 + dy, w * 0.7, h * 0.75 + dy, w * 0.5, h * 0.7 + dy)
+      ..cubicTo(w * 0.3, h * 0.65 + dy, w * 0.55, h * 0.05 + dy, w * 1.05, h * 0.1 + dy);
+    final p = Paint()
+      ..color = _heroGeree.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    for (final m in path.computeMetrics()) {
+      canvas.drawPath(m.extractPath(0, m.length * zurakh), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GogtsooPainter o) => o.zurakh != zurakh || o.shiljilt != shiljilt;
+}
+
+/// Hero доторх жижиг утас: даалгаврууд ээлжлэн чагтлагдана
+class _MiniUtas extends StatelessWidget {
+  const _MiniUtas({required this.urgun, required this.undur, required this.t});
+  final double urgun, undur, t;
+
+  static const _daalgavruud = ['Цэвэрлэгээ, 3-р давхар', 'Шил арчих', 'Хог ачих'];
+
+  @override
+  Widget build(BuildContext context) {
+    // FSM сценийн 4 сек дотор: даалгаврууд ээлжлэн чагтлагдана
+    final chagt = (t * 4).floor().clamp(0, 3);
+    return Container(
+      width: urgun,
+      height: undur,
+      padding: const EdgeInsets.all(7),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 24, offset: const Offset(0, 10))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+          // Жижиг дэлгэцэд утасны доод хэсэг зүгээр л тасарч харагдана
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Text('9:41', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF0F172A))),
+              const Spacer(),
+              Container(width: urgun * 0.28, height: 12, decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(8))),
+              const Spacer(),
+            ]),
+            const SizedBox(height: 10),
+            const Text('Өнөөдөр', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF0F172A))),
+            const SizedBox(height: 8),
+            for (var i = 0; i < _daalgavruud.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 7),
+                child: Row(children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutBack,
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: i < chagt ? _heroUngu : Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: i < chagt ? _heroUngu : const Color(0xFFCBD5E1), width: 1.5),
+                    ),
+                    child: i < chagt ? const Icon(Icons.check_rounded, size: 12, color: Colors.white) : null,
+                  ),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      _daalgavruud[i],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: i < chagt ? const Color(0xFF94A3B8) : const Color(0xFF334155),
+                        decoration: i < chagt ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1342,7 +1621,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
           'Нууц код сэргээх',
           style: TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
             color: c.primary,
           ),
         ),
@@ -1424,7 +1703,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
                   )
                 : const Text(
                     'Код илгээх',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
           ),
         ),
@@ -1455,7 +1734,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
                 'Код баталгаажуулах',
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: c.primary,
                 ),
               ),
@@ -1474,7 +1753,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
               const TextSpan(text: 'Бид '),
               TextSpan(
                 text: _phoneCtrl.text,
-                style: TextStyle(color: c.primary, fontWeight: FontWeight.w600),
+                style: TextStyle(color: c.primary, fontWeight: FontWeight.w500),
               ),
               const TextSpan(
                 text: ' утасны дугаар руу 6 оронтой OTP код илгээлээ.',
@@ -1510,7 +1789,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
                       ],
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: c.primary,
                 ),
                 decoration: InputDecoration(
@@ -1650,7 +1929,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
                 'Дахин илгээх',
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: c.brandGreen,
                 ),
               ),
@@ -1682,7 +1961,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
                   )
                 : const Text(
                     'Баталгаажуулах',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
           ),
         ),
@@ -1714,7 +1993,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
           'Шинэ нууц код',
           style: TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
             color: c.primary,
           ),
         ),
@@ -1887,7 +2166,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
                   )
                 : const Text(
                     'Нууц код шинэчлэх',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
           ),
         ),
@@ -1915,7 +2194,7 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
           'Амжилттай!',
           style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
             color: c.primary,
           ),
         ),
@@ -1942,12 +2221,154 @@ class _ForgotPasswordModalState extends State<_ForgotPasswordModal> {
             ),
             child: const Text(
               'Нэвтрэх хуудас руу буцах',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+/// 4 оронтой нууц кодын хайрцагнууд. Доор нь ил биш TextField байрлаж
+/// гар, autofill, хуулж буулгах зэргийг хариуцна; хайрцагнууд зөвхөн харагдац.
+class _PinKhairtsag extends StatelessWidget {
+  const _PinKhairtsag({
+    required this.controller,
+    required this.focusNode,
+    required this.obscure,
+    required this.idevkhteiUngu,
+    required this.onSubmitted,
+    required this.onChanged,
+    this.aldaa,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool obscure;
+  final Color idevkhteiUngu;
+  final String? aldaa;
+  final VoidCallback onSubmitted;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Column(children: [
+      ListenableBuilder(
+        listenable: Listenable.merge([controller, focusNode]),
+        builder: (context, _) {
+          final text = controller.text;
+          final focused = focusNode.hasFocus;
+          return Stack(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              for (var i = 0; i < 4; i++) ...[
+                if (i > 0) const SizedBox(width: 12),
+                _PinNud(
+                  tsifr: i < text.length ? text[i] : null,
+                  obscure: obscure,
+                  idevkhtei: focused && (i == text.length || (i == 3 && text.length == 4)),
+                  aldaatai: aldaa != null,
+                  ungu: idevkhteiUngu,
+                ),
+              ],
+            ]),
+            // Ил биш оролт: хайрцагнуудын дээр байрлаж товшилтыг хүлээн авна
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0,
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
+                  inputFormatters: [PinCodeFormatter()],
+                  showCursor: false,
+                  enableInteractiveSelection: false,
+                  maxLength: 4,
+                  decoration: const InputDecoration(border: InputBorder.none, counterText: ''),
+                  onSubmitted: (_) => onSubmitted(),
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ]);
+        },
+      ),
+      if (aldaa != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(aldaa!, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: c.destructive)),
+        ),
+    ]);
+  }
+}
+
+class _PinNud extends StatelessWidget {
+  const _PinNud({
+    required this.tsifr,
+    required this.obscure,
+    required this.idevkhtei,
+    required this.aldaatai,
+    required this.ungu,
+  });
+
+  final String? tsifr;
+  final bool obscure, idevkhtei, aldaatai;
+  final Color ungu;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final duurgsen = tsifr != null;
+    final khuree = aldaatai
+        ? c.destructive
+        : idevkhtei
+            ? ungu
+            : duurgsen
+                ? ungu.withValues(alpha: 0.35)
+                : Colors.transparent;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      width: 58,
+      height: 60,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: duurgsen ? ungu.withValues(alpha: 0.07) : c.muted,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: khuree, width: idevkhtei ? 1.8 : 1.2),
+      ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 160),
+        transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
+        child: !duurgsen
+            ? (idevkhtei
+                ? Container(key: const ValueKey('k'), width: 2, height: 22, color: ungu)
+                : Container(
+                    key: const ValueKey('h'),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: c.mutedForeground.withValues(alpha: 0.35),
+                      shape: BoxShape.circle,
+                    ),
+                  ))
+            : obscure
+                ? Container(
+                    key: const ValueKey('o'),
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(color: c.primary, shape: BoxShape.circle),
+                  )
+                : Text(
+                    tsifr!,
+                    key: ValueKey('t$tsifr'),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: c.primary),
+                  ),
+      ),
     );
   }
 }
