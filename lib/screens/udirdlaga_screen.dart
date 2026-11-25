@@ -4,7 +4,7 @@ import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _tabular = [FontFeature.tabularFigures()];
 
 String _hm(DateTime? d) =>
@@ -137,7 +137,7 @@ class _UdirdlagaScreenState extends State<UdirdlagaScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: RefreshIndicator(
-              color: _emerald,
+              color: _brand,
               onRefresh: _achaallaya,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -161,7 +161,7 @@ class _UdirdlagaScreenState extends State<UdirdlagaScreen> {
                   if (_achaallaj)
                     const Padding(
                       padding: EdgeInsets.only(top: 80),
-                      child: Center(child: CircularProgressIndicator(color: _emerald)),
+                      child: Center(child: CircularProgressIndicator(color: _brand)),
                     )
                   else if (_tab == 0)
                     ..._irtsKhesek(c)
@@ -218,7 +218,7 @@ class _UdirdlagaScreenState extends State<UdirdlagaScreen> {
         final w = (box.maxWidth - zai * (bagana - 1)) / bagana;
         final kartuud = [
           _Stat(ner: 'Ажилтан', utga: '${murnuud.length}', icon: Icons.groups_rounded, ungu: const Color(0xFF2563EB)),
-          _Stat(ner: 'Ажилласан', utga: tsagMinutTekst(ajillasan), icon: Icons.schedule_rounded, ungu: _emerald),
+          _Stat(ner: 'Ажилласан', utga: tsagMinutTekst(ajillasan), icon: Icons.schedule_rounded, ungu: _brand),
           _Stat(
             ner: 'Хоцролт',
             utga: khotsrolt == 0 ? '0' : tsagMinutTekst(khotsrolt),
@@ -324,7 +324,7 @@ class _Tab extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: songogdson ? FontWeight.w500 : FontWeight.w500,
-                  color: songogdson ? _emerald : c.mutedForeground,
+                  color: songogdson ? _brand : c.mutedForeground,
                 )),
             if (too > 0) ...[
               const SizedBox(width: 6),
@@ -398,13 +398,13 @@ class _Chip extends StatelessWidget {
         selected: idevkhtei,
         onSelected: (_) => onTap(),
         showCheckmark: false,
-        selectedColor: _emerald.withValues(alpha: 0.14),
+        selectedColor: _brand.withValues(alpha: 0.14),
         backgroundColor: c.cardBackground,
-        side: BorderSide(color: idevkhtei ? _emerald : c.border),
+        side: BorderSide(color: idevkhtei ? _brand : c.border),
         labelStyle: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: idevkhtei ? _emerald : c.primary,
+          color: idevkhtei ? _brand : c.primary,
           fontFeatures: _tabular,
         ),
         shape: const StadiumBorder(),
@@ -540,7 +540,7 @@ class _KhuseltKart extends StatelessWidget {
               child: FilledButton(
                 onPressed: onZuvshuurukh,
                 style: FilledButton.styleFrom(
-                  backgroundColor: _emerald,
+                  backgroundColor: _brand,
                   shape: const StadiumBorder(),
                   minimumSize: const Size(0, 44),
                 ),
@@ -557,7 +557,7 @@ class _KhuseltKart extends StatelessWidget {
             style: TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
-              color: zuvshuursun ? _emerald : const Color(0xFFDC2626),
+              color: zuvshuursun ? _brand : const Color(0xFFDC2626),
             ),
           ),
         ],

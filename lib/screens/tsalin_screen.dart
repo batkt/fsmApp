@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _tabular = [FontFeature.tabularFigures()];
 const _nuukhTulkhuur = 'tsalin_nuukh';
 
@@ -93,9 +93,9 @@ class _TsalinScreenState extends State<TsalinScreen> {
         ],
       ),
       body: _achaallaj
-          ? const Center(child: CircularProgressIndicator(color: _emerald))
+          ? const Center(child: CircularProgressIndicator(color: _brand))
           : RefreshIndicator(
-              color: _emerald,
+              color: _brand,
               onRefresh: _achaallaya,
               child: Center(
                 child: ConstrainedBox(
@@ -136,15 +136,15 @@ class _TsalinScreenState extends State<TsalinScreen> {
                                 label: Text('${x['jil']}.${x['sar'].toString().padLeft(2, '0')}',
                                     style: TextStyle(
                                       fontFeatures: _tabular,
-                                      color: songogdson ? _emerald : c.mutedForeground,
+                                      color: songogdson ? _brand : c.mutedForeground,
                                       fontWeight: FontWeight.w500,
                                     )),
                                 selected: songogdson,
                                 showCheckmark: false,
                                 onSelected: (_) => setState(() => _i = i),
-                                selectedColor: _emerald.withValues(alpha: 0.1),
+                                selectedColor: _brand.withValues(alpha: 0.1),
                                 backgroundColor: c.cardBackground,
-                                side: BorderSide(color: songogdson ? _emerald : c.border),
+                                side: BorderSide(color: songogdson ? _brand : c.border),
                                 shape: const StadiumBorder(),
                               );
                             },
@@ -182,9 +182,9 @@ class _TsalinScreenState extends State<TsalinScreen> {
                           child: Column(children: [
                             _Mur(ner: 'Бодогдсон цалин', utga: _u(t['bodogdsonTsalin'])),
                             if (((t['iluuTsagiinTsalin'] as num?) ?? 0) > 0)
-                              _Mur(ner: 'Илүү цагийн цалин', utga: '+${_u(t['iluuTsagiinTsalin'])}', ungu: _emerald),
+                              _Mur(ner: 'Илүү цагийн цалин', utga: '+${_u(t['iluuTsagiinTsalin'])}', ungu: _brand),
                             for (final n in (t['nemegdeluud'] as List? ?? []))
-                              _Mur(ner: n['ner'].toString(), utga: '+${_u(n['dun'])}', ungu: _emerald),
+                              _Mur(ner: n['ner'].toString(), utga: '+${_u(n['dun'])}', ungu: _brand),
                             if (((t['khotsroltSuutgal'] as num?) ?? 0) > 0)
                               _Mur(ner: 'Хоцролтын суутгал', utga: '−${_u(t['khotsroltSuutgal'])}', ungu: const Color(0xFFDC2626)),
                             _Mur(ner: 'Олговол зохих', utga: _u(t['olgovolZokhikh']), zuraastai: true),
@@ -241,7 +241,7 @@ class _Toim extends StatelessWidget {
               fontSize: jijig ? 18 : 24,
               fontWeight: FontWeight.w500,
               letterSpacing: -0.5,
-              color: tod ? _emerald : c.primary,
+              color: tod ? _brand : c.primary,
               fontFeatures: _tabular,
             )),
       ),
@@ -266,7 +266,7 @@ class _Mur extends StatelessWidget {
             style: TextStyle(
               fontSize: tod ? 17 : 15,
               fontWeight: FontWeight.w500,
-              color: tod ? _emerald : (ungu ?? c.primary),
+              color: tod ? _brand : (ungu ?? c.primary),
               fontFeatures: _tabular,
             )),
       ]),

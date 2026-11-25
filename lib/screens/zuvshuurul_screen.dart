@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_theme.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _asuusanTulkhuur = 'zuvshuurul_asuusan_v1';
 
 /// Зөвшөөрлийн бодит төлөв (утасны тохиргооноос)
@@ -154,7 +154,7 @@ class _ZuvshuurulScreenState extends State<ZuvshuurulScreen> with WidgetsBinding
     final c = context.colors;
     final a = _alkhmuud[_i];
     final (tovch, tuluvTekst, tuluvUngu) = switch (_tuluv) {
-      ZTuluv.zuvshuursun => ('Үргэлжлүүлэх', 'Зөвшөөрсөн', _emerald),
+      ZTuluv.zuvshuursun => ('Үргэлжлүүлэх', 'Зөвшөөрсөн', _brand),
       ZTuluv.tokhirgoond => ('Тохиргоо нээх', 'Утасны тохиргоонд хаалттай байна', const Color(0xFFD97706)),
       ZTuluv.unraasan => ('Байршил асаах', 'Утасны байршил унтраалттай байна', const Color(0xFFD97706)),
       _ => ('Зөвшөөрөх', null, null),
@@ -176,7 +176,7 @@ class _ZuvshuurulScreenState extends State<ZuvshuurulScreen> with WidgetsBinding
                       width: k == _i ? 22 : 7,
                       height: 7,
                       decoration: BoxDecoration(
-                        color: k == _i ? _emerald : c.border,
+                        color: k == _i ? _brand : c.border,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -192,8 +192,8 @@ class _ZuvshuurulScreenState extends State<ZuvshuurulScreen> with WidgetsBinding
                     Container(
                       width: 88,
                       height: 88,
-                      decoration: BoxDecoration(color: _emerald.withValues(alpha: 0.1), shape: BoxShape.circle),
-                      child: Icon(a.icon, size: 42, color: _emerald),
+                      decoration: BoxDecoration(color: _brand.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: Icon(a.icon, size: 42, color: _brand),
                     ),
                     const SizedBox(height: 10),
                     Text(a.ner, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.primary)),
@@ -222,7 +222,7 @@ class _ZuvshuurulScreenState extends State<ZuvshuurulScreen> with WidgetsBinding
                   height: 56,
                   child: FilledButton(
                     onPressed: _asuuj || _tuluv == null ? null : _gol,
-                    style: FilledButton.styleFrom(backgroundColor: _emerald, shape: const StadiumBorder()),
+                    style: FilledButton.styleFrom(backgroundColor: _brand, shape: const StadiumBorder()),
                     child: Text(tovch, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
                   ),
                 ),

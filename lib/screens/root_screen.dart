@@ -196,19 +196,15 @@ class _HomeShellState extends State<_HomeShell> {
       },
     );
     final irtsKharagdakh = irtsModul.kharagdakh(user);
+    // Цалин бүх хэрэглэгчид харагдана (эрхээс үл хамаарна)
     const tsalinModul = FsmModul(
       Icons.account_balance_wallet_outlined,
       'Цалин',
       TsalinScreen(),
-      zevtabsShaardlagatai: true,
-      // Цалин одоогоор зөвхөн Ирцтэй хамт; FSM-д цалин байхгүй
-      systemuud: {
-        'irts': ['/khyanalt/tsalin'],
-      },
+      systemuud: {'fsm': null, 'irts': null},
     );
     final tsalinKharagdakh = tsalinModul.kharagdakh(user);
-    // Нүүр нь хэд хэдэн модулийг холбох төв: зөвхөн FSM-ийн хэрэглэгчид
-    // (Ирц, Цалингүй) хэрэггүй тул тэд шууд Даалгавраас эхэлнэ.
+    // Нүүр нь хэд хэдэн модулийг холбох төв
     final nuurKhereg = irtsKharagdakh || tsalinKharagdakh;
     // Шинэ модуль нэмэхдээ энд нэг мөр (erkh-тэй) нэмнэ.
     final moduluud = <FsmModul>[

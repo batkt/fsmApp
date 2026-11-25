@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _tabular = [FontFeature.tabularFigures()];
 
 /// irtsBack-ийн дэмждэг хүсэлтийн төрлүүд
@@ -57,10 +57,10 @@ Future<KhuseltTurul?> khuseltTurulSongokh(BuildContext context, {KhuseltTurul? o
             for (final t in b.value)
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                leading: Icon(t.icon, color: t == odoo ? _emerald : c.mutedForeground),
+                leading: Icon(t.icon, color: t == odoo ? _brand : c.mutedForeground),
                 title: Text(t.ner, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.primary)),
                 subtitle: Text(t.tailbar, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
-                trailing: t == odoo ? const Icon(Icons.check_rounded, color: _emerald) : null,
+                trailing: t == odoo ? const Icon(Icons.check_rounded, color: _brand) : null,
                 onTap: () => Navigator.pop(ctx, t),
               ),
           ],
@@ -172,7 +172,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           tooltip: 'Буцах',
-          icon: const Icon(Icons.arrow_back_rounded, color: _emerald),
+          icon: const Icon(Icons.arrow_back_rounded, color: _brand),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: Text('Хүсэлт илгээх', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
@@ -194,7 +194,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('Хүсэлтийн төрөл', style: TextStyle(fontSize: 13, color: c.mutedForeground)),
                     const SizedBox(height: 2),
-                    Text(_turul.ner, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: _emerald)),
+                    Text(_turul.ner, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: _brand)),
                   ]),
                 ),
                 Icon(Icons.chevron_right_rounded, color: c.mutedForeground),
@@ -234,7 +234,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: c.border)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
-                  borderSide: const BorderSide(color: _emerald, width: 1.5),
+                  borderSide: const BorderSide(color: _brand, width: 1.5),
                 ),
               ),
             ),
@@ -257,8 +257,8 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                   style: TextButton.styleFrom(
-                    backgroundColor: _emerald.withValues(alpha: 0.08),
-                    foregroundColor: _emerald,
+                    backgroundColor: _brand.withValues(alpha: 0.08),
+                    foregroundColor: _brand,
                     shape: const StadiumBorder(),
                   ),
                   child: const Text('Цуцлах', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
@@ -271,7 +271,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
                 height: 54,
                 child: FilledButton(
                   onPressed: _ilgeej ? null : _ilgeeye,
-                  style: FilledButton.styleFrom(backgroundColor: _emerald, shape: const StadiumBorder()),
+                  style: FilledButton.styleFrom(backgroundColor: _brand, shape: const StadiumBorder()),
                   child: Text(_ilgeej ? 'Илгээж байна' : 'Илгээх',
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                 ),

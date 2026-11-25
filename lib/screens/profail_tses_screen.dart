@@ -12,7 +12,7 @@ import 'faq_screen.dart';
 import 'irts_tailan_screen.dart';
 import 'zuvshuurul_screen.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 
 /// Профайлын цэс (аватар дээр дарахад): хувийн мэдээлэл, ирцийн хуудсууд,
 /// тохиргоо, тусламж, гарах.
@@ -99,7 +99,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
         Container(
           padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 8, 12, 28),
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF12B087), Color(0xFF0A7D62)]),
+            gradient: LinearGradient(colors: [Color(0xFF315BB0), Color(0xFF183B83)]),
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -172,7 +172,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
                   ner: 'Биометрик ашиглах',
                   trailing: Switch(
                     value: _bioIdevkhtei,
-                    activeTrackColor: _emerald,
+                    activeTrackColor: _brand,
                     onChanged: (v) async {
                       await _bio.setEnabled(v);
                       await _bio.markAsked();
@@ -185,7 +185,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
                 ner: 'Харанхуй горим',
                 trailing: Switch(
                   value: kharanhui,
-                  activeTrackColor: _emerald,
+                  activeTrackColor: _brand,
                   onChanged: (v) async {
                     await settings.setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
                     if (mounted) setState(() {});

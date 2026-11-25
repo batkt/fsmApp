@@ -7,7 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../screens/zuvshuurul_screen.dart';
 import '../services/irts_service.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _ulaanbaatar = LatLng(47.9185, 106.9176);
 
 /// Ирцийн газрын зураг (OpenStreetMap): миний байршил, оффисын бүс,
@@ -74,8 +74,8 @@ class _IrtsGazriinZuragState extends State<IrtsGazriinZurag> {
                 point: _office!,
                 radius: _radius,
                 useRadiusInMeter: true,
-                color: _emerald.withValues(alpha: 0.12),
-                borderColor: _emerald.withValues(alpha: 0.7),
+                color: _brand.withValues(alpha: 0.12),
+                borderColor: _brand.withValues(alpha: 0.7),
                 borderStrokeWidth: 2,
               ),
             ]),
@@ -85,7 +85,7 @@ class _IrtsGazriinZuragState extends State<IrtsGazriinZurag> {
                 point: _office!,
                 width: 36,
                 height: 36,
-                child: const Icon(Icons.apartment_rounded, color: _emerald, size: 30),
+                child: const Icon(Icons.apartment_rounded, color: _brand, size: 30),
               ),
             if (_bi != null)
               Marker(
@@ -125,7 +125,7 @@ class _IrtsGazriinZuragState extends State<IrtsGazriinZurag> {
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(dotor ? Icons.check_circle_rounded : Icons.info_rounded,
-                    size: 16, color: dotor ? _emerald : const Color(0xFFD97706)),
+                    size: 16, color: dotor ? _brand : const Color(0xFFD97706)),
                 const SizedBox(width: 6),
                 Text(
                   dotor ? 'Оффисын бүсэд байна' : 'Бүсээс гадуур, оффисоос ${_zaiTekst(zai)}',
@@ -188,7 +188,7 @@ class _DuguiTovch extends StatelessWidget {
         elevation: 2,
         shadowColor: Colors.black26,
       ),
-      icon: Icon(icon, color: _emerald, size: 22),
+      icon: Icon(icon, color: _brand, size: 22),
     );
   }
 }

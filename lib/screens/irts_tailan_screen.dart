@@ -4,7 +4,7 @@ import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _tabular = [FontFeature.tabularFigures()];
 
 String _hm(DateTime? d) =>
@@ -74,7 +74,7 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: RefreshIndicator(
-              color: _emerald,
+              color: _brand,
               onRefresh: _achaallaya,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -142,11 +142,11 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
                           value: _achaallaj ? null : dun.khuvi,
                           minHeight: 10,
                           backgroundColor: c.muted,
-                          color: _emerald,
+                          color: _brand,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _Mur(tseg: _emerald, ner: 'Хуваарьт цаг', utga: tsagMinutTekst(dun.khuvaart)),
+                      _Mur(tseg: _brand, ner: 'Хуваарьт цаг', utga: tsagMinutTekst(dun.khuvaart)),
                       _Mur(tseg: const Color(0xFF8B5CF6), ner: 'Илүү цаг', utga: tsagMinutTekst(dun.iluu)),
                       _Mur(tseg: c.border, ner: 'Үлдсэн', utga: tsagMinutTekst(dun.uldsen), suuliin: true),
                     ]),

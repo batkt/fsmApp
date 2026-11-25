@@ -158,15 +158,18 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_app());
     await tester.pump(const Duration(milliseconds: 2500));
-    expect(find.textContaining('нэг дор хяна'), findsOneWidget);
+    expect(find.bySemanticsLabel('Төлөвлөгөө & Гүйцэтгэл'), findsOneWidget);
     if (_zuragAvakh) await expectLater(find.byType(LoginScreen), matchesGoldenFile('login_goldens/scene_fsm_${e.key}.png'));
-    await tester.pump(const Duration(seconds: 4));
+    await tester.pump(const Duration(seconds: 6));
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.textContaining('нэг товчоор бүртгэ'), findsOneWidget);
+    expect(find.bySemanticsLabel('Хүний нөөцийн менежмент'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.bySemanticsLabel('Цагийн бүртгэл'), findsOneWidget);
     if (_zuragAvakh) await expectLater(find.byType(LoginScreen), matchesGoldenFile('login_goldens/scene_irts_${e.key}.png'));
-    await tester.pump(const Duration(seconds: 4));
+    await tester.pump(const Duration(seconds: 6));
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.textContaining('цаг алдалгүй хар'), findsOneWidget);
+    expect(find.bySemanticsLabel('Цалингийн тооцоолол'), findsOneWidget);
     if (_zuragAvakh) await expectLater(find.byType(LoginScreen), matchesGoldenFile('login_goldens/scene_tsalin_${e.key}.png'));
   });
   }

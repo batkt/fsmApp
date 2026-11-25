@@ -55,17 +55,17 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   // ── Light Mode ──
   static const light = AppColorScheme(
-    brandGreen: Color(0xFF059669),
-    primary: Color(0xFF0F172A),
+    brandGreen: Color(0xFF315BB0),
+    primary: Color(0xFF182235),
     primaryForeground: Color(0xFFF8FAFC),
     background: Color(0xFFFFFFFF),
     cardBackground: Color(0xFFFFFFFF),
-    loginBackground: Color(0xFFF5F9FC),
-    secondary: Color(0xFFF1F5F9),
-    muted: Color(0xFFF1F5F9),
-    mutedForeground: Color(0xFF64748B),
-    border: Color(0xFFE2E8F0),
-    inputBorder: Color(0xFFE2E8F0),
+    loginBackground: Color(0xFFEAF2FA),
+    secondary: Color(0xFFF1F5FB),
+    muted: Color(0xFFF3F6FB),
+    mutedForeground: Color(0xFF7B879A),
+    border: Color(0xFFE0E7F0),
+    inputBorder: Color(0xFFE0E7F0),
     destructive: Color(0xFFEF4444),
     success: Color(0xFF10B981),
     warning: Color(0xFFFACC15),
@@ -82,7 +82,7 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   // ── Dark Mode ──
   static const dark = AppColorScheme(
-    brandGreen: Color(0xFF059669),
+    brandGreen: Color(0xFF6A8FDB),
     primary: Color(0xFFF8FAFC),
     primaryForeground: Color(0xFF0F172A),
     background: Color(0xFF020817),

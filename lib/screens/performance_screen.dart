@@ -487,8 +487,8 @@ class _GreenCard extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [c.brandGreen, const Color(0xFF047857),
-            const Color(0xFF065F46)]),
+        colors: [c.brandGreen, const Color(0xFF244B9A),
+            const Color(0xFF183B83)]),
       borderRadius: BorderRadius.circular(20),
       boxShadow: [BoxShadow(color: c.brandGreen.withOpacity(0.3),
           blurRadius: 12, offset: const Offset(0, 6))]),

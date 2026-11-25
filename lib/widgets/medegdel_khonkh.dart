@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/auth_service.dart';
 import '../services/irts_service.dart';
 import '../services/notification_service.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 
 /// Хонхонд харагдах нэг мэдэгдэл (эх сурвалжаас үл хамааран)
 class _Medegdel {
@@ -70,9 +72,48 @@ class _MedegdelKhonkhState extends State<MedegdelKhonkh> {
     }
   }
 
+  /// Шинэ (уншаагүй, өмнө нь утсанд харуулаагүй) хүсэлтийн шийдвэрийг утасны
+  /// мэдэгдэл болгоно. Харуулсан id-г SharedPreferences-д хадгалж давтахгүй;
+  /// анх удаа бол зөвхөн сүүлийн 24 цагийнхыг харуулна.
+  static bool _shalgajBaina = false;
+  Future<void> _shineMedegdelKharuulya(List<Map<String, dynamic>> list) async {
+    if (_shalgajBaina) return;
+    _shalgajBaina = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'irtsMedegdelKharuulsan_${AuthService.currentUser?.id ?? ''}';
+      final umnukh = prefs.getStringList(key);
+      final kharuulsan = <String>{...?umnukh};
+      final ankh = umnukh == null;
+      final odoo = DateTime.now();
+      for (final m in list) {
+        final id = m['_id']?.toString() ?? '';
+        if (id.isEmpty || m['unshsan'] == true || kharuulsan.contains(id)) continue;
+        kharuulsan.add(id);
+        final ognoo = DateTime.tryParse(m['createdAt']?.toString() ?? '')?.toLocal();
+        if (ankh && (ognoo == null || odoo.difference(ognoo).inHours > 24)) continue;
+        await PushNotificationService.showIrtsMedegdel(
+          id: id,
+          title: m['title']?.toString() ?? 'Мэдэгдэл',
+          message: m['message']?.toString() ?? '',
+        );
+      }
+      // Сүүлийн 200-г л хадгална
+      final hadgalakh = kharuulsan.toList();
+      await prefs.setStringList(key, hadgalakh.length > 200 ? hadgalakh.sublist(hadgalakh.length - 200) : hadgalakh);
+    } catch (_) {
+    } finally {
+      _shalgajBaina = false;
+    }
+  }
+
   Future<void> _toogoo() async {
     final toonuud = await Future.wait([
-      _safe(() async => (await IrtsService.miniiMedegdluud()).$2),
+      _safe(() async {
+        final (list, too) = await IrtsService.miniiMedegdluud();
+        unawaited(_shineMedegdelKharuulya(list));
+        return too;
+      }),
       if (_irts && _admin) _safe(() async => (await IrtsService.medegdluud()).$2),
       if (!_irts) _safe(NotificationService.myUnreadCount),
     ]);
@@ -180,7 +221,7 @@ class _MedegdelKhonkhState extends State<MedegdelKhonkh> {
         backgroundColor: widget.tsagaanDeer ? Colors.white : Colors.white.withValues(alpha: 0.2),
       ),
       icon: Stack(clipBehavior: Clip.none, children: [
-        Icon(Icons.notifications_none_rounded, size: 22, color: widget.tsagaanDeer ? _emerald : Colors.white),
+        Icon(Icons.notifications_none_rounded, size: 22, color: widget.tsagaanDeer ? _brand : Colors.white),
         if (_unshaagui > 0)
           Positioned(
             right: -7,
@@ -235,7 +276,7 @@ class _MedegdliinJagsaaltState extends State<_MedegdliinJagsaalt> {
                   await widget.onBugdUnshsan(list);
                   if (mounted) setState(() => list.forEach((m) => m.unshsan = true));
                 },
-                style: TextButton.styleFrom(foregroundColor: _emerald),
+                style: TextButton.styleFrom(foregroundColor: _brand),
                 icon: const Icon(Icons.done_all_rounded, size: 18),
                 label: const Text('Бүгдийг уншсан'),
               ),
@@ -257,12 +298,12 @@ class _MedegdliinJagsaaltState extends State<_MedegdliinJagsaalt> {
                   itemBuilder: (_, i) {
                     final m = list[i];
                     final (ikon, ungu) = switch (m.tuluv) {
-                      'zuvshurulusen' => (Icons.check_circle_rounded, _emerald),
+                      'zuvshurulusen' => (Icons.check_circle_rounded, _brand),
                       'tatgalzsan' => (Icons.cancel_rounded, const Color(0xFFDC2626)),
-                      _ => (Icons.notifications_none_rounded, _emerald),
+                      _ => (Icons.notifications_none_rounded, _brand),
                     };
                     return ListTile(
-                      tileColor: m.unshsan ? null : _emerald.withValues(alpha: 0.06),
+                      tileColor: m.unshsan ? null : _brand.withValues(alpha: 0.06),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                       leading: CircleAvatar(backgroundColor: ungu.withValues(alpha: 0.12), child: Icon(ikon, color: ungu)),
                       title: Text(m.title,

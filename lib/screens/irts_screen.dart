@@ -13,8 +13,8 @@ import '../widgets/irts_gazriin_zurag.dart';
 import '../widgets/medegdel_khonkh.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
-const _emerald = Color(0xFF059669);
-const _gunTeal = Color(0xFF0F766E);
+const _brand = Color(0xFF315BB0);
+const _gunTeal = Color(0xFF183B83);
 const _garag = ['Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба', 'Ням'];
 const _garagTovch = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
 
@@ -153,7 +153,7 @@ class _IrtsScreenState extends State<IrtsScreen> with SingleTickerProviderStateM
     if (_achaallaj) {
       return Scaffold(
         backgroundColor: c.loginBackground,
-        body: const Center(child: CircularProgressIndicator(color: _emerald)),
+        body: const Center(child: CircularProgressIndicator(color: _brand)),
       );
     }
     final uildel = irtsiinUildel(irts: _unuudur, barilga: _barilga, odoo: _odoo);
@@ -260,7 +260,7 @@ class _DeedKhesek extends StatelessWidget {
     final c = context.colors;
     final idevkhtei = uildel.turul != null && !burtgej;
     final orokh = uildel == IrtsUildel.orokh || uildel == IrtsUildel.chuluunaasOrokh || uildel == IrtsUildel.tsainiiOrokh;
-    final ungu = idevkhtei ? (orokh ? _emerald : _gunTeal) : const Color(0xFFB8C2CC);
+    final ungu = idevkhtei ? (orokh ? _brand : _gunTeal) : const Color(0xFFB8C2CC);
     final ikon = switch (uildel) {
       IrtsUildel.orokh || IrtsUildel.chuluunaasOrokh => Icons.login_rounded,
       IrtsUildel.tsainiiGarakh => Icons.coffee_rounded,
@@ -311,7 +311,7 @@ class _DeedKhesek extends StatelessWidget {
                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.location_on_rounded, size: 17, color: _emerald),
+                      const Icon(Icons.location_on_rounded, size: 17, color: _brand),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -467,7 +467,7 @@ class _Samba extends StatelessWidget {
     return Column(children: [
       Expanded(
         child: RefreshIndicator(
-          color: _emerald,
+          color: _brand,
           onRefresh: onRefresh,
           child: ListView(
             controller: scroll,
@@ -503,7 +503,7 @@ class _Samba extends StatelessWidget {
             height: 54,
             child: FilledButton.icon(
               onPressed: onKhuselt,
-              style: FilledButton.styleFrom(backgroundColor: _emerald, shape: const StadiumBorder()),
+              style: FilledButton.styleFrom(backgroundColor: _brand, shape: const StadiumBorder()),
               icon: const Icon(Icons.add_rounded),
               label: const Text('Хүсэлт илгээх', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
@@ -549,7 +549,7 @@ class _Samba extends StatelessWidget {
         ),
         TextButton(
           onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const IrtsTailanScreen())),
-          style: TextButton.styleFrom(foregroundColor: _emerald, padding: const EdgeInsets.symmetric(horizontal: 6)),
+          style: TextButton.styleFrom(foregroundColor: _brand, padding: const EdgeInsets.symmetric(horizontal: 6)),
           child: const Row(mainAxisSize: MainAxisSize.min, children: [
             Text('Дэлгэрэнгүй', style: TextStyle(fontWeight: FontWeight.w500)),
             Icon(Icons.chevron_right_rounded, size: 20),
@@ -564,7 +564,7 @@ class _Samba extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(children: [
           Container(
-            color: _emerald.withValues(alpha: 0.08),
+            color: _brand.withValues(alpha: 0.08),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: _DolooMur(
               udur: Text('Өдөр', style: _gTolgoi(c)),
@@ -597,7 +597,7 @@ class _Samba extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        color: unuudur ? _emerald.withValues(alpha: 0.05) : null,
+        color: unuudur ? _brand.withValues(alpha: 0.05) : null,
         border: Border(top: BorderSide(color: c.border)),
       ),
       child: _DolooMur(
@@ -692,17 +692,17 @@ class _TomTab extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             height: 54,
             decoration: BoxDecoration(
-              color: songogdson ? _emerald : _emerald.withValues(alpha: 0.08),
+              color: songogdson ? _brand : _brand.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(99),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: 21, color: songogdson ? Colors.white : _emerald),
+              Icon(icon, size: 21, color: songogdson ? Colors.white : _brand),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(ner,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w500, color: songogdson ? Colors.white : _emerald)),
+                    style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w500, color: songogdson ? Colors.white : _brand)),
               ),
               if (too > 0) ...[
                 const SizedBox(width: 6),

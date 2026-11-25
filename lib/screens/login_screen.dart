@@ -95,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   /// Нээгдэх үеийн нэг удаагийн хөдөлгөөн (sheet дээш гулсах, гарчиг гарах)
   late AnimationController _animCtrl;
+
   /// Hero зургийн тасралтгүй давталт (араа, утас, даалгаврын чагт)
   late AnimationController _loopCtrl;
 
@@ -107,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen>
     )..forward();
     _loopCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 30),
     )..repeat();
     _initBiometric();
     _loadVersion();
@@ -218,7 +219,10 @@ class _LoginScreenState extends State<LoginScreen>
           return;
         } else {
           if (mounted) {
-            AppToast.show(context, 'Сэсси хугацаа дууссан байна. Нууц кодоор нэвтэрнэ үү.');
+            AppToast.show(
+              context,
+              'Сэсси хугацаа дууссан байна. Нууц кодоор нэвтэрнэ үү.',
+            );
           }
         }
       }
@@ -337,98 +341,135 @@ class _LoginScreenState extends State<LoginScreen>
       _loopCtrl.repeat();
     }
     return Scaffold(
-      backgroundColor: _heroUngu,
+      backgroundColor: const Color(0xFF05070D),
       resizeToAvoidBottomInset: true,
-      body: LayoutBuilder(builder: (context, box) {
-        final urgun = box.maxWidth >= 720 || box.maxWidth > box.maxHeight * 1.3;
-        if (urgun) {
-          // iPad, Galaxy Fold (дэлгэж), хэвтээ утас: hero зүүн, форм баруун
-          return Row(children: [
-            Expanded(
-              flex: 5,
-              child: _Hero(
-                loop: _loopCtrl,
-                intro: _animCtrl,
-                compact: box.maxHeight < 520,
-                deedZai: MediaQuery.paddingOf(context).top,
-                zuunZai: MediaQuery.paddingOf(context).left,
-              ),
-            ),
-            Expanded(
-              flex: 6,
-              child: _SheetSlide(
-                intro: _animCtrl,
-                fromRight: true,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: c.cardBackground,
-                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(36)),
+      body: LayoutBuilder(
+        builder: (context, box) {
+          final urgun =
+              box.maxWidth >= 720 || box.maxWidth > box.maxHeight * 1.3;
+          if (urgun) {
+            // iPad, Galaxy Fold (дэлгэж), хэвтээ утас: hero зүүн, форм баруун
+            return Row(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: _Hero(
+                    loop: _loopCtrl,
+                    intro: _animCtrl,
+                    onSongokh: _modulSongokh,
+                    urgun: true,
+                    compact: box.maxHeight < 520,
+                    deedZai: MediaQuery.paddingOf(context).top,
+                    zuunZai: MediaQuery.paddingOf(context).left,
                   ),
-                  child: SafeArea(
-                    left: false,
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 28),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 420),
-                          child: _buildForm(c),
+                ),
+                Expanded(
+                  flex: 6,
+                  child: _SheetSlide(
+                    intro: _animCtrl,
+                    fromRight: true,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: c.cardBackground,
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(36),
+                        ),
+                      ),
+                      child: SafeArea(
+                        left: false,
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 28,
+                            ),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 420),
+                              child: _buildForm(c),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ]);
-        }
+              ],
+            );
+          }
 
-        // Утас босоо: hero дээр, цагаан sheet доороос гулсаж гарна
-        final deed = MediaQuery.paddingOf(context).top;
-        final dood = MediaQuery.paddingOf(context).bottom;
-        // Формд хэрэгтэй өндрийг (хувилбарын мөр хүртэл) эхэлж өгөөд үлдсэнийг hero авна
-        final formKheregtei = 500.0 + dood;
-        final heroH = (box.maxHeight - formKheregtei + 32).clamp(210.0, 380.0);
-        return Stack(children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: heroH,
-            // Hero статус мөрийн доор хүртэл үргэлжилнэ
-            child: _Hero(loop: _loopCtrl, intro: _animCtrl, compact: false, deedZai: deed),
-          ),
-          SingleChildScrollView(
-            padding: EdgeInsets.only(top: heroH - 32),
-            child: _SheetSlide(
-                intro: _animCtrl,
-                child: Container(
-                  constraints: BoxConstraints(minHeight: box.maxHeight - heroH + 32),
-                  decoration: BoxDecoration(
-                    color: c.cardBackground,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
-                  ),
-                  padding: EdgeInsets.fromLTRB(
-                    box.maxWidth < 360 ? 20 : 28,
-                    28,
-                    box.maxWidth < 360 ? 20 : 28,
-                    16 + dood,
-                  ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 460),
-                      child: _buildForm(c),
+          // Утас босоо: hero дээр, цагаан sheet доороос гулсаж гарна
+          final deed = MediaQuery.paddingOf(context).top;
+          final dood = MediaQuery.paddingOf(context).bottom;
+          // Формд хэрэгтэй өндрийг (хувилбарын мөр хүртэл) эхэлж өгөөд үлдсэнийг hero авна
+          final formKheregtei = 600.0 + dood;
+          final heroH = (box.maxHeight - formKheregtei + 32).clamp(
+            210.0,
+            380.0,
+          );
+          return Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: heroH,
+                // Hero статус мөрийн доор хүртэл үргэлжилнэ
+                child: _Hero(
+                  loop: _loopCtrl,
+                  intro: _animCtrl,
+                  onSongokh: _modulSongokh,
+                  compact: false,
+                  deedZai: deed,
+                ),
+              ),
+              SingleChildScrollView(
+                padding: EdgeInsets.only(top: heroH - 32),
+                child: _SheetSlide(
+                  intro: _animCtrl,
+                  child: Container(
+                    constraints: BoxConstraints(
+                      minHeight: box.maxHeight - heroH + 32,
+                    ),
+                    decoration: BoxDecoration(
+                      color: c.cardBackground,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(36),
+                      ),
+                    ),
+                    padding: EdgeInsets.fromLTRB(
+                      box.maxWidth < 360 ? 20 : 28,
+                      28,
+                      box.maxWidth < 360 ? 20 : 28,
+                      16 + dood,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 460),
+                        child: _buildForm(c),
+                      ),
                     ),
                   ),
                 ),
               ),
-          ),
-        ]);
-      }),
+            ],
+          );
+        },
+      ),
     );
+  }
+
+  /// Витрины модулийг гараар сонгох (давталт тэр модулиас үргэлжилнэ)
+  void _modulSongokh(int i) {
+    _loopCtrl.value = i / _heroModuluud.length;
+    if (!_khudulguunKhasakh) _loopCtrl.repeat();
   }
 
   Widget _buildForm(AppColorScheme c) {
     final ios = defaultTargetPlatform == TargetPlatform.iOS;
+    Widget shoshgo(String t) => Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(t, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
+    );
     return AutofillGroup(
       child: Form(
         key: _formKey,
@@ -436,18 +477,60 @@ class _LoginScreenState extends State<LoginScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Лого + систем
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/images/app_logo_round.png',
+                    width: 42,
+                    height: 42,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'FSM',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          color: c.primary,
+                        ),
+                      ),
+                      Text(
+                        'Байгууллагын удирдлагын нэгдсэн систем',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.3,
+                          color: c.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             Text(
-              'Нэвтрэх',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500, letterSpacing: -0.8, color: c.primary),
+              'Тавтай морил',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w500,
+                letterSpacing: -0.8,
+                color: c.primary,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Ажлын бүртгэлээрээ нэвтэрнэ үү',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: c.mutedForeground),
+              'Үргэлжлүүлэхийн тулд бүртгэлээрээ нэвтэрнэ үү',
+              style: TextStyle(fontSize: 14.5, color: c.mutedForeground),
             ),
             const SizedBox(height: 22),
+            shoshgo('Нэвтрэх нэр'),
             TextFormField(
               controller: _emailCtrl,
               onTapOutside: (_) => FocusScope.of(context).unfocus(),
@@ -456,10 +539,17 @@ class _LoginScreenState extends State<LoginScreen>
               autofillHints: const [AutofillHints.username],
               autovalidateMode: AutovalidateMode.onUserInteractionIfError,
               onFieldSubmitted: (_) => _pinFocus.requestFocus(),
-              decoration: _pillDeco(c, 'Нэвтрэх нэр', Icons.person_outline_rounded),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Нэвтрэх нэрээ оруулна уу' : null,
+              decoration: _pillDeco(
+                c,
+                'Нэвтрэх нэрээ оруулна уу',
+                Icons.person_outline_rounded,
+              ),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Нэвтрэх нэрээ оруулна уу'
+                  : null,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
+            shoshgo('Нууц код'),
             FormField<String>(
               autovalidateMode: AutovalidateMode.onUserInteractionIfError,
               validator: (_) {
@@ -478,11 +568,12 @@ class _LoginScreenState extends State<LoginScreen>
                 onChanged: (v) {
                   field.didChange(v);
                   // 4 орон бүрэн, нэр бөглөгдсөн бол шууд нэвтэрнэ
-                  if (v.length == 4 && _emailCtrl.text.trim().isNotEmpty) _handleLogin();
+                  if (v.length == 4 && _emailCtrl.text.trim().isNotEmpty)
+                    _handleLogin();
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -493,91 +584,164 @@ class _LoginScreenState extends State<LoginScreen>
                   onTap: () => setState(() => _rememberMe = !_rememberMe),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Checkbox(
-                          value: _rememberMe,
-                          onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                          activeColor: _heroUngu,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                          side: BorderSide(color: c.mutedForeground.withValues(alpha: 0.5), width: 1.5),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Checkbox(
+                            value: _rememberMe,
+                            onChanged: (v) =>
+                                setState(() => _rememberMe = v ?? false),
+                            activeColor: _heroUngu,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            side: BorderSide(
+                              color: c.mutedForeground.withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text('Намайг сана', style: TextStyle(fontSize: 14, color: c.mutedForeground)),
-                    ]),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Намайг сана',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: c.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 TextButton(
                   onPressed: () => _showForgotPassword(context),
                   style: TextButton.styleFrom(
-                    foregroundColor: c.brandGreen,
+                    foregroundColor: _heroUngu,
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     minimumSize: const Size(0, 36),
                   ),
-                  child: const Text('Нууц код мартсан?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  child: const Text(
+                    'Нууц код мартсан?',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: SizedBox(
-                  height: 56,
-                  child: FilledButton(
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _GyalbaaTovch(
+                    loop: _loopCtrl,
+                    isLoading: _isLoading,
                     onPressed: _isLoading ? null : _handleLogin,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _heroUngu,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: _heroUngu.withValues(alpha: 0.6),
-                      shape: const StadiumBorder(),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: _isLoading
-                          ? const SizedBox(
-                              key: ValueKey('ach'),
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                            )
-                          : const Text('Нэвтрэх', key: ValueKey('txt')),
-                    ),
                   ),
                 ),
-              ),
-              // Face ID / хурууны хээ — нэвтрэх товчны хажууд дугуй товч
-              if (_bioSupported) ...[
-                const SizedBox(width: 12),
-                Tooltip(
-                  message: ios ? 'Face ID-аар нэвтрэх' : 'Хурууны хээгээр нэвтрэх',
-                  child: SizedBox(
-                    width: 56,
-                    height: 56,
-                    child: OutlinedButton(
-                      onPressed: _isLoading ? null : _handleBiometricLogin,
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        foregroundColor: _heroUngu,
-                        side: const BorderSide(color: _heroUngu, width: 1.5),
-                        shape: const CircleBorder(),
+                // Face ID / хурууны хээ — нэвтрэх товчны хажууд
+                if (_bioSupported) ...[
+                  const SizedBox(width: 12),
+                  Tooltip(
+                    message: ios
+                        ? 'Face ID-аар нэвтрэх'
+                        : 'Хурууны хээгээр нэвтрэх',
+                    child: SizedBox(
+                      width: 54,
+                      height: 54,
+                      child: OutlinedButton(
+                        onPressed: _isLoading ? null : _handleBiometricLogin,
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          foregroundColor: _heroUngu,
+                          side: BorderSide(
+                            color: _heroUngu.withValues(alpha: 0.5),
+                            width: 1.4,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: Icon(
+                          ios ? Icons.face_unlock_rounded : Icons.fingerprint,
+                          size: 26,
+                        ),
                       ),
-                      child: Icon(ios ? Icons.face_unlock_rounded : Icons.fingerprint, size: 26),
                     ),
                   ),
-                ),
+                ],
               ],
-            ]),
+            ),
+            const SizedBox(height: 22),
+            // Модулиуд — нэг бүртгэлээр
+            AnimatedBuilder(
+              animation: _loopCtrl,
+              builder: (context, _) {
+                final n = _heroModuluud.length;
+                final idx = (_loopCtrl.value * n).floor() % n;
+                return Row(
+                  children: [
+                    SizedBox(
+                      height: 36,
+                      width: 36 + (n - 1) * 26.0,
+                      child: Stack(
+                        children: [
+                          for (var i = 0; i < n; i++)
+                            Positioned(
+                              left: i * 26.0,
+                              child: GestureDetector(
+                                onTap: () => _modulSongokh(i),
+                                child: AnimatedScale(
+                                  scale: i == idx ? 1.12 : 1,
+                                  duration: const Duration(milliseconds: 250),
+                                  child: Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: _heroModuluud[i].gerel,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: c.cardBackground,
+                                        width: 3,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      _heroModuluud[i].icon,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '$n модуль нэг дор',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: c.mutedForeground,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 18),
             Text(
               _appVersion.isEmpty
                   ? '© ${DateTime.now().year} Zevtabs LLC'
                   : '© ${DateTime.now().year} Zevtabs LLC, v$_appVersion',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: c.mutedForeground.withValues(alpha: 0.7)),
+              style: TextStyle(
+                fontSize: 12,
+                color: c.mutedForeground.withValues(alpha: 0.7),
+              ),
             ),
           ],
         ),
@@ -586,23 +750,27 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   InputDecoration _pillDeco(AppColorScheme c, String hint, IconData icon) {
-    OutlineInputBorder border(Color color, [double w = 1.5]) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(32),
+    OutlineInputBorder border(Color color, [double w = 1.5]) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: color, width: w),
         );
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: c.mutedForeground.withValues(alpha: 0.8), fontSize: 15),
+      hintStyle: TextStyle(
+        color: c.mutedForeground.withValues(alpha: 0.8),
+        fontSize: 15,
+      ),
       prefixIcon: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 10),
+        padding: const EdgeInsets.only(left: 16, right: 10),
         child: Icon(icon, color: c.mutedForeground, size: 22),
       ),
       prefixIconConstraints: const BoxConstraints(minWidth: 0),
       filled: true,
       fillColor: c.muted,
-      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      contentPadding: const EdgeInsets.symmetric(vertical: 17, horizontal: 16),
       border: border(Colors.transparent),
-      enabledBorder: border(Colors.transparent),
+      enabledBorder: border(c.border),
       focusedBorder: border(_heroUngu, 2),
       errorBorder: border(c.destructive),
       focusedErrorBorder: border(c.destructive, 2),
@@ -611,22 +779,30 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-const _heroUngu = Color(0xFF0E9F7A);
-const _heroGeree = Color(0xFF9FF3D6);
+const _heroUngu = Color(0xFF315BB0);
 
 /// Нээгдэхэд доороос (эсвэл баруунаас) гулсаж гарах
 class _SheetSlide extends StatelessWidget {
-  const _SheetSlide({required this.intro, required this.child, this.fromRight = false});
+  const _SheetSlide({
+    required this.intro,
+    required this.child,
+    this.fromRight = false,
+  });
   final Animation<double> intro;
   final Widget child;
   final bool fromRight;
   @override
   Widget build(BuildContext context) {
-    final a = CurvedAnimation(parent: intro, curve: const Interval(0.15, 0.85, curve: Curves.easeOutCubic));
+    final a = CurvedAnimation(
+      parent: intro,
+      curve: const Interval(0.15, 0.85, curve: Curves.easeOutCubic),
+    );
     return AnimatedBuilder(
       animation: a,
       builder: (context, ch) => FractionalTranslation(
-        translation: fromRight ? Offset(0.25 * (1 - a.value), 0) : Offset(0, 0.35 * (1 - a.value)),
+        translation: fromRight
+            ? Offset(0.25 * (1 - a.value), 0)
+            : Offset(0, 0.35 * (1 - a.value)),
         child: Opacity(opacity: a.value.clamp(0, 1), child: ch),
       ),
       child: child,
@@ -634,181 +810,445 @@ class _SheetSlide extends StatelessWidget {
   }
 }
 
-/// Hero-д ээлжлэн харагдах модуль. Шинэ модуль нэмэхдээ [_heroModuluud]-д нэг мөр нэмнэ.
+/// Hero-д ээлжлэн харагдах модуль (вэбийн нэвтрэх хуудасны витринтэй ижил).
+/// Шинэ модуль нэмэхдээ [_heroModuluud]-д нэг мөр нэмнэ.
 class _HeroModul {
   const _HeroModul({
     required this.ner,
-    required this.tuvgerUg,
-    required this.uldsen,
-    required this.ungu,
-    required this.zurag,
+    required this.bogino,
+    required this.tailbar,
+    required this.icon,
+    required this.nemelt,
+    required this.tod,
+    required this.gerel,
+    required this.gun,
   });
   final String ner;
-  /// Гарчгийн тодруулсан эхний үг
-  final String tuvgerUg;
-  final String uldsen;
-  /// Арын градиентийн гол өнгө
-  final Color ungu;
-  /// (өргөн, өндөр, модуль доторх явц 0..1, бүх давталтын явц 0..1)
-  final Widget Function(double w, double h, double yavts, double t) zurag;
+  final String bogino;
+  final String tailbar;
+  final IconData icon;
+
+  /// Гарчигт хамаарах нэмэлт icon-ууд (хөвөх, арын хээ)
+  final List<IconData> nemelt;
+  final Color tod;
+  final Color gerel;
+  final Color gun;
 }
 
-final _heroModuluud = <_HeroModul>[
+const _heroModuluud = <_HeroModul>[
   _HeroModul(
-    ner: 'FSM',
-    tuvgerUg: 'Даалгавраа',
-    uldsen: ' нэг дор хяна.',
-    ungu: _heroUngu,
-    zurag: (w, h, yavts, t) => _FsmZurag(w: w, h: h, yavts: yavts, t: t),
+    ner: 'Төлөвлөгөө & Гүйцэтгэл',
+    bogino: 'Төлөвлөгөө',
+    tailbar: 'Зорилт, төлөвлөгөөгөө тавьж, гүйцэтгэлийг бодит цагаар хэмжинэ.',
+    icon: Icons.track_changes_rounded,
+    nemelt: [
+      Icons.bar_chart_rounded,
+      Icons.check_rounded,
+      Icons.star_outline_rounded,
+    ],
+    tod: Color(0xFF8B7BFF),
+    gerel: Color(0xFF6D5DFC),
+    gun: Color(0xFF1B1450),
   ),
   _HeroModul(
-    ner: 'Ирц',
-    tuvgerUg: 'Ирцээ',
-    uldsen: ' нэг товчоор бүртгэ.',
-    ungu: const Color(0xFF0D9488),
-    zurag: (w, h, yavts, t) => _IrtsZurag(w: w, h: h, yavts: yavts),
+    ner: 'Хүний нөөцийн менежмент',
+    bogino: 'Хүний нөөц',
+    tailbar: 'Ажилтны бүртгэл, албан тушаал, гэрээ, үнэлгээг нэг дор удирдана.',
+    icon: Icons.groups_outlined,
+    nemelt: [
+      Icons.badge_outlined,
+      Icons.star_outline_rounded,
+      Icons.check_rounded,
+    ],
+    tod: Color(0xFF2DD4BF),
+    gerel: Color(0xFF0FA3A3),
+    gun: Color(0xFF062B33),
   ),
   _HeroModul(
-    ner: 'Цалин',
-    tuvgerUg: 'Цалингаа',
-    uldsen: ' цаг алдалгүй хар.',
-    ungu: const Color(0xFF047857),
-    zurag: (w, h, yavts, t) => _TsalinZurag(w: w, h: h, yavts: yavts),
+    ner: 'Цагийн бүртгэл',
+    bogino: 'Цаг бүртгэл',
+    tailbar: 'Ирц, хоцролт, чөлөө, ээлжийн амралтыг нэг товчоор бүртгэнэ.',
+    icon: Icons.schedule_rounded,
+    nemelt: [
+      Icons.event_available_outlined,
+      Icons.check_rounded,
+      Icons.notifications_none_rounded,
+    ],
+    tod: Color(0xFF60A5FA),
+    gerel: Color(0xFF2563EB),
+    gun: Color(0xFF0B1A46),
+  ),
+  _HeroModul(
+    ner: 'Цалингийн тооцоолол',
+    bogino: 'Цалин',
+    tailbar: 'Ирц, илүү цагаас цалинг автоматаар тооцож, цаг алдалгүй олгоно.',
+    icon: Icons.account_balance_wallet_outlined,
+    nemelt: [
+      Icons.monetization_on_outlined,
+      Icons.bar_chart_rounded,
+      Icons.check_rounded,
+    ],
+    tod: Color(0xFFFBBF24),
+    gerel: Color(0xFFD97706),
+    gun: Color(0xFF3A1D05),
+  ),
+  _HeroModul(
+    ner: 'Харуулын хяналтын систем',
+    bogino: 'Харуул',
+    tailbar: 'Харуул, эргүүлийн цэгүүдийг хянаж, зөрчлийг шууд мэдэгдэнэ.',
+    icon: Icons.verified_user_outlined,
+    nemelt: [
+      Icons.location_on_outlined,
+      Icons.notifications_none_rounded,
+      Icons.check_rounded,
+    ],
+    tod: Color(0xFFFB7185),
+    gerel: Color(0xFFE11D48),
+    gun: Color(0xFF3B0A18),
   ),
 ];
 
-/// Дээд ногоон хэсэг: модуль бүрийн гарчиг + хөдөлгөөнт зураг ээлжлэн солигдоно
+/// Нэг давталт (бүх модуль) хэдэн секунд — модуль бүр 6 сек
+const _heroDavtaltSek = 30.0;
+const _modulSek = 6.0;
+
+/// Вэбийн FsmHero: модулийн өнгөт гэрэл, тор, арын icon хээ, том icon
+/// цагиргууд дунд, хөвөх холбогдох icon-ууд, үсэг үсгээр гарах гарчиг.
 class _Hero extends StatelessWidget {
   const _Hero({
     required this.loop,
     required this.intro,
     required this.compact,
+    required this.onSongokh,
+    this.urgun = false,
     this.deedZai = 0,
     this.zuunZai = 0,
   });
   final Animation<double> loop;
   final Animation<double> intro;
   final bool compact;
+  final bool urgun;
+  final ValueChanged<int> onSongokh;
   final double deedZai;
   final double zuunZai;
 
   @override
   Widget build(BuildContext context) {
     final n = _heroModuluud.length;
+    final khudulgukhgui = MediaQuery.disableAnimationsOf(context);
     return AnimatedBuilder(
       animation: Listenable.merge([loop, intro]),
       builder: (context, _) {
         final bairlal = loop.value * n;
         final idx = bairlal.floor() % n;
-        final yavts = bairlal - bairlal.floor();
         final modul = _heroModuluud[idx];
-        final introA = CurvedAnimation(parent: intro, curve: const Interval(0, 0.6, curve: Curves.easeOut)).value;
+        final sek = loop.value * _heroDavtaltSek;
+        // Тухайн модуль эхэлснээс хойш өнгөрсөн хугацаа (үсгийн анимацид)
+        final ongorson = khudulgukhgui
+            ? 99.0
+            : (bairlal - bairlal.floor()) * _modulSek;
+        final introA = CurvedAnimation(
+          parent: intro,
+          curve: const Interval(0, 0.6, curve: Curves.easeOut),
+        ).value;
 
-        return TweenAnimationBuilder<Color?>(
-          tween: ColorTween(end: modul.ungu),
-          duration: const Duration(milliseconds: 700),
-          builder: (context, ungu, child) => Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(-0.7, -0.2),
-                radius: 1.3,
-                colors: [
-                  Color.lerp(ungu, Colors.white, 0.18)!,
-                  ungu!,
-                  Color.lerp(ungu, Colors.black, 0.22)!,
-                ],
-                stops: const [0.0, 0.55, 1.0],
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: idx.toDouble()),
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeInOut,
+          builder: (context, v, _) {
+            final i0 = v.floor().clamp(0, n - 1);
+            final i1 = v.ceil().clamp(0, n - 1);
+            final f = v - v.floor();
+            Color hol(Color Function(_HeroModul) k) =>
+                Color.lerp(k(_heroModuluud[i0]), k(_heroModuluud[i1]), f)!;
+            return ClipRect(
+              child: CustomPaint(
+                painter: _VitrinPainter(
+                  gerel: hol((m) => m.gerel),
+                  gun: hol((m) => m.gun),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(top: deedZai, left: zuunZai),
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      final h = box.maxHeight;
+                      final w = box.maxWidth;
+                      final jijig = compact || h < 260;
+                      final garchigFont = jijig
+                          ? 23.0
+                          : (w < 360 ? 25.0 : 29.0);
+                      final zai = w < 360 ? 20.0 : 24.0;
+                      final dood = compact ? 18.0 : (urgun ? 24.0 : 46.0);
+                      final dursH = (math.min(
+                        w * (urgun ? 0.62 : 0.42),
+                        h * 0.5,
+                      )).clamp(100.0, 280.0);
+                      return Opacity(
+                        opacity: introA,
+                        child: Stack(
+                          children: [
+                            // Арын хээ: модулийн icon-ууд бүдгээр тархаж хөвнө
+                            ..._ikonKhee(modul, w, h, sek),
+                            // Том дүрслэл: icon цагиргууд дунд + хөвөх icon-ууд
+                            Positioned(
+                              right: urgun ? w * 0.12 : 14,
+                              top: (jijig ? 52 : 64).toDouble(),
+                              width: dursH,
+                              height: dursH,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 600),
+                                transitionBuilder: (ch, a) => FadeTransition(
+                                  opacity: a,
+                                  child: ScaleTransition(
+                                    scale: Tween(
+                                      begin: 0.85,
+                                      end: 1.0,
+                                    ).animate(a),
+                                    child: ch,
+                                  ),
+                                ),
+                                child: _ModulDurs(
+                                  key: ValueKey(modul.ner),
+                                  modul: modul,
+                                  sek: sek,
+                                ),
+                              ),
+                            ),
+                            // Дээд мөр: хөдөлгөөнт icon
+                            Positioned(
+                              left: zai,
+                              right: zai,
+                              top: jijig ? 10 : 16,
+                              child: Row(
+                                children: [
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 450),
+                                    transitionBuilder: (ch, a) =>
+                                        ScaleTransition(
+                                          scale: a,
+                                          child: FadeTransition(
+                                            opacity: a,
+                                            child: ch,
+                                          ),
+                                        ),
+                                    child: _KhudulgurIcon(
+                                      key: ValueKey(modul.ner),
+                                      modul: modul,
+                                      sek: sek,
+                                      khemjee: jijig ? 40 : 46,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                ],
+                              ),
+                            ),
+                            // Гарчиг, зураас, тайлбар — витрины голд (+ өргөн дэлгэцэнд pill-үүд)
+                            Positioned(
+                              left: zai,
+                              right: urgun ? zai : dursH + 20,
+                              top: urgun ? 64 + dursH : (jijig ? 52 : 64),
+                              bottom: dood,
+                              child: LayoutBuilder(
+                                builder: (context, tb) => FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: SizedBox(
+                                    width: tb.maxWidth,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        _UsegGarchig(
+                                          ner: modul.ner,
+                                          ongorson: ongorson,
+                                          font: garchigFont,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          height: 3,
+                                          width:
+                                              56 *
+                                              Curves.easeOutCubic.transform(
+                                                ((ongorson -
+                                                            modul.ner.length *
+                                                                0.028) /
+                                                        0.6)
+                                                    .clamp(0.0, 1.0),
+                                              ),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                modul.tod,
+                                                modul.tod.withValues(alpha: 0),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              2,
+                                            ),
+                                          ),
+                                        ),
+                                        if (!jijig) ...[
+                                          const SizedBox(height: 8),
+                                          _UgTailbar(
+                                            text: modul.tailbar,
+                                            ongorson:
+                                                ongorson -
+                                                modul.ner.length * 0.028 -
+                                                0.12,
+                                          ),
+                                        ],
+                                        if (urgun) ...[
+                                          const SizedBox(height: 18),
+                                          _ModulPilluud(
+                                            idx: idx,
+                                            onSongokh: onSongokh,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Уулын оронд: гарчигт хамаарах том бүдэг outline icon-ууд
+  List<Widget> _ikonKhee(_HeroModul m, double w, double h, double sek) {
+    const bairlal = [
+      (0.02, 0.50, 0.24, -12.0),
+      (0.30, 0.66, 0.16, 10.0),
+      (0.52, 0.46, 0.28, -6.0),
+      (0.78, 0.68, 0.18, 14.0),
+      (0.88, 0.30, 0.13, -18.0),
+      (0.14, 0.24, 0.11, 8.0),
+    ];
+    final iconuud = [m.icon, ...m.nemelt];
+    return [
+      for (var i = 0; i < bairlal.length; i++)
+        Builder(
+          builder: (_) {
+            final b = bairlal[i];
+            final khemjee = w * b.$3;
+            final faza = sek * 2 * math.pi / (9 + i * 1.3) + i;
+            return Positioned(
+              left: w * b.$1 - 10 * math.sin(faza),
+              top: h * b.$2 - 12 * math.sin(faza),
+              child: Transform.rotate(
+                angle: (b.$4 + 6 * math.sin(faza)) * math.pi / 180,
+                child: Icon(
+                  iconuud[i % iconuud.length],
+                  size: khemjee,
+                  color: m.tod.withValues(alpha: 0.13),
+                ),
+              ),
+            );
+          },
+        ),
+    ];
+  }
+}
+
+/// Үсэг бүр доороос эргэж, бүдгээс тод болж гарна
+class _UsegGarchig extends StatelessWidget {
+  const _UsegGarchig({
+    required this.ner,
+    required this.ongorson,
+    required this.font,
+  });
+  final String ner;
+  final double ongorson;
+  final double font;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, b) {
+        // Хамгийн урт үг мөрөнд багтахуйц хэмжээ
+        var f = font;
+        TextStyle st(double x) => TextStyle(
+          color: Colors.white,
+          fontSize: x,
+          height: 1.12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.4,
+        );
+        if (b.maxWidth.isFinite) {
+          for (final ug in ner.split(' ')) {
+            final tp = TextPainter(
+              text: TextSpan(text: '$ug ', style: st(f)),
+              textDirection: TextDirection.ltr,
+            )..layout();
+            if (tp.width > b.maxWidth) f = f * b.maxWidth / tp.width;
+          }
+        }
+        final style = st(f);
+        var n = 0;
+        return Semantics(
+          label: ner,
+          child: ExcludeSemantics(
+            child: Wrap(
+              children: [
+                for (final ug in ner.split(' '))
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: b.maxWidth.isFinite
+                          ? b.maxWidth
+                          : double.infinity,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final tem in ug.characters)
+                            Builder(
+                              builder: (_) {
+                                final p = Curves.easeOutCubic.transform(
+                                  ((ongorson - n++ * 0.028) / 0.6).clamp(
+                                    0.0,
+                                    1.0,
+                                  ),
+                                );
+                                return Opacity(
+                                  opacity: p,
+                                  child: Transform(
+                                    alignment: Alignment.bottomCenter,
+                                    transform: Matrix4.identity()
+                                      ..setEntry(3, 2, 0.002)
+                                      ..translateByDouble(
+                                        0.0,
+                                        (1 - p) * font * 0.45,
+                                        0.0,
+                                        1.0,
+                                      )
+                                      ..rotateX(-(1 - p) * 1.3),
+                                    child: Text(tem, style: style),
+                                  ),
+                                );
+                              },
+                            ),
+                          Text(' ', style: style),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            child: child,
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(top: deedZai, left: zuunZai),
-            child: LayoutBuilder(builder: (context, box) {
-              final w = box.maxWidth;
-              final h = box.maxHeight;
-              final garchigFont = compact ? 24.0 : (w < 360 ? 27.0 : 32.0);
-              final garchigDeed = compact ? 16.0 : 24.0;
-              // Зураг гарчгийн доорх зайд багтана
-              final zuragDeed = garchigDeed + 2 * garchigFont * 1.15 + 8;
-              return Stack(clipBehavior: Clip.hardEdge, children: [
-                // Гогцоо зураас (бүх модульд нийтлэг)
-                Positioned(
-                  right: -20,
-                  top: 0,
-                  width: w * 0.5,
-                  height: h * 0.45,
-                  child: CustomPaint(
-                    painter: _GogtsooPainter(
-                      zurakh: CurvedAnimation(parent: intro, curve: Curves.easeInOut).value,
-                      shiljilt: loop.value,
-                    ),
-                  ),
-                ),
-                // Модулийн зураг — солигдохдоо уусч орно
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: zuragDeed,
-                  bottom: 0,
-                  child: Opacity(
-                    opacity: CurvedAnimation(parent: intro, curve: const Interval(0.3, 1)).value,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 550),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (ch, a) => FadeTransition(
-                        opacity: a,
-                        child: ScaleTransition(scale: Tween(begin: 0.94, end: 1.0).animate(a), child: ch),
-                      ),
-                      child: KeyedSubtree(
-                        key: ValueKey(modul.ner),
-                        child: LayoutBuilder(
-                          builder: (context, zb) => modul.zurag(zb.maxWidth, zb.maxHeight, yavts, loop.value),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Гарчиг
-                Positioned(
-                  left: compact ? 24 : 28,
-                  right: w * 0.1,
-                  top: garchigDeed,
-                  child: Opacity(
-                    opacity: introA,
-                    child: Transform.translate(
-                      offset: Offset(0, 12 * (1 - introA)),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 450),
-                        layoutBuilder: (cur, prev) => Stack(alignment: Alignment.topLeft, children: [...prev, ?cur]),
-                        transitionBuilder: (ch, a) => FadeTransition(
-                          opacity: a,
-                          child: SlideTransition(
-                            position: Tween(begin: const Offset(0, 0.15), end: Offset.zero).animate(a),
-                            child: ch,
-                          ),
-                        ),
-                        child: Text.rich(
-                          key: ValueKey(modul.ner),
-                          TextSpan(children: [
-                            TextSpan(text: modul.tuvgerUg, style: const TextStyle(color: _heroGeree)),
-                            TextSpan(text: modul.uldsen),
-                          ]),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: garchigFont,
-                            height: 1.15,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: -0.8,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ]);
-            }),
           ),
         );
       },
@@ -816,387 +1256,493 @@ class _Hero extends StatelessWidget {
   }
 }
 
-/// FSM: эргэх араа + даалгавар чагтлагдах утас
-class _FsmZurag extends StatelessWidget {
-  const _FsmZurag({required this.w, required this.h, required this.yavts, required this.t});
-  final double w, h, yavts, t;
-  @override
-  Widget build(BuildContext context) {
-    final gTom = (math.min(w, h) * 0.62).clamp(60.0, 170.0);
-    return Stack(clipBehavior: Clip.none, children: [
-      Positioned(
-        left: w * 0.06,
-        bottom: h * 0.08,
-        child: SizedBox(
-          width: gTom * 1.6,
-          height: gTom * 1.4,
-          child: Stack(children: [
-            Positioned(
-              left: 0,
-              bottom: 0,
-              child: Transform.rotate(
-                angle: t * 2 * math.pi * 2,
-                child: CustomPaint(size: Size.square(gTom), painter: _AraaPainter(shud: 10)),
-              ),
-            ),
-            Positioned(
-              left: gTom * 0.78,
-              top: 0,
-              child: Transform.rotate(
-                angle: -t * 2 * math.pi * 2 * 10 / 7 + 0.2,
-                child: CustomPaint(size: Size.square(gTom * 0.68), painter: _AraaPainter(shud: 7)),
-              ),
-            ),
-          ]),
-        ),
-      ),
-      Positioned(
-        right: -w * 0.08,
-        top: h * 0.02 + math.sin(t * 2 * math.pi * 3) * 6,
-        child: _MiniUtas(
-          urgun: (w * 0.46).clamp(140.0, 260.0),
-          undur: (h * 1.0).clamp(120.0, 320.0),
-          t: yavts,
-        ),
-      ),
-    ]);
-  }
-}
+/// Тайлбар үг үгээр гарна
+class _UgTailbar extends StatelessWidget {
+  const _UgTailbar({required this.text, required this.ongorson});
+  final String text;
+  final double ongorson;
 
-/// Ирц: том хурууны хээ импульстэй + ирсэн/явсан цагийн чипүүд
-class _IrtsZurag extends StatelessWidget {
-  const _IrtsZurag({required this.w, required this.h, required this.yavts});
-  final double w, h, yavts;
   @override
   Widget build(BuildContext context) {
-    final r = (math.min(w, h) * 0.42).clamp(44.0, 110.0);
-    final p = (yavts * 2) % 1; // 2 импульс
-    final yawsanKharagdakh = yavts > 0.5;
-    return Stack(clipBehavior: Clip.none, children: [
-      Positioned(
-        left: w * (w < 380 ? 0.06 : 0.12),
-        top: (h - r * 2) / 2,
-        width: r * 2,
-        height: r * 2,
-        child: Stack(alignment: Alignment.center, children: [
-          for (final k in [0.0, 0.5])
-            Builder(builder: (_) {
-              final q = (p + k) % 1;
-              return Container(
-                width: r * 2 * (0.55 + q * 0.45),
-                height: r * 2 * (0.55 + q * 0.45),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.5 * (1 - q)), width: 2),
-                ),
-              );
-            }),
-          Container(
-            width: r * 1.1,
-            height: r * 1.1,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))],
-            ),
-            child: Icon(Icons.fingerprint_rounded, size: r * 0.75, color: const Color(0xFF0D9488)),
-          ),
-        ]),
-      ),
-      Positioned(
-        // Чипүүд баруун захаас — нарийн дэлгэцэд ч бүтэн харагдана
-        right: w * 0.05 + 22,
-        top: h * 0.18,
-        child: const _TsagChip(ner: 'Цагтаа ирлээ', tsag: '08:52', ikon: Icons.verified_rounded),
-      ),
-      Positioned(
-        right: w * 0.05,
-        top: h * 0.18 + 56,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 400),
-          opacity: yawsanKharagdakh ? 1 : 0,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutBack,
-            offset: yawsanKharagdakh ? Offset.zero : const Offset(0, 0.4),
-            child: const _TsagChip(ner: 'Ажил дууслаа', tsag: '18:04', ikon: Icons.wb_twilight_rounded),
-          ),
+    final ugs = text.split(' ');
+    return Semantics(
+      label: text,
+      child: ExcludeSemantics(
+        child: Wrap(
+          children: [
+            for (var i = 0; i < ugs.length; i++)
+              Builder(
+                builder: (_) {
+                  final p = Curves.easeOutCubic.transform(
+                    ((ongorson - i * 0.045) / 0.6).clamp(0.0, 1.0),
+                  );
+                  return Opacity(
+                    opacity: p,
+                    child: Transform.translate(
+                      offset: Offset(0, (1 - p) * 10),
+                      child: Text(
+                        '${ugs[i]} ',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 14,
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
       ),
-    ]);
-  }
-}
-
-class _TsagChip extends StatelessWidget {
-  const _TsagChip({required this.ner, required this.tsag, required this.ikon});
-  final String ner, tsag;
-  final IconData ikon;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.14), blurRadius: 16, offset: const Offset(0, 6))],
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFCCFBF1)),
-          child: Icon(ikon, size: 16, color: const Color(0xFF0D9488)),
-        ),
-        const SizedBox(width: 8),
-        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text(ner, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: Color(0xFF0F172A))),
-          Text(tsag,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF64748B),
-                fontFeatures: [FontFeature.tabularFigures()],
-              )),
-        ]),
-      ]),
     );
   }
 }
 
-/// Цалин: дүн нь тоологдож өсөх цалингийн карт + хөвөх зоос
-class _TsalinZurag extends StatelessWidget {
-  const _TsalinZurag({required this.w, required this.h, required this.yavts});
-  final double w, h, yavts;
-
-  static String _mungu(int v) {
-    final s = v.toString();
-    final b = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
-      b.write(s[i]);
-    }
-    return '₮ $b';
-  }
+/// Өргөн дэлгэцэнд: модуль сонгох icon pill-үүд (сонгосон нь нэрээ дэлгэнэ)
+class _ModulPilluud extends StatelessWidget {
+  const _ModulPilluud({required this.idx, required this.onSongokh});
+  final int idx;
+  final ValueChanged<int> onSongokh;
 
   @override
   Widget build(BuildContext context) {
-    final tooloo = Curves.easeOutCubic.transform((yavts / 0.6).clamp(0.0, 1.0));
-    final dun = (1850000 * tooloo).round();
-    final kartW = (w * 0.56).clamp(170.0, 280.0);
-    final kartH = (h * 0.78).clamp(90.0, 150.0);
-    return Stack(clipBehavior: Clip.none, children: [
-      // Зоосууд
-      for (final (dx, dy, r, phase) in [
-        (0.08, 0.15, 22.0, 0.0),
-        (0.20, 0.55, 15.0, 1.7),
-        (0.86, 0.10, 18.0, 3.1),
-      ])
-        Positioned(
-          left: w * dx,
-          top: h * dy + math.sin(yavts * 2 * math.pi * 2 + phase) * 6,
-          child: Container(
-            width: r * 2,
-            height: r * 2,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFFCD34D),
-              border: Border.all(color: const Color(0xFFF59E0B), width: 2),
-            ),
-            child: Text('₮',
-                style: TextStyle(fontSize: r * 0.9, fontWeight: FontWeight.w500, color: const Color(0xFFB45309))),
-          ),
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         ),
-      Positioned(
-        right: w * 0.06,
-        top: (h - kartH) / 2,
-        child: Transform.rotate(
-          angle: -0.05,
-          child: Container(
-            width: kartW,
-            height: kartH,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 24, offset: const Offset(0, 10))],
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                const Icon(Icons.account_balance_wallet_rounded, size: 16, color: Color(0xFF047857)),
-                const SizedBox(width: 6),
-                const Expanded(
-                  child: Text('11-р сарын цалин',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF334155))),
-                ),
-                AnimatedOpacity(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < _heroModuluud.length; i++)
+              GestureDetector(
+                onTap: () => onSongokh(i),
+                child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  opacity: tooloo >= 1 ? 1 : 0,
-                  child: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF10B981)),
+                  curve: Curves.easeOutCubic,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  height: 36,
+                  padding: EdgeInsets.symmetric(horizontal: i == idx ? 12 : 9),
+                  decoration: BoxDecoration(
+                    color: i == idx ? _heroModuluud[i].tod : Colors.transparent,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _heroModuluud[i].icon,
+                        size: 18,
+                        color: i == idx
+                            ? const Color(0xFF0B1020)
+                            : Colors.white70,
+                      ),
+                      if (i == idx) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          _heroModuluud[i].bogino,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF0B1020),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ]),
-              const Spacer(),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(_mungu(dun),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.5,
-                      color: Color(0xFF0F172A),
-                      fontFeatures: [FontFeature.tabularFigures()],
-                    )),
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: tooloo,
-                  minHeight: 6,
-                  backgroundColor: const Color(0xFFE2E8F0),
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-            ]),
-          ),
+          ],
         ),
       ),
-    ]);
+    );
   }
 }
 
-class _AraaPainter extends CustomPainter {
-  _AraaPainter({required this.shud});
-  final int shud;
+/// Том дүрслэл: гэрэл, эргэх тасархай цагиргууд, шилэн хавтан дахь том icon,
+/// эргэн тойронд хөвөх холбогдох icon-ууд
+class _ModulDurs extends StatelessWidget {
+  const _ModulDurs({super.key, required this.modul, required this.sek});
+  final _HeroModul modul;
+  final double sek;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, b) {
+        final s = b.maxWidth;
+        final amisgal = 1 + 0.12 * math.sin(sek * 2 * math.pi / 5);
+        final khovokh = math.sin(sek * 2 * math.pi / 4.5) * 5;
+        const bairlal = [
+          Offset(0.02, 0.14),
+          Offset(0.84, 0.36),
+          Offset(0.14, 0.82),
+        ];
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Center(
+              child: Transform.scale(
+                scale: amisgal,
+                child: Container(
+                  width: s * 0.62,
+                  height: s * 0.62,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: modul.tod.withValues(alpha: 0.35),
+                        blurRadius: s * 0.25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Transform.rotate(
+                angle: sek * 2 * math.pi / 40,
+                child: CustomPaint(
+                  painter: _TasarkhaiTsagirag(
+                    color: modul.tod.withValues(alpha: 0.45),
+                    radiusFactor: 0.44,
+                    dash: 6,
+                    gap: 9,
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Transform.rotate(
+                angle: -sek * 2 * math.pi / 60,
+                child: CustomPaint(
+                  painter: _TasarkhaiTsagirag(
+                    color: modul.tod.withValues(alpha: 0.22),
+                    radiusFactor: 0.54,
+                    dash: 2,
+                    gap: 7,
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Container(
+                width: s * 0.4,
+                height: s * 0.4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(s * 0.13),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Transform.translate(
+                  offset: Offset(0, khovokh),
+                  child: Transform.rotate(
+                    angle: math.sin(sek * 2 * math.pi / 4.5) * 0.07,
+                    child: Icon(modul.icon, size: s * 0.22, color: modul.tod),
+                  ),
+                ),
+              ),
+            ),
+            for (var i = 0; i < modul.nemelt.length; i++)
+              Positioned(
+                left: s * bairlal[i].dx,
+                top:
+                    s * bairlal[i].dy +
+                    math.sin(sek * 2 * math.pi / 3.2 + i * 1.2) * 5,
+                child: Container(
+                  width: s * 0.15,
+                  height: s * 0.15,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(s * 0.05),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Icon(
+                    modul.nemelt[i],
+                    size: s * 0.075,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _TasarkhaiTsagirag extends CustomPainter {
+  _TasarkhaiTsagirag({
+    required this.color,
+    required this.radiusFactor,
+    required this.dash,
+    required this.gap,
+  });
+  final Color color;
+  final double radiusFactor, dash, gap;
+
   @override
   void paint(Canvas canvas, Size size) {
+    final r = size.shortestSide * radiusFactor;
     final c = size.center(Offset.zero);
-    final rGadna = size.width / 2;
-    final rDotor = rGadna * 0.78;
-    final path = Path();
-    final n = shud * 2;
-    for (var i = 0; i <= n * 2; i++) {
-      final a = i * math.pi / n;
-      final r = (i ~/ 2).isEven ? rGadna : rDotor;
-      final p = c + Offset(math.cos(a), math.sin(a)) * r;
-      i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final toirog = 2 * math.pi * r;
+    final alkham = (dash + gap) / toirog * 2 * math.pi;
+    final urt = dash / toirog * 2 * math.pi;
+    for (var a = 0.0; a < 2 * math.pi; a += alkham) {
+      canvas.drawArc(
+        Rect.fromCircle(center: c, radius: r),
+        a,
+        urt,
+        false,
+        paint,
+      );
     }
-    path.close();
-    path.addOval(Rect.fromCircle(center: c, radius: rGadna * 0.34));
-    path.fillType = PathFillType.evenOdd;
-    canvas.drawPath(path, Paint()..color = Colors.white.withValues(alpha: 0.22));
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.35)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
-    );
   }
 
   @override
-  bool shouldRepaint(covariant _AraaPainter o) => o.shud != shud;
+  bool shouldRepaint(_TasarkhaiTsagirag o) => o.color != color;
 }
 
-class _GogtsooPainter extends CustomPainter {
-  _GogtsooPainter({required this.zurakh, required this.shiljilt});
-  final double zurakh;
-  final double shiljilt;
+/// Хөвж, импульс цацруулж, үе үе сэгсрэх модулийн icon
+class _KhudulgurIcon extends StatelessWidget {
+  const _KhudulgurIcon({
+    super.key,
+    required this.modul,
+    required this.sek,
+    required this.khemjee,
+  });
+  final _HeroModul modul;
+  final double sek;
+  final double khemjee;
+
+  @override
+  Widget build(BuildContext context) {
+    final khovokh = math.sin(sek * 2 * math.pi / 3.2) * 3;
+    final impuls = (sek % 2.2) / 2.2;
+    final sehgreh = (sek % 4) / 4;
+    final ergelt = sehgreh > 0.78 && sehgreh < 0.94
+        ? math.sin((sehgreh - 0.78) / 0.16 * 2 * math.pi) * 0.16
+        : 0.0;
+    final r = khemjee * 0.3;
+    return SizedBox(
+      width: khemjee + 16,
+      height: khemjee + 16,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Transform.scale(
+            scale: 1 + impuls * 0.35,
+            child: Container(
+              width: khemjee,
+              height: khemjee,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(r),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.45 * (1 - impuls)),
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+          Transform.translate(
+            offset: Offset(0, khovokh),
+            child: Container(
+              width: khemjee,
+              height: khemjee,
+              decoration: BoxDecoration(
+                color: modul.tod,
+                borderRadius: BorderRadius.circular(r),
+                boxShadow: [
+                  BoxShadow(
+                    color: modul.tod.withValues(alpha: 0.45),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Transform.rotate(
+                angle: ergelt,
+                child: Icon(
+                  modul.icon,
+                  size: khemjee * 0.5,
+                  color: const Color(0xFF0B1020),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Арын давхарга: модулийн өнгөт гэрэл, тор, доод бараан уусалт
+class _VitrinPainter extends CustomPainter {
+  _VitrinPainter({required this.gerel, required this.gun});
+  final Color gerel, gun;
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width, h = size.height;
-    final dy = math.sin(shiljilt * 2 * math.pi) * 4;
-    final path = Path()
-      ..moveTo(w * 0.05, h * 0.95 + dy)
-      ..cubicTo(w * 0.35, h * 0.7 + dy, w * 0.15, h * 0.25 + dy, w * 0.45, h * 0.3 + dy)
-      ..cubicTo(w * 0.75, h * 0.35 + dy, w * 0.7, h * 0.75 + dy, w * 0.5, h * 0.7 + dy)
-      ..cubicTo(w * 0.3, h * 0.65 + dy, w * 0.55, h * 0.05 + dy, w * 1.05, h * 0.1 + dy);
-    final p = Paint()
-      ..color = _heroGeree.withValues(alpha: 0.55)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    for (final m in path.computeMetrics()) {
-      canvas.drawPath(m.extractPath(0, m.length * zurakh), p);
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0.44, -0.4),
+          radius: 1.1,
+          colors: [gerel.withValues(alpha: 0.95), gun, const Color(0xFF05070D)],
+          stops: const [0, 0.55, 1],
+        ).createShader(rect),
+    );
+    final tor = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06)
+      ..strokeWidth = 1;
+    for (var i = 1; i < 6; i++) {
+      canvas.drawLine(Offset(0, h * i / 6), Offset(w, h * i / 6), tor);
     }
+    for (var i = 1; i < 8; i++) {
+      canvas.drawLine(Offset(w * i / 8, 0), Offset(w * i / 8, h), tor);
+    }
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            const Color(0xFF04060B).withValues(alpha: 0.85),
+          ],
+          stops: const [0.45, 1],
+        ).createShader(rect),
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            Colors.black.withValues(alpha: 0.5),
+            Colors.black.withValues(alpha: 0.12),
+            Colors.transparent,
+          ],
+          stops: const [0, 0.5, 1],
+        ).createShader(rect),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _GogtsooPainter o) => o.zurakh != zurakh || o.shiljilt != shiljilt;
+  bool shouldRepaint(_VitrinPainter o) => o.gerel != gerel || o.gun != gun;
 }
 
-/// Hero доторх жижиг утас: даалгаврууд ээлжлэн чагтлагдана
-class _MiniUtas extends StatelessWidget {
-  const _MiniUtas({required this.urgun, required this.undur, required this.t});
-  final double urgun, undur, t;
-
-  static const _daalgavruud = ['Цэвэрлэгээ, 3-р давхар', 'Шил арчих', 'Хог ачих'];
+/// Нэвтрэх товч: theme градиент, сум, үе үе гялбаа гүйнэ
+class _GyalbaaTovch extends StatelessWidget {
+  const _GyalbaaTovch({
+    required this.loop,
+    required this.isLoading,
+    required this.onPressed,
+  });
+  final Animation<double> loop;
+  final bool isLoading;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    // FSM сценийн 4 сек дотор: даалгаврууд ээлжлэн чагтлагдана
-    final chagt = (t * 4).floor().clamp(0, 3);
     return Container(
-      width: urgun,
-      height: undur,
-      padding: const EdgeInsets.all(7),
+      height: 54,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 24, offset: const Offset(0, 10))],
+        gradient: const LinearGradient(colors: [Color(0xFF183B83), _heroUngu]),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: _heroUngu.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-          // Жижиг дэлгэцэд утасны доод хэсэг зүгээр л тасарч харагдана
-          child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Text('9:41', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF0F172A))),
-              const Spacer(),
-              Container(width: urgun * 0.28, height: 12, decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(8))),
-              const Spacer(),
-            ]),
-            const SizedBox(height: 10),
-            const Text('Өнөөдөр', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF0F172A))),
-            const SizedBox(height: 8),
-            for (var i = 0; i < _daalgavruud.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 7),
-                child: Row(children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutBack,
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: i < chagt ? _heroUngu : Colors.white,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: i < chagt ? _heroUngu : const Color(0xFFCBD5E1), width: 1.5),
-                    ),
-                    child: i < chagt ? const Icon(Icons.check_rounded, size: 12, color: Colors.white) : null,
-                  ),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      _daalgavruud[i],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        color: i < chagt ? const Color(0xFF94A3B8) : const Color(0xFF334155),
-                        decoration: i < chagt ? TextDecoration.lineThrough : null,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Stack(
+            children: [
+              // Гялбаа
+              AnimatedBuilder(
+                animation: loop,
+                builder: (context, _) {
+                  final f = ((loop.value * _heroDavtaltSek) % 3.8) / 3.8;
+                  final p = (f / 0.55).clamp(0.0, 1.0);
+                  return Positioned.fill(
+                    child: FractionalTranslation(
+                      translation: Offset(-0.4 + p * 1.8, 0),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: 0.28,
+                        child: Transform(
+                          transform: Matrix4.skewX(-0.35),
+                          child: Container(
+                            color: Colors.white.withValues(
+                              alpha: p > 0 && p < 1 ? 0.18 : 0,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ]),
+                  );
+                },
               ),
-            ]),
+              Center(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: isLoading
+                      ? const SizedBox(
+                          key: ValueKey('ach'),
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Row(
+                          key: ValueKey('txt'),
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Нэвтрэх',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 19,
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1204,9 +1750,6 @@ class _MiniUtas extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════
-//  Forgot Password Modal (Multi-step)
-// ══════════════════════════════════════════
 class _ForgotPasswordModal extends StatefulWidget {
   const _ForgotPasswordModal();
   @override
@@ -2260,55 +2803,71 @@ class _PinKhairtsag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Column(children: [
-      ListenableBuilder(
-        listenable: Listenable.merge([controller, focusNode]),
-        builder: (context, _) {
-          final text = controller.text;
-          final focused = focusNode.hasFocus;
-          return Stack(children: [
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (var i = 0; i < 4; i++) ...[
-                if (i > 0) const SizedBox(width: 12),
-                _PinNud(
-                  tsifr: i < text.length ? text[i] : null,
-                  obscure: obscure,
-                  idevkhtei: focused && (i == text.length || (i == 3 && text.length == 4)),
-                  aldaatai: aldaa != null,
-                  ungu: idevkhteiUngu,
+    return Column(
+      children: [
+        ListenableBuilder(
+          listenable: Listenable.merge([controller, focusNode]),
+          builder: (context, _) {
+            final text = controller.text;
+            final focused = focusNode.hasFocus;
+            return Stack(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < 4; i++) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      _PinNud(
+                        tsifr: i < text.length ? text[i] : null,
+                        obscure: obscure,
+                        idevkhtei:
+                            focused &&
+                            (i == text.length || (i == 3 && text.length == 4)),
+                        aldaatai: aldaa != null,
+                        ungu: idevkhteiUngu,
+                      ),
+                    ],
+                  ],
+                ),
+                // Ил биш оролт: хайрцагнуудын дээр байрлаж товшилтыг хүлээн авна
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0,
+                    child: TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.password],
+                      inputFormatters: [PinCodeFormatter()],
+                      showCursor: false,
+                      enableInteractiveSelection: false,
+                      maxLength: 4,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        counterText: '',
+                      ),
+                      onSubmitted: (_) => onSubmitted(),
+                      onChanged: onChanged,
+                    ),
+                  ),
                 ),
               ],
-            ]),
-            // Ил биш оролт: хайрцагнуудын дээр байрлаж товшилтыг хүлээн авна
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0,
-                child: TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  onTapOutside: (_) => FocusScope.of(context).unfocus(),
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  autofillHints: const [AutofillHints.password],
-                  inputFormatters: [PinCodeFormatter()],
-                  showCursor: false,
-                  enableInteractiveSelection: false,
-                  maxLength: 4,
-                  decoration: const InputDecoration(border: InputBorder.none, counterText: ''),
-                  onSubmitted: (_) => onSubmitted(),
-                  onChanged: onChanged,
-                ),
-              ),
-            ),
-          ]);
-        },
-      ),
-      if (aldaa != null)
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(aldaa!, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: c.destructive)),
+            );
+          },
         ),
-    ]);
+        if (aldaa != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              aldaa!,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: c.destructive),
+            ),
+          ),
+      ],
+    );
   }
 }
 
@@ -2332,10 +2891,10 @@ class _PinNud extends StatelessWidget {
     final khuree = aldaatai
         ? c.destructive
         : idevkhtei
-            ? ungu
-            : duurgsen
-                ? ungu.withValues(alpha: 0.35)
-                : Colors.transparent;
+        ? ungu
+        : duurgsen
+        ? ungu.withValues(alpha: 0.35)
+        : Colors.transparent;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
@@ -2349,31 +2908,44 @@ class _PinNud extends StatelessWidget {
       ),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 160),
-        transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
+        transitionBuilder: (child, a) =>
+            ScaleTransition(scale: a, child: child),
         child: !duurgsen
             ? (idevkhtei
-                ? Container(key: const ValueKey('k'), width: 2, height: 22, color: ungu)
-                : Container(
-                    key: const ValueKey('h'),
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: c.mutedForeground.withValues(alpha: 0.35),
-                      shape: BoxShape.circle,
-                    ),
-                  ))
+                  ? Container(
+                      key: const ValueKey('k'),
+                      width: 2,
+                      height: 22,
+                      color: ungu,
+                    )
+                  : Container(
+                      key: const ValueKey('h'),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: c.mutedForeground.withValues(alpha: 0.35),
+                        shape: BoxShape.circle,
+                      ),
+                    ))
             : obscure
-                ? Container(
-                    key: const ValueKey('o'),
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(color: c.primary, shape: BoxShape.circle),
-                  )
-                : Text(
-                    tsifr!,
-                    key: ValueKey('t$tsifr'),
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: c.primary),
-                  ),
+            ? Container(
+                key: const ValueKey('o'),
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: c.primary,
+                  shape: BoxShape.circle,
+                ),
+              )
+            : Text(
+                tsifr!,
+                key: ValueKey('t$tsifr'),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                  color: c.primary,
+                ),
+              ),
       ),
     );
   }

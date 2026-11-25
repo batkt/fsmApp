@@ -4,7 +4,7 @@ import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
 
-const _emerald = Color(0xFF059669);
+const _brand = Color(0xFF315BB0);
 const _garag = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
 
 /// Ажлын хуваарь: сарын өдөр бүрийн ажлын цаг, амралтын өдөр, чөлөө/амралт.
@@ -126,7 +126,7 @@ class _AjlynKhuvaariScreenState extends State<AjlynKhuvaariScreen> {
                 ),
               ),
               if (_achaallaj && _barilga == null)
-                const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: _emerald)))
+                const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: _brand)))
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
@@ -177,7 +177,7 @@ class _OdriinMur extends StatelessWidget {
               width: 36,
               height: 36,
               alignment: Alignment.center,
-              decoration: unuudur ? const BoxDecoration(color: _emerald, shape: BoxShape.circle) : null,
+              decoration: unuudur ? const BoxDecoration(color: _brand, shape: BoxShape.circle) : null,
               child: Text('${udur.day}',
                   style: TextStyle(
                     fontSize: 19,
@@ -201,7 +201,7 @@ class _OdriinMur extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: c.cardBackground,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border(left: BorderSide(color: chuluuAmralt ? irtsTuluvuud[tuluv]!.ungu : _emerald, width: 4)),
+                    border: Border(left: BorderSide(color: chuluuAmralt ? irtsTuluvuud[tuluv]!.ungu : _brand, width: 4)),
                   ),
                   padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                   child: Row(children: [

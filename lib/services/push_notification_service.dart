@@ -275,6 +275,31 @@ class PushNotificationService {
     );
   }
 
+  /// irtsBack-ийн "миний мэдэгдэл" (чөлөө/амралтын хүсэлт зөвшөөрсөн/татгалзсан,
+  /// цалин батлагдсан)-ийг утасны мэдэгдэл болгон харуулна.
+  static Future<void> showIrtsMedegdel({
+    required String id,
+    required String title,
+    required String message,
+  }) async {
+    if (!_initialized) await initialize();
+    if (!await isPermissionGranted()) return;
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'task_notifications',
+        'Task Notifications',
+        channelDescription: 'Notifications for task updates',
+        importance: Importance.high,
+        priority: Priority.high,
+        showWhen: true,
+        icon: '@drawable/ic_notification',
+        styleInformation: BigTextStyleInformation(message, contentTitle: title),
+      ),
+      iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+    );
+    await _notifications.show(id.hashCode, title, message, details, payload: '{type: irtsMedegdel, id: $id}');
+  }
+
   /// Show notification based on type
   static Future<void> showNotification(AppNotification notification) async {
     // Check permission before showing

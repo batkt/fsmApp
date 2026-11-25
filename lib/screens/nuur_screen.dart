@@ -6,14 +6,12 @@ import '../services/task_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
 import '../widgets/medegdel_khonkh.dart';
-import 'ajlyn_khuvaari_screen.dart';
 import 'irts_tailan_screen.dart';
 import 'profail_tses_screen.dart';
 
-const _emerald = Color(0xFF059669);
-const _garagTovch = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
+const _brand = Color(0xFF315BB0);
 
-/// Нүүр хуудас: мэндчилгээ, долоо хоногийн хуваарь, сарын модулиудын товч мэдээлэл.
+/// Нүүр хуудас: мэндчилгээ, сарын модулиудын товч мэдээлэл.
 class NuurScreen extends StatefulWidget {
   const NuurScreen({
     super.key,
@@ -97,19 +95,19 @@ class _NuurScreenState extends State<NuurScreen> {
     return Scaffold(
       backgroundColor: c.loginBackground,
       body: RefreshIndicator(
-        color: _emerald,
+        color: _brand,
         onRefresh: _achaallaya,
         child: ListView(
           padding: EdgeInsets.zero,
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            // ── Ногоон толгой: мэндчилгээ + хуваарь ──
+            // ── Цэнхэр толгой: мэндчилгээ ──
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF12B087), Color(0xFF0A7D62)],
+                  colors: [_brand, Color(0xFF183B83)],
                 ),
               ),
               padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 12, bottom: 40),
@@ -153,32 +151,6 @@ class _NuurScreenState extends State<NuurScreen> {
                     const MedegdelKhonkh(tsagaanDeer: false),
                   ]),
                 ),
-                if (widget.irtsKharagdakh) ...[
-                  const SizedBox(height: 22),
-                  _GarchigMur(
-                    ner: 'Ажлын хуваарь',
-                    tsagaan: true,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AjlynKhuvaariScreen()),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 112,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: 7,
-                      separatorBuilder: (_, __) => const SizedBox(width: 10),
-                      itemBuilder: (_, i) => _KhuvaariKart(
-                        udur: DateTime(now.year, now.month, now.day + i),
-                        barilga: _barilga,
-                        unuudur: i == 0,
-                        achaallaj: _achaallaj,
-                      ),
-                    ),
-                  ),
-                ],
               ]),
             ),
 
@@ -203,10 +175,10 @@ class _NuurScreenState extends State<NuurScreen> {
                       if (widget.irtsKharagdakh)
                         _ModulKart(
                           icon: Icons.schedule_rounded,
-                          ungu: _emerald,
+                          ungu: _brand,
                           ner: 'Цаг бүртгэл',
                           utga: _achaallaj ? '…' : tsagMinutTekst(dun.ajillasan),
-                          utgaUngu: _emerald,
+                          utgaUngu: _brand,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const IrtsTailanScreen()),
                           ),
@@ -239,7 +211,7 @@ class _NuurScreenState extends State<NuurScreen> {
                               : dun.khotsorson == 0
                                   ? 'Хоцролтгүй'
                                   : tsagMinutTekst(dun.khotsorson),
-                          utgaUngu: dun.khotsorson == 0 ? _emerald : const Color(0xFFDC2626),
+                          utgaUngu: dun.khotsorson == 0 ? _brand : const Color(0xFFDC2626),
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const IrtsTailanScreen()),
                           ),
@@ -279,99 +251,6 @@ class _NuurScreenState extends State<NuurScreen> {
   static String _bukhNer(AuthUser? u) {
     if (u == null) return '';
     return u.ovog.isNotEmpty ? '${u.ovog[0]}. ${u.ner}' : u.ner;
-  }
-}
-
-class _GarchigMur extends StatelessWidget {
-  const _GarchigMur({required this.ner, required this.onTap, this.tsagaan = false});
-  final String ner;
-  final VoidCallback onTap;
-  final bool tsagaan;
-  @override
-  Widget build(BuildContext context) {
-    final ungu = tsagaan ? Colors.white : context.colors.primary;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        child: Row(children: [
-          Expanded(child: Text(ner, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: ungu))),
-          Icon(Icons.chevron_right_rounded, color: ungu),
-        ]),
-      ),
-    );
-  }
-}
-
-/// Хэвтээ хуваарийн нэг өдрийн карт
-class _KhuvaariKart extends StatelessWidget {
-  const _KhuvaariKart({required this.udur, required this.barilga, required this.unuudur, required this.achaallaj});
-  final DateTime udur;
-  final Map? barilga;
-  final bool unuudur;
-  final bool achaallaj;
-
-  @override
-  Widget build(BuildContext context) {
-    final kh = odriinKhuvaari(barilga, udur);
-    final garag = _garagTovch[udur.weekday - 1];
-    final ajil = kh != null;
-    return Container(
-      width: 132,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: unuudur ? Border.all(color: Colors.white, width: 2) : null,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Row(children: [
-            Text(
-              unuudur ? 'Өнөөдөр' : '${udur.month.toString().padLeft(2, '0')}.${udur.day.toString().padLeft(2, '0')}',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF0F172A)),
-            ),
-            const SizedBox(width: 6),
-            Text(garag, style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
-          ]),
-        ),
-        const Spacer(),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 6),
-          decoration: BoxDecoration(
-            color: ajil ? const Color(0xFFECFDF5) : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: achaallaj
-              ? const SizedBox(height: 30)
-              : Column(children: [
-                  if (ajil)
-                    FittedBox(
-                      child: Text(
-                        '${kh['neekhTsag']} - ${kh['khaakhTsag']}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: _emerald,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    )
-                  else
-                    const Icon(Icons.wb_sunny_outlined, size: 16, color: Color(0xFF94A3B8)),
-                  const SizedBox(height: 1),
-                  Text(
-                    ajil ? 'Ажлын цаг' : 'Амралтын өдөр',
-                    style: TextStyle(fontSize: 11, color: ajil ? const Color(0xFF047857) : const Color(0xFF64748B)),
-                  ),
-                ]),
-        ),
-      ]),
-    );
   }
 }
 
