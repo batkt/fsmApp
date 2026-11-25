@@ -13,22 +13,27 @@ import 'project_service.dart';
 class IrtsService {
   /// FSM хэрэглэгч: irtsBack-ийн FSM горимын instance; irts хэрэглэгч: irts.zevtabs.mn
   static const fsmUrl = 'http://103.236.194.26:8087';
-  static String get baseUrl =>
-      (AuthService.currentUser?.irtsEsekh ?? false) ? AuthService.irtsUrl : fsmUrl;
+  /// irts бүртгэл (үндсэн эсвэл холбосон) байвал irts.zevtabs.mn, үгүй бол FSM горим
+  static bool get _irtsBurtgel => AuthService.irtsUser != null;
+  static String get baseUrl => _irtsBurtgel ? AuthService.irtsUrl : fsmUrl;
+  static String? get _token => _irtsBurtgel ? AuthService.irtsToken : AuthService.token;
+  /// Ирцэд ашиглах ажилтан (FSM+irts хэрэглэгчид irts бүртгэлийнх)
+  static AuthUser? get ajiltan => AuthService.irtsUser ?? AuthService.currentUser;
   static const _timeout = Duration(seconds: 25);
 
   static Map<String, String> get _headers => {
         'Content-Type': 'application/json',
-        if (AuthService.token != null) 'Authorization': 'bearer ${AuthService.token}',
+        if (_token != null) 'Authorization': 'bearer $_token',
       };
 
-  static String? get baiguullagiinId => AuthService.currentUser?.baiguullagaId;
+  static String? get baiguullagiinId => ajiltan?.baiguullagaId;
 
   /// Идэвхтэй төслийн барилга, эсвэл ажилтны эхний барилга
   static String? get barilgiinId {
+    // FSM-ийн төслийн барилга irts байгууллагад хамаарахгүй тул irts бүртгэлтэй бол ашиглахгүй
     final p = ProjectService.activeProject.value;
-    if (p != null && p.barilgiinId.isNotEmpty) return p.barilgiinId;
-    final b = AuthService.currentUser?.barilguud ?? const [];
+    if (!_irtsBurtgel && p != null && p.barilgiinId.isNotEmpty) return p.barilgiinId;
+    final b = ajiltan?.barilguud ?? const [];
     if (b.isNotEmpty) return b.first;
     // Admin зэрэг барилга оноогоогүй хэрэглэгч: байгууллагын эхний барилга
     // (irts.zevtabs.mn-тэй ижил). barilgaAvya() дуудсаны дараа тодорхой болно.
@@ -124,11 +129,39 @@ class IrtsService {
   static Future<List<Map<String, dynamic>>> sarynIrts(DateTime sar) =>
       khugatsaanyIrts(DateTime(sar.year, sar.month, 1), DateTime(sar.year, sar.month + 1, 1));
 
+  /// AI туслах (irtsBack POST /aiTuslakh, Gemini): хариуг хэсэг хэсгээр нь
+  /// (stream) буцаана. Алдаа гарвал IrtsAldaa шиднэ.
+  static Stream<String> aiTuslakh(List<Map<String, String>> messages) async* {
+    final client = http.Client();
+    try {
+      final req = http.Request('POST', Uri.parse('$baseUrl/aiTuslakh'))
+        ..headers.addAll(_headers)
+        ..body = json.encode({
+          'messages': messages,
+          'khuudasniiNer': 'Гар утасны апп',
+          if (barilgiinId != null) 'barilgiinId': barilgiinId,
+        });
+      final res = await client.send(req).timeout(const Duration(seconds: 30));
+      if (res.statusCode != 200) {
+        final body = await res.stream.bytesToString();
+        String msg = 'AI туслахтай холбогдож чадсангүй.';
+        try {
+          final j = json.decode(body);
+          if (j is Map && j['message'] != null) msg = j['message'].toString();
+        } catch (_) {}
+        throw IrtsAldaa(msg);
+      }
+      yield* res.stream.transform(utf8.decoder).timeout(const Duration(seconds: 60));
+    } finally {
+      client.close();
+    }
+  }
+
   /// Миний ирц [ekh, tug) хугацаанд
   static Future<List<Map<String, dynamic>>> khugatsaanyIrts(DateTime ekh, DateTime tug) async {
     final data = await _get('/irts', {
       'query': {
-        'ajiltniiId': AuthService.currentUser?.id,
+        'ajiltniiId': ajiltan?.id,
         'baiguullagiinId': baiguullagiinId,
         'ognoo': {
           r'$gte': ekh.toUtc().toIso8601String(),

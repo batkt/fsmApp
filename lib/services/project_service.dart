@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/project_model.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
+import 'task_service.dart';
 
 /// Minimal service for /projects endpoints.
 class ProjectService {
@@ -24,9 +25,11 @@ class ProjectService {
 
     final all = list.map<Project>((j) => Project.fromJson(j)).toList();
 
-    // Only keep projects where user is a worker or the manager
+    // Keep projects where user is a worker, the manager, or assigned to one of
+    // its tasks (ажилтныг төслийн даалгаварт л нэмсэн тохиолдол)
+    final taskProjectIds = (await TaskService.assignedTasks()).map((t) => t.projectId).toSet();
     return all.where((p) =>
-      p.ajiltnuud.contains(user.id) || p.udirdagchId == user.id
+      p.ajiltnuud.contains(user.id) || p.udirdagchId == user.id || taskProjectIds.contains(p.id)
     ).toList();
   }
 

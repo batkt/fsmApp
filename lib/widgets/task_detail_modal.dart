@@ -886,7 +886,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                         children: [
                                           if (baraa.une > 0)
                                             Text(
-                                              'Нэгж үнэ: ${baraa.une.toStringAsFixed(0)}₮',
+                                              'Нэгж үнэ: ${baraa.une.toStringAsFixed(0)}',
                                               style: TextStyle(
                                                 fontSize: context.rFontSize(12),
                                                 color: c.mutedForeground,
@@ -899,7 +899,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             ),
                                           if (baraa.niitUne > 0)
                                             Text(
-                                              'Нийт үнэ: ${baraa.niitUne.toStringAsFixed(0)}₮',
+                                              'Нийт үнэ: ${baraa.niitUne.toStringAsFixed(0)}',
                                               style: TextStyle(
                                                 fontSize: context.rFontSize(12),
                                                 fontWeight: FontWeight.w500,

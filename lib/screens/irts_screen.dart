@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
@@ -14,7 +15,6 @@ import '../widgets/medegdel_khonkh.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
 const _brand = Color(0xFF315BB0);
-const _gunTeal = Color(0xFF183B83);
 const _garag = ['Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба', 'Ням'];
 const _garagTovch = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
 
@@ -259,18 +259,28 @@ class _DeedKhesek extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     final idevkhtei = uildel.turul != null && !burtgej;
-    final orokh = uildel == IrtsUildel.orokh || uildel == IrtsUildel.chuluunaasOrokh || uildel == IrtsUildel.tsainiiOrokh;
-    final ungu = idevkhtei ? (orokh ? _brand : _gunTeal) : const Color(0xFFB8C2CC);
+    // Үйлдэл бүр өөрийн өнгөтэй: Орох — цэнхэр, Цай — шар/ногоон, Гарах — улбар
+    final gradient = !idevkhtei
+        ? const [Color(0xFFCBD5E1), Color(0xFF94A3B8)]
+        : switch (uildel) {
+            IrtsUildel.orokh || IrtsUildel.chuluunaasOrokh => const [Color(0xFF5B8DEF), _brand],
+            IrtsUildel.tsainiiGarakh => const [Color(0xFFFBBF24), Color(0xFFEA8A0C)],
+            IrtsUildel.tsainiiOrokh => const [Color(0xFF2DD4BF), Color(0xFF0F8F86)],
+            IrtsUildel.garakhChuluu => const [Color(0xFF38BDF8), Color(0xFF0369A1)],
+            _ => const [Color(0xFFFF8A65), Color(0xFFE5484D)],
+          };
+    final ungu = gradient.last;
     final ikon = switch (uildel) {
       IrtsUildel.orokh || IrtsUildel.chuluunaasOrokh => Icons.login_rounded,
       IrtsUildel.tsainiiGarakh => Icons.coffee_rounded,
       IrtsUildel.tsainiiOrokh => Icons.work_outline_rounded,
-      IrtsUildel.garakh || IrtsUildel.garakhHulee => Icons.logout_rounded,
+      IrtsUildel.garakh || IrtsUildel.garakhChuluu || IrtsUildel.garakhHulee => Icons.logout_rounded,
       IrtsUildel.amralt => Icons.beach_access_rounded,
       _ => Icons.check_rounded,
     };
     final tailbar = switch (uildel) {
       IrtsUildel.garakhHulee => 'Цайны дараа хэсэг хугацаанд гарах боломжгүй',
+      IrtsUildel.chuluunaasOrokh => 'Чөлөөнөөс буцаж ирснээ бүртгүүлнэ',
       _ => null,
     };
     final tovchNer = switch (uildel) {
@@ -350,70 +360,17 @@ class _DeedKhesek extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     // Том дугуй товч + импульс
-                    Semantics(
-                      button: true,
-                      enabled: idevkhtei,
-                      label: tovchNer,
-                      child: GestureDetector(
-                        onTap: idevkhtei ? onTap : null,
-                        child: SizedBox(
-                          width: r * 2.5,
-                          height: r * 2.5,
-                          child: AnimatedBuilder(
-                            animation: impuls,
-                            builder: (_, __) => Stack(alignment: Alignment.center, children: [
-                              if (idevkhtei)
-                                for (final k in [0.0, 0.5])
-                                  Builder(builder: (_) {
-                                    final q = (impuls.value + k) % 1;
-                                    return Container(
-                                      width: r * 2 * (1 + q * 0.25),
-                                      height: r * 2 * (1 + q * 0.25),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: ungu.withValues(alpha: 0.18 * (1 - q)),
-                                      ),
-                                    );
-                                  }),
-                              Container(
-                                width: r * 2,
-                                height: r * 2,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: ungu,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: ungu.withValues(alpha: idevkhtei ? 0.35 : 0.1),
-                                      blurRadius: 24,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: burtgej
-                                    ? const Center(
-                                        child: SizedBox(
-                                          width: 30,
-                                          height: 30,
-                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.6),
-                                        ),
-                                      )
-                                    : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                        Icon(ikon, color: Colors.white, size: r * 0.42),
-                                        const SizedBox(height: 4),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                                          child: FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(tovchNer,
-                                                style: TextStyle(fontSize: r * 0.22, fontWeight: FontWeight.w500, color: Colors.white)),
-                                          ),
-                                        ),
-                                      ]),
-                              ),
-                            ]),
-                          ),
-                        ),
-                      ),
+                    _BurtgelTovch(
+                      r: r,
+                      gradient: gradient,
+                      ungu: ungu,
+                      ikon: ikon,
+                      ner: tovchNer,
+                      tsag: _hm(odoo),
+                      idevkhtei: idevkhtei,
+                      burtgej: burtgej,
+                      impuls: impuls,
+                      onTap: onTap,
                     ),
                     if (tailbar != null)
                       Container(
@@ -430,6 +387,150 @@ class _DeedKhesek extends StatelessWidget {
         }),
       ),
     ]);
+  }
+}
+
+/// Бүртгэлийн том товч: градиент дугуй, зөөлөн импульс, дарахад жижгэрнэ
+class _BurtgelTovch extends StatefulWidget {
+  const _BurtgelTovch({
+    required this.r,
+    required this.gradient,
+    required this.ungu,
+    required this.ikon,
+    required this.ner,
+    required this.tsag,
+    required this.idevkhtei,
+    required this.burtgej,
+    required this.impuls,
+    required this.onTap,
+  });
+  final double r;
+  final List<Color> gradient;
+  final Color ungu;
+  final IconData ikon;
+  final String ner, tsag;
+  final bool idevkhtei, burtgej;
+  final Animation<double> impuls;
+  final VoidCallback onTap;
+  @override
+  State<_BurtgelTovch> createState() => _BurtgelTovchState();
+}
+
+class _BurtgelTovchState extends State<_BurtgelTovch> {
+  bool _darsan = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.r;
+    final ungu = widget.ungu;
+    return Semantics(
+      button: true,
+      enabled: widget.idevkhtei,
+      label: widget.ner,
+      child: GestureDetector(
+        onTapDown: widget.idevkhtei ? (_) => setState(() => _darsan = true) : null,
+        onTapCancel: () => setState(() => _darsan = false),
+        onTapUp: (_) => setState(() => _darsan = false),
+        onTap: widget.idevkhtei
+            ? () {
+                HapticFeedback.mediumImpact();
+                widget.onTap();
+              }
+            : null,
+        child: SizedBox(
+          width: r * 2.6,
+          height: r * 2.6,
+          child: AnimatedBuilder(
+            animation: widget.impuls,
+            builder: (_, __) => Stack(alignment: Alignment.center, children: [
+              // Гадна зөөлөн долгио
+              if (widget.idevkhtei)
+                for (final k in [0.0, 0.5])
+                  Builder(builder: (_) {
+                    final q = (widget.impuls.value + k) % 1;
+                    final d = r * 2 * (1 + q * 0.28);
+                    return Container(
+                      width: d,
+                      height: d,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: ungu.withValues(alpha: 0.35 * (1 - q)), width: 2),
+                        color: ungu.withValues(alpha: 0.10 * (1 - q)),
+                      ),
+                    );
+                  }),
+              // Цагаан хүрээ (газрын зураг дээр тод харагдана)
+              Container(
+                width: r * 2 + 14,
+                height: r * 2 + 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: ungu.withValues(alpha: widget.idevkhtei ? 0.35 : 0.12),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedScale(
+                scale: _darsan ? 0.93 : 1,
+                duration: const Duration(milliseconds: 120),
+                curve: Curves.easeOut,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: r * 2,
+                  height: r * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: widget.gradient,
+                    ),
+                  ),
+                  child: widget.burtgej
+                      ? const Center(
+                          child: SizedBox(
+                            width: 30,
+                            height: 30,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.6),
+                          ),
+                        )
+                      : Padding(
+                          padding: EdgeInsets.all(r * 0.18),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(mainAxisSize: MainAxisSize.min, children: [
+                              Container(
+                                padding: EdgeInsets.all(r * 0.1),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                                child: Icon(widget.ikon, color: Colors.white, size: r * 0.36),
+                              ),
+                              SizedBox(height: r * 0.08),
+                              Text(widget.ner,
+                                  style: TextStyle(fontSize: r * 0.21, fontWeight: FontWeight.w500, color: Colors.white)),
+                              Text(widget.tsag,
+                                  style: TextStyle(
+                                    fontSize: r * 0.16,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    fontFeatures: _tabular,
+                                  )),
+                            ]),
+                          ),
+                        ),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -81,6 +81,16 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
     widget.onLogout();
   }
 
+  Future<void> _irtsHolbokh() async {
+    final holbov = await showDialog<bool>(context: context, builder: (_) => const _IrtsHolbokhDialog());
+    if (holbov == true && mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ирц бүртгэл холбогдлоо')),
+      );
+    }
+  }
+
   void _neey(Widget khuudas) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => khuudas));
 
   @override
@@ -193,6 +203,19 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
                 ),
               ),
             ]),
+            // FSM хэрэглэгч irts бүртгэлээ холбоогүй бол л (ижил нэвтрэх нэртэй бол
+            // нэвтрэхэд автоматаар холбогдож, Нүүрний товчлолд "Ирц" гарна)
+            if (u != null && !u.irtsEsekh && !AuthService.khoyorBurtgeltei) ...[
+              const _BulgiinNer('Холбосон бүртгэл'),
+              _Buleg(children: [
+                _Mur(
+                  icon: Icons.add_link_rounded,
+                  ner: 'Ирц бүртгэл холбох',
+                  tailbar: 'irts.zevtabs.mn-ийн нэвтрэх нэрээрээ',
+                  onTap: _irtsHolbokh,
+                ),
+              ]),
+            ],
             const _BulgiinNer('Тусламж'),
             _Buleg(children: [
               // FAQScreen нь доод цонхонд зориулагдсан (апп-ын бусад хэсэгтэй ижил нээнэ)
@@ -323,6 +346,83 @@ class _KhuviinMedeelel extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: c.mutedForeground)),
         ),
       ]),
+    );
+  }
+}
+
+/// irts.zevtabs.mn-ийн нэр/нууц үгээр бүртгэл холбох цонх
+class _IrtsHolbokhDialog extends StatefulWidget {
+  const _IrtsHolbokhDialog();
+  @override
+  State<_IrtsHolbokhDialog> createState() => _IrtsHolbokhDialogState();
+}
+
+class _IrtsHolbokhDialogState extends State<_IrtsHolbokhDialog> {
+  final _ner = TextEditingController();
+  final _nuuts = TextEditingController();
+  bool _ajillaj = false;
+  String? _aldaa;
+
+  @override
+  void dispose() {
+    _ner.dispose();
+    _nuuts.dispose();
+    super.dispose();
+  }
+
+  Future<void> _ilgeekh() async {
+    if (_ner.text.trim().isEmpty || _nuuts.text.isEmpty) return;
+    setState(() {
+      _ajillaj = true;
+      _aldaa = null;
+    });
+    final r = await AuthService.irtsHolbokh(_ner.text.trim(), _nuuts.text);
+    if (!mounted) return;
+    if (r.isSuccess) {
+      Navigator.pop(context, true);
+    } else {
+      setState(() {
+        _ajillaj = false;
+        _aldaa = r.errorMessage;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return AlertDialog(
+      title: const Text('Ирц бүртгэл холбох'),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('irts.zevtabs.mn-д нэвтэрдэг нэр, нууц үгээ оруулна уу.',
+            style: TextStyle(fontSize: 13, color: c.mutedForeground)),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _ner,
+          autofillHints: const [AutofillHints.username],
+          decoration: const InputDecoration(labelText: 'Нэвтрэх нэр'),
+        ),
+        TextField(
+          controller: _nuuts,
+          obscureText: true,
+          autofillHints: const [AutofillHints.password],
+          decoration: const InputDecoration(labelText: 'Нууц үг'),
+          onSubmitted: (_) => _ilgeekh(),
+        ),
+        if (_aldaa != null) ...[
+          const SizedBox(height: 10),
+          Text(_aldaa!, style: TextStyle(fontSize: 13, color: c.destructive)),
+        ],
+      ]),
+      actions: [
+        TextButton(onPressed: _ajillaj ? null : () => Navigator.pop(context, false), child: const Text('Болих')),
+        FilledButton(
+          onPressed: _ajillaj ? null : _ilgeekh,
+          child: _ajillaj
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Text('Холбох'),
+        ),
+      ],
     );
   }
 }

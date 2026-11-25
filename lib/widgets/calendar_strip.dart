@@ -374,14 +374,21 @@ class _FullCalendarState extends State<FullCalendar>
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    // Карт брэнд цэнхэр градиент тул доторх өнгийг цагаан дээр тохируулна
+    final c = _kartUngu(context.colors);
     final today = DateTime.now();
 
     return Container(
       decoration: BoxDecoration(
-        color: c.cardBackground,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: c.border),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF24458F)],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF315BB0).withValues(alpha: 0.30), blurRadius: 18, offset: const Offset(0, 8)),
+        ],
       ),
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -713,7 +720,7 @@ class _FullCalendarState extends State<FullCalendar>
                     _weekHeaders[i],
                     style: TextStyle(
                       fontSize: 12,
-                      color: isSelected ? Colors.white70 : c.mutedForeground,
+                      color: isSelected ? _kartBrand.withValues(alpha: 0.75) : c.mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -722,7 +729,7 @@ class _FullCalendarState extends State<FullCalendar>
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w500,
-                      color: isSelected ? Colors.white : c.primary,
+                      color: isSelected ? _kartBrand : c.primary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -738,7 +745,7 @@ class _FullCalendarState extends State<FullCalendar>
                             height: 5,
                             margin: const EdgeInsets.symmetric(horizontal: 1),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : c.blueAccent,
+                              color: isSelected ? _kartBrand : c.blueAccent,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -753,7 +760,7 @@ class _FullCalendarState extends State<FullCalendar>
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? Colors.white.withOpacity(0.8)
+                                      ? _kartBrand.withValues(alpha: 0.8)
                                       : _statusColor(t.status, c),
                                   shape: BoxShape.circle,
                                 ),
@@ -887,7 +894,7 @@ class _FullCalendarState extends State<FullCalendar>
                                   ? FontWeight.w500
                                   : FontWeight.w500,
                               color: isSelected
-                                  ? Colors.white
+                                  ? _kartBrand
                                   : (col >= 5
                                         ? c.destructive.withOpacity(0.7)
                                         : c.primary),
@@ -914,7 +921,7 @@ class _FullCalendarState extends State<FullCalendar>
                                         ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? Colors.white
+                                              ? _kartBrand
                                               : c.blueAccent,
                                           shape: BoxShape.circle,
                                         ),
@@ -930,9 +937,7 @@ class _FullCalendarState extends State<FullCalendar>
                                             ),
                                             decoration: BoxDecoration(
                                               color: isSelected
-                                                  ? Colors.white.withOpacity(
-                                                      0.8,
-                                                    )
+                                                  ? _kartBrand.withValues(alpha: 0.8)
                                                   : _statusColor(t.status, c),
                                               shape: BoxShape.circle,
                                             ),
@@ -956,3 +961,17 @@ class _FullCalendarState extends State<FullCalendar>
     );
   }
 }
+
+const _kartBrand = Color(0xFF315BB0);
+
+/// Цэнхэр градиент карт дээрх өнгө: текст цагаан, сонгосон өдөр цагаан дэвсгэр
+AppColorScheme _kartUngu(AppColorScheme c) => c.copyWith(
+      primary: Colors.white,
+      mutedForeground: Colors.white.withValues(alpha: 0.72),
+      brandGreen: Colors.white,
+      muted: Colors.white.withValues(alpha: 0.16),
+      border: Colors.white.withValues(alpha: 0.22),
+      cardBackground: Colors.transparent,
+      blueAccent: const Color(0xFFFDE68A),
+      destructive: const Color(0xFFFFB4B4),
+    );

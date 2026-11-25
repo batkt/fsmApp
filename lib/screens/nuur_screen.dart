@@ -19,8 +19,12 @@ class NuurScreen extends StatefulWidget {
     required this.daalgavarKharagdakh,
     required this.onModulNeey,
     this.tsalinKharagdakh = false,
+    this.busadModuluud = const [],
     this.onLogout,
   });
+
+  /// Доод цэсэнд багтаагүй модулиуд (Удирдлага, Түүх, Чат...) — Нүүрт үйлчилгээ болж харагдана
+  final List<(IconData, String)> busadModuluud;
 
   /// Ирц модульд эрхтэй эсэх (хуваарь, ирц, хүсэлтийн хэсгүүд)
   final bool irtsKharagdakh;
@@ -85,12 +89,59 @@ class _NuurScreenState extends State<NuurScreen> {
     return 'Оройн мэнд';
   }
 
+  static const _garag = ['Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба', 'Ням'];
+
+  /// Үйлчилгээний хавтангийн өнгө (нэрээр), бусад нь дарааллаар
+  static const _moduliinUngu = <String, List<Color>>{
+    'Удирдлага': [Color(0xFF2DD4BF), Color(0xFF0F8F86)],
+    'Түүх': [Color(0xFFFBBF24), Color(0xFFEA8A0C)],
+    'Чат': [Color(0xFF38BDF8), Color(0xFF0369A1)],
+    'Гүйцэтгэл': [Color(0xFFFB7185), Color(0xFFE11D48)],
+  };
+  static const _nemeltUngu = [
+    [Color(0xFFA78BFA), Color(0xFF7C3AED)],
+    [Color(0xFF34D399), Color(0xFF059669)],
+    [Color(0xFFF472B6), Color(0xFFDB2777)],
+  ];
+
+  void _tailanNeey() => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const IrtsTailanScreen()),
+      );
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final user = AuthService.currentUser;
     final now = DateTime.now();
     final dun = sarynDunTootsoo(_sarynIrts, _barilga, DateTime(now.year, now.month));
+    final deedZai = MediaQuery.paddingOf(context).top;
+
+    // Үйлчилгээнүүд (апп-лаунчер маягийн сүлжээ)
+    final uilchilgee = <_Uilchilgee>[
+      if (widget.irtsKharagdakh)
+        _Uilchilgee(Icons.fingerprint_rounded, 'Ирц', const [Color(0xFF38BDF8), Color(0xFF0284C7)],
+            () => widget.onModulNeey('Ирц')),
+      if (widget.irtsKharagdakh)
+        _Uilchilgee(Icons.bar_chart_rounded, 'Цаг бүртгэл', const [Color(0xFF5B8DEF), _brand], _tailanNeey),
+      if (widget.irtsKharagdakh)
+        _Uilchilgee(Icons.send_rounded, 'Хүсэлт', const [Color(0xFFFBBF24), Color(0xFFF97316)],
+            () => widget.onModulNeey('Ирц'),
+            too: _khuleegdejBui ?? 0),
+      if (widget.daalgavarKharagdakh)
+        _Uilchilgee(Icons.checklist_rounded, 'Даалгавар', const [Color(0xFF60A5FA), Color(0xFF2563EB)],
+            () => widget.onModulNeey('Даалгавар'),
+            too: _idevkhteiDaalgavar ?? 0),
+      if (widget.tsalinKharagdakh)
+        _Uilchilgee(Icons.account_balance_wallet_rounded, 'Цалин', const [Color(0xFFA78BFA), Color(0xFF7C3AED)],
+            () => widget.onModulNeey('Цалин')),
+      for (var i = 0; i < widget.busadModuluud.length; i++)
+        _Uilchilgee(
+          widget.busadModuluud[i].$1,
+          widget.busadModuluud[i].$2,
+          _moduliinUngu[widget.busadModuluud[i].$2] ?? _nemeltUngu[i % _nemeltUngu.length],
+          () => widget.onModulNeey(widget.busadModuluud[i].$2),
+        ),
+    ];
 
     return Scaffold(
       backgroundColor: c.loginBackground,
@@ -101,139 +152,197 @@ class _NuurScreenState extends State<NuurScreen> {
           padding: EdgeInsets.zero,
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            // ── Цэнхэр толгой: мэндчилгээ ──
+            // ── Градиент толгой ──
             Container(
+              clipBehavior: Clip.antiAlias,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [_brand, Color(0xFF183B83)],
+                  colors: [Color(0xFF4F7FE8), _brand, Color(0xFF3B2FA8)],
                 ),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
               ),
-              padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 12, bottom: 40),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              child: Stack(children: [
+                // Чимэглэлийн тойргууд
+                Positioned(right: -40, top: -30, child: _Toirog(160, 0.10)),
+                Positioned(right: 60, top: deedZai + 70, child: _Toirog(70, 0.08)),
+                Positioned(left: -30, bottom: -50, child: _Toirog(120, 0.07)),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(children: [
-                    // Аватар дээр дарахад профайлын цэс
-                    Semantics(
-                      button: true,
-                      label: 'Профайл',
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ProfailTsesScreen(
-                            onLogout: widget.onLogout ?? () {},
-                            irtsKharagdakh: widget.irtsKharagdakh,
+                  padding: EdgeInsets.fromLTRB(20, deedZai + 12, 20, widget.irtsKharagdakh ? 86 : 28),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Semantics(
+                        button: true,
+                        label: 'Профайл',
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => ProfailTsesScreen(
+                              onLogout: widget.onLogout ?? () {},
+                              irtsKharagdakh: widget.irtsKharagdakh,
+                            ),
+                          )),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                            ),
+                            child: CircleAvatar(
+                              radius: 21,
+                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                              child: Text(
+                                _tovchNer(user?.ner ?? ''),
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white),
+                              ),
+                            ),
                           ),
-                        )),
-                        child: CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.white.withValues(alpha: 0.22),
-                      child: Text(
-                        _tovchNer(user?.ner ?? ''),
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white),
-                      ),
-                    ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(_mendchilgee, style: const TextStyle(fontSize: 13, color: Color(0xCCFFFFFF))),
-                        Text(
-                          _bukhNer(user),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
                         ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(_mendchilgee, style: const TextStyle(fontSize: 13, color: Color(0xCCFFFFFF))),
+                          Text(
+                            _bukhNer(user),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
+                          ),
+                        ]),
+                      ),
+                      const MedegdelKhonkh(tsagaanDeer: false),
+                    ]),
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.calendar_today_rounded, size: 14, color: Colors.white),
+                        const SizedBox(width: 6),
+                        Text('${_garag[now.weekday - 1]}, ${now.month}-р сарын ${now.day}',
+                            style: const TextStyle(fontSize: 13, color: Colors.white)),
                       ]),
                     ),
-                    const MedegdelKhonkh(tsagaanDeer: false),
                   ]),
                 ),
               ]),
             ),
 
-            // ── Энэ сард ──
-            Transform.translate(
-              offset: const Offset(0, -24),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: c.loginBackground,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 22, 16, 24),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 12),
-                    child: Text('Энэ сард',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: c.primary)),
-                  ),
-                  LayoutBuilder(builder: (context, box) {
-                    final bagana = box.maxWidth >= 640 ? 4 : 2;
-                    final tiles = <Widget>[
-                      if (widget.irtsKharagdakh)
-                        _ModulKart(
-                          icon: Icons.schedule_rounded,
-                          ungu: _brand,
-                          ner: 'Цаг бүртгэл',
-                          utga: _achaallaj ? '…' : tsagMinutTekst(dun.ajillasan),
-                          utgaUngu: _brand,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const IrtsTailanScreen()),
-                          ),
+            // ── Энэ сарын ирц: толгой дээр хөвөх карт ──
+            if (widget.irtsKharagdakh)
+              Transform.translate(
+                offset: const Offset(0, -64),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Material(
+                    color: c.cardBackground,
+                    elevation: 0,
+                    borderRadius: BorderRadius.circular(24),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(24),
+                      onTap: _tailanNeey,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: c.border),
+                          boxShadow: [
+                            BoxShadow(color: _brand.withValues(alpha: 0.14), blurRadius: 24, offset: const Offset(0, 10)),
+                          ],
                         ),
-                      if (widget.irtsKharagdakh)
-                        _ModulKart(
-                          icon: Icons.send_rounded,
-                          ungu: const Color(0xFFF59E0B),
-                          ner: 'Цагийн хүсэлт',
-                          utga: _khuleegdejBui == null ? '—' : '$_khuleegdejBui хүлээгдэж буй',
-                          utgaUngu: (_khuleegdejBui ?? 0) > 0 ? const Color(0xFFD97706) : c.mutedForeground,
+                        child: Row(children: [
+                          _KhuviTsagirag(khuvi: _achaallaj ? 0 : dun.khuvi),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Row(children: [
+                                Expanded(
+                                  child: Text('Энэ сарын ирц',
+                                      style: TextStyle(fontSize: 13, color: c.mutedForeground)),
+                                ),
+                                Icon(Icons.chevron_right_rounded, size: 20, color: c.mutedForeground),
+                              ]),
+                              const SizedBox(height: 6),
+                              _MiniStat(
+                                icon: Icons.schedule_rounded,
+                                ungu: const Color(0xFF10B981),
+                                ner: 'Ажилласан',
+                                utga: _achaallaj ? '…' : tsagMinutTekst(dun.ajillasan),
+                              ),
+                              _MiniStat(
+                                icon: Icons.event_available_rounded,
+                                ungu: _brand,
+                                ner: 'Ирсэн өдөр',
+                                utga: _achaallaj ? '…' : '${dun.irsenUdur} / ${dun.ajlynUdur}',
+                              ),
+                              _MiniStat(
+                                icon: Icons.warning_amber_rounded,
+                                ungu: dun.khotsorson == 0 ? const Color(0xFF10B981) : const Color(0xFFE5484D),
+                                ner: 'Хоцролт',
+                                utga: _achaallaj
+                                    ? '…'
+                                    : dun.khotsorson == 0
+                                        ? 'Байхгүй'
+                                        : tsagMinutTekst(dun.khotsorson),
+                              ),
+                            ]),
+                          ),
+                        ]),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            Transform.translate(
+              offset: Offset(0, widget.irtsKharagdakh ? -48 : 16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  // ── Анхаарах зүйлс ──
+                  if ((_khuleegdejBui ?? 0) > 0 || (_idevkhteiDaalgavar ?? 0) > 0) ...[
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      if ((_khuleegdejBui ?? 0) > 0)
+                        _AnkhaarPill(
+                          icon: Icons.hourglass_top_rounded,
+                          text: '$_khuleegdejBui хүсэлт хүлээгдэж буй',
+                          ungu: const Color(0xFFF97316),
                           onTap: () => widget.onModulNeey('Ирц'),
                         ),
-                      if (widget.daalgavarKharagdakh)
-                        _ModulKart(
-                          icon: Icons.checklist_rounded,
+                      if ((_idevkhteiDaalgavar ?? 0) > 0)
+                        _AnkhaarPill(
+                          icon: Icons.bolt_rounded,
+                          text: '$_idevkhteiDaalgavar идэвхтэй даалгавар',
                           ungu: const Color(0xFF2563EB),
-                          ner: 'Даалгавар',
-                          utga: _idevkhteiDaalgavar == null ? '—' : '$_idevkhteiDaalgavar идэвхтэй',
-                          utgaUngu: const Color(0xFF2563EB),
                           onTap: () => widget.onModulNeey('Даалгавар'),
                         ),
-                      if (widget.irtsKharagdakh)
-                        _ModulKart(
-                          icon: Icons.warning_amber_rounded,
-                          ungu: const Color(0xFFDC2626),
-                          ner: 'Хоцролт',
-                          utga: _achaallaj
-                              ? '…'
-                              : dun.khotsorson == 0
-                                  ? 'Хоцролтгүй'
-                                  : tsagMinutTekst(dun.khotsorson),
-                          utgaUngu: dun.khotsorson == 0 ? _brand : const Color(0xFFDC2626),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const IrtsTailanScreen()),
-                          ),
-                        ),
-                      if (widget.tsalinKharagdakh)
-                        _ModulKart(
-                          icon: Icons.account_balance_wallet_outlined,
-                          ungu: const Color(0xFF7C3AED),
-                          ner: 'Цалин',
-                          utga: 'Цалингийн задаргаа',
-                          utgaUngu: const Color(0xFF7C3AED),
-                          onTap: () => widget.onModulNeey('Цалин'),
-                        ),
-                    ];
-                    const zai = 12.0;
-                    final urgun = (box.maxWidth - zai * (bagana - 1)) / bagana;
-                    return Wrap(
-                      spacing: zai,
-                      runSpacing: zai,
-                      children: [for (final t in tiles) SizedBox(width: urgun, child: t)],
-                    );
-                  }),
+                    ]),
+                    const SizedBox(height: 18),
+                  ],
+                  // ── Үйлчилгээ ──
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 12),
+                    child: Text('Үйлчилгээ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.primary)),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+                    decoration: BoxDecoration(
+                      color: c.cardBackground,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: c.border),
+                    ),
+                    child: LayoutBuilder(builder: (context, box) {
+                      final bagana = box.maxWidth >= 560 ? 6 : 4;
+                      final urgun = box.maxWidth / bagana;
+                      return Wrap(children: [
+                        for (final u in uilchilgee) SizedBox(width: urgun, child: _UilchilgeeTovch(u: u)),
+                      ]);
+                    }),
+                  ),
                 ]),
               ),
             ),
@@ -254,68 +363,196 @@ class _NuurScreenState extends State<NuurScreen> {
   }
 }
 
-/// "Энэ сард" хэсгийн модулийн карт
-class _ModulKart extends StatelessWidget {
-  const _ModulKart({
-    required this.icon,
-    required this.ungu,
-    required this.ner,
-    required this.utga,
-    this.utgaUngu,
-    this.onTap,
-    this.idevkhgui = false,
-  });
+class _Uilchilgee {
+  const _Uilchilgee(this.icon, this.ner, this.gradient, this.onTap, {this.too = 0});
   final IconData icon;
-  final Color ungu;
   final String ner;
-  final String utga;
-  final Color? utgaUngu;
-  final VoidCallback? onTap;
-  final bool idevkhgui;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+  final int too;
+}
 
+/// Апп-лаунчер маягийн дугуй булантай градиент дүрс + нэр
+class _UilchilgeeTovch extends StatelessWidget {
+  const _UilchilgeeTovch({required this.u});
+  final _Uilchilgee u;
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Opacity(
-      opacity: idevkhgui ? 0.6 : 1,
-      child: Material(
-        color: c.cardBackground,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: idevkhgui ? null : onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(color: ungu.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(11)),
-                  child: Icon(icon, size: 20, color: ungu),
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: u.onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12, top: 2),
+        child: Column(children: [
+          Stack(clipBehavior: Clip.none, children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(17),
+                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: u.gradient),
+                boxShadow: [
+                  BoxShadow(color: u.gradient.last.withValues(alpha: 0.30), blurRadius: 10, offset: const Offset(0, 5)),
+                ],
+              ),
+              child: Icon(u.icon, size: 25, color: Colors.white),
+            ),
+            if (u.too > 0)
+              Positioned(
+                right: -5,
+                top: -5,
+                child: Container(
+                  constraints: const BoxConstraints(minWidth: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF43F5E),
+                    borderRadius: BorderRadius.circular(99),
+                    border: Border.all(color: c.cardBackground, width: 2),
+                  ),
+                  child: Text(u.too > 99 ? '99+' : '${u.too}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 10.5, color: Colors.white)),
                 ),
-                const Spacer(),
-                if (!idevkhgui) Icon(Icons.chevron_right_rounded, color: c.mutedForeground.withValues(alpha: 0.6)),
-              ]),
-              const SizedBox(height: 18),
-              Text(ner,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.primary)),
-              const SizedBox(height: 2),
-              Text(utga,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: utgaUngu ?? c.mutedForeground,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  )),
+              ),
+          ]),
+          const SizedBox(height: 7),
+          Text(u.ner,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: c.primary)),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Сарын ажилласан хувийн цагираг
+class _KhuviTsagirag extends StatelessWidget {
+  const _KhuviTsagirag({required this.khuvi});
+  final double khuvi;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: khuvi),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOutCubic,
+      builder: (_, v, __) => SizedBox(
+        width: 92,
+        height: 92,
+        child: CustomPaint(
+          painter: _TsagiragZurag(v, _brand.withValues(alpha: 0.12)),
+          child: Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('${(v * 100).round()}%',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: c.primary,
+                      fontFeatures: const [FontFeature.tabularFigures()])),
+              Text('ажилласан', style: TextStyle(fontSize: 10.5, color: c.mutedForeground)),
             ]),
           ),
         ),
       ),
     );
   }
+}
+
+class _TsagiragZurag extends CustomPainter {
+  _TsagiragZurag(this.khuvi, this.ar);
+  final double khuvi;
+  final Color ar;
+  @override
+  void paint(Canvas canvas, Size size) {
+    const zuzaan = 9.0;
+    final rect = Offset.zero & size;
+    final r = rect.deflate(zuzaan / 2);
+    canvas.drawArc(r, 0, 6.2832, false,
+        Paint()..style = PaintingStyle.stroke..strokeWidth = zuzaan..color = ar);
+    if (khuvi <= 0) return;
+    canvas.drawArc(
+      r,
+      -1.5708,
+      6.2832 * khuvi.clamp(0.0, 1.0),
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = zuzaan
+        ..strokeCap = StrokeCap.round
+        // Дээрээс эхэлж ногоон → цэнхэр → нил ягаан
+        ..shader = const SweepGradient(
+          transform: GradientRotation(-1.5708),
+          colors: [Color(0xFF34D399), Color(0xFF5B8DEF), Color(0xFF7C3AED), Color(0xFF34D399)],
+        ).createShader(rect),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_TsagiragZurag o) => o.khuvi != khuvi || o.ar != ar;
+}
+
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({required this.icon, required this.ungu, required this.ner, required this.utga});
+  final IconData icon;
+  final Color ungu;
+  final String ner, utga;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(color: ungu.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, size: 14, color: ungu),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text(ner, style: TextStyle(fontSize: 13, color: c.mutedForeground))),
+        Text(utga,
+            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: c.primary,
+                fontFeatures: const [FontFeature.tabularFigures()])),
+      ]),
+    );
+  }
+}
+
+class _AnkhaarPill extends StatelessWidget {
+  const _AnkhaarPill({required this.icon, required this.text, required this.ungu, required this.onTap});
+  final IconData icon;
+  final String text;
+  final Color ungu;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: ungu.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(99),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(99),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 16, color: ungu),
+            const SizedBox(width: 6),
+            Text(text, style: TextStyle(fontSize: 13, color: ungu)),
+            const SizedBox(width: 2),
+            Icon(Icons.chevron_right_rounded, size: 16, color: ungu),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _Toirog extends StatelessWidget {
+  const _Toirog(this.d, this.alpha);
+  final double d, alpha;
+  @override
+  Widget build(BuildContext context) => Container(
+        width: d,
+        height: d,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: alpha)),
+      );
 }

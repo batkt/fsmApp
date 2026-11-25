@@ -42,6 +42,7 @@ import 'chat_screen.dart';
 import 'support_chat_screen.dart';
 import 'profile_screen.dart';
 import 'faq_screen.dart';
+import '../widgets/ai_tovch.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
   const CleanerDashboardScreen({super.key, required this.onLogout});
@@ -1005,6 +1006,18 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     return tasks;
   }
 
+  /// Сонгосон өдрийн төлөв тус бүрийн тоо (шүүлтүүрээс үл хамаарна)
+  Map<String, int> get _dayCounts {
+    final day = _tasks.where((t) => t.isOnDay(_selectedDay));
+    int n(bool Function(CleaningTask) f) => day.where(f).length;
+    return {
+      'all': day.length,
+      'pending': n((t) => t.status == TaskStatus.pending || t.status == TaskStatus.overdue),
+      'inProgress': n((t) => t.status == TaskStatus.inProgress),
+      'completed': n((t) => t.status == TaskStatus.completed),
+    };
+  }
+
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
@@ -1693,11 +1706,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     final c = context.colors;
     final tasks = _todayTasks;
     final unread = _unreadCount;
-    // Derive stats from current view (selected day)
-    final completedCount = tasks
-        .where((t) => t.status == TaskStatus.completed)
-        .length;
-    final totalCount = tasks.length;
 
     return WalkthroughWrapper(
       config: _walkthroughConfig,
@@ -1858,22 +1866,23 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                     onSelected: (d) =>
                         setState(() => _selectedDay = stripTime(d)),
                   ),
-                  context.rHeight(16),
-                  if (totalCount > 0) ...[
-                    TaskProgressBar(
-                      key: _progressBarKey,
-                      completedCount: completedCount,
-                      totalCount: totalCount,
-                    ),
-                    context.rHeight(12),
-                  ],
+                  context.rHeight(14),
                   TaskFilterChips(
                     key: _filterChipsKey,
                     selectedFilter: _filter,
+                    counts: _dayCounts,
                     onFilterChanged: (filter) =>
                         setState(() => _filter = filter),
                   ),
                   context.rHeight(12),
+                  if (_dayCounts['all']! > 0) ...[
+                    TaskProgressBar(
+                      key: _progressBarKey,
+                      completedCount: _dayCounts['completed']!,
+                      totalCount: _dayCounts['all']!,
+                    ),
+                    context.rHeight(14),
+                  ],
                   TaskListSection(
                     key: _taskListKey,
                     isLoading: _tasksLoading,
@@ -1906,16 +1915,13 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SupportChatScreen()),
-            );
-          },
-          backgroundColor: c.brandGreen,
+        // Бусад хуудасны AI товчтой ижил загвар
+        floatingActionButton: AiTovch(
           tooltip: 'Тусламжийн чат',
-          child: const Icon(Icons.support_agent_rounded, color: Colors.white),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SupportChatScreen()),
+          ),
         ),
       ),
     );
@@ -1932,10 +1938,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       _projectsLoading = false;
 
       if (_selectedProjectId == null) {
-        if (_apiProjects.isNotEmpty) {
-          _selectedProjectId = _apiProjects.first.id;
-          ProjectService.activeProject.value = _apiProjects.first;
-        }
+        // Анхдагчаар "Бүгд" — өөр төслийн даалгаварт нэмэгдсэн ч шууд харагдана
+        _selectedProjectId = 'all';
+        ProjectService.activeProject.value = null;
       } else if (_selectedProjectId != 'all') {
         final exists = _apiProjects.any((p) => p.id == _selectedProjectId);
         if (!exists) {

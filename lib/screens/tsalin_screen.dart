@@ -15,7 +15,7 @@ String _mungu(num? n) {
     if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
     b.write(s[i]);
   }
-  return '${(n ?? 0) < 0 ? '−' : ''}$b₮';
+  return '${(n ?? 0) < 0 ? '−' : ''}$b';
 }
 
 String _tsag(num? t) {
@@ -72,7 +72,7 @@ class _TsalinScreenState extends State<TsalinScreen> {
     (await SharedPreferences.getInstance()).setBool(_nuukhTulkhuur, _nuukh);
   }
 
-  String _u(num? n) => _nuukh ? '••••••₮' : _mungu(n);
+  String _u(num? n) => _nuukh ? '••••••' : _mungu(n);
 
   @override
   Widget build(BuildContext context) {
@@ -84,13 +84,6 @@ class _TsalinScreenState extends State<TsalinScreen> {
         backgroundColor: c.loginBackground,
         surfaceTintColor: Colors.transparent,
         title: Text('Цалин', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: c.primary)),
-        actions: [
-          IconButton(
-            tooltip: _nuukh ? 'Дүнг харуулах' : 'Дүнг нуух',
-            onPressed: _nuukhSoliy,
-            icon: Icon(_nuukh ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: c.primary),
-          ),
-        ],
       ),
       body: _achaallaj
           ? const Center(child: CircularProgressIndicator(color: _brand))
@@ -113,9 +106,20 @@ class _TsalinScreenState extends State<TsalinScreen> {
                         Padding(
                           padding: const EdgeInsets.only(top: 80),
                           child: Column(children: [
-                            Icon(Icons.account_balance_wallet_outlined, size: 56, color: c.mutedForeground.withValues(alpha: 0.5)),
-                            const SizedBox(height: 12),
-                            Text('Батлагдсан цалин алга', style: TextStyle(fontSize: 16, color: c.primary)),
+                            Container(
+                              width: 92,
+                              height: 92,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(colors: [
+                                  const Color(0xFF8B5CF6).withValues(alpha: 0.16),
+                                  _brand.withValues(alpha: 0.12),
+                                ]),
+                              ),
+                              child: const Icon(Icons.account_balance_wallet_rounded, size: 42, color: Color(0xFF8B5CF6)),
+                            ),
+                            const SizedBox(height: 14),
+                            Text('Батлагдсан цалин алга', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.primary)),
                             const SizedBox(height: 4),
                             Text('Нягтлан цалинг баталсны дараа энд харагдана.',
                                 textAlign: TextAlign.center, style: TextStyle(color: c.mutedForeground)),
@@ -124,7 +128,7 @@ class _TsalinScreenState extends State<TsalinScreen> {
                       if (t != null) ...[
                         // Сарууд
                         SizedBox(
-                          height: 44,
+                          height: 40,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _list.length,
@@ -132,67 +136,156 @@ class _TsalinScreenState extends State<TsalinScreen> {
                             itemBuilder: (_, i) {
                               final x = _list[i];
                               final songogdson = i == _i;
-                              return ChoiceChip(
-                                label: Text('${x['jil']}.${x['sar'].toString().padLeft(2, '0')}',
-                                    style: TextStyle(
-                                      fontFeatures: _tabular,
-                                      color: songogdson ? _brand : c.mutedForeground,
-                                      fontWeight: FontWeight.w500,
-                                    )),
-                                selected: songogdson,
-                                showCheckmark: false,
-                                onSelected: (_) => setState(() => _i = i),
-                                selectedColor: _brand.withValues(alpha: 0.1),
-                                backgroundColor: c.cardBackground,
-                                side: BorderSide(color: songogdson ? _brand : c.border),
-                                shape: const StadiumBorder(),
+                              return GestureDetector(
+                                onTap: () => setState(() => _i = i),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    gradient: songogdson
+                                        ? const LinearGradient(colors: [Color(0xFF5B8DEF), _brand])
+                                        : null,
+                                    color: songogdson ? null : _brand.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: Text('${x['jil']}.${x['sar'].toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        fontFeatures: _tabular,
+                                        color: songogdson ? Colors.white : _brand,
+                                      )),
+                                ),
                               );
                             },
                           ),
                         ),
                         const SizedBox(height: 14),
-                        _Kart(
+                        // Гарт олгох — гол карт
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 12, 20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF5B8DEF), _brand, Color(0xFF4C3FC9)],
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [BoxShadow(color: _brand.withValues(alpha: 0.30), blurRadius: 20, offset: const Offset(0, 10))],
+                          ),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('${t['jil']} оны ${t['sar']}-р сар', style: TextStyle(fontSize: 15, color: c.mutedForeground)),
-                            const SizedBox(height: 12),
-                            IntrinsicHeight(
+                            Row(children: [
+                              Expanded(
+                                child: Text('${t['jil']} оны ${t['sar']}-р сар · Гарт олгох',
+                                    style: TextStyle(fontSize: 13.5, color: Colors.white.withValues(alpha: 0.85))),
+                              ),
+                              IconButton(
+                                tooltip: _nuukh ? 'Дүнг харуулах' : 'Дүнг нуух',
+                                onPressed: _nuukhSoliy,
+                                visualDensity: VisualDensity.compact,
+                                style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.16)),
+                                icon: Icon(_nuukh ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                                    size: 20, color: Colors.white),
+                              ),
+                            ]),
+                            const SizedBox(height: 6),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text('${_u(t['gartOlgokh'])} ₮',
+                                  style: const TextStyle(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: -0.5,
+                                    color: Colors.white,
+                                    fontFeatures: _tabular,
+                                  )),
+                            ),
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               child: Row(children: [
-                                Expanded(child: _Toim(ner: 'Үндсэн цалин', utga: _u(t['undsenTsalin']))),
-                                VerticalDivider(color: c.border, width: 24),
-                                Expanded(child: _Toim(ner: 'Гарт олгох', utga: _u(t['gartOlgokh']), tod: true)),
+                                Icon(Icons.payments_rounded, size: 18, color: Colors.white.withValues(alpha: 0.85)),
+                                const SizedBox(width: 8),
+                                Text('Үндсэн цалин', style: TextStyle(fontSize: 13.5, color: Colors.white.withValues(alpha: 0.85))),
+                                const Spacer(),
+                                Text('${_u(t['undsenTsalin'])} ₮',
+                                    style: const TextStyle(fontSize: 14.5, color: Colors.white, fontFeatures: _tabular)),
                               ]),
                             ),
                           ]),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
+                        // Цаг
+                        Builder(builder: (_) {
+                          final fond = (t['fondTsag'] as num?) ?? 0;
+                          final ajillasan = (t['ajillasanTsag'] as num?) ?? 0;
+                          final iluu = (t['iluuTsag'] as num?) ?? 0;
+                          return _Kart(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Row(children: [
+                                Expanded(child: _TsagTile(icon: Icons.event_note_rounded, ner: 'Ажиллах', utga: _tsag(fond), ungu: _brand)),
+                                const SizedBox(width: 8),
+                                Expanded(child: _TsagTile(icon: Icons.timer_rounded, ner: 'Ажилласан', utga: _tsag(ajillasan), ungu: const Color(0xFF059669))),
+                                if (iluu > 0) ...[
+                                  const SizedBox(width: 8),
+                                  Expanded(child: _TsagTile(icon: Icons.more_time_rounded, ner: 'Илүү цаг', utga: _tsag(iluu), ungu: const Color(0xFF8B5CF6))),
+                                ],
+                              ]),
+                              if (fond > 0) ...[
+                                const SizedBox(height: 14),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(99),
+                                  child: LinearProgressIndicator(
+                                    value: (ajillasan / fond).clamp(0.0, 1.0).toDouble(),
+                                    minHeight: 8,
+                                    backgroundColor: _brand.withValues(alpha: 0.10),
+                                    valueColor: const AlwaysStoppedAnimation(Color(0xFF10B981)),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text('Ажиллах цагийн ${((ajillasan / fond) * 100).clamp(0, 999).round()}% ажилласан',
+                                    style: TextStyle(fontSize: 12.5, color: c.mutedForeground)),
+                              ],
+                            ]),
+                          );
+                        }),
+                        const SizedBox(height: 14),
+                        // Задаргаа
                         _Kart(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('Ажилласан цаг', style: TextStyle(fontSize: 15, color: c.mutedForeground)),
-                            const SizedBox(height: 10),
-                            Row(children: [
-                              Expanded(child: _Toim(ner: 'Ажиллах', utga: _tsag(t['fondTsag']), jijig: true)),
-                              Expanded(child: _Toim(ner: 'Ажилласан', utga: _tsag(t['ajillasanTsag']), jijig: true)),
-                              if (((t['iluuTsag'] as num?) ?? 0) > 0)
-                                Expanded(child: _Toim(ner: 'Илүү цаг', utga: _tsag(t['iluuTsag']), jijig: true)),
-                            ]),
-                          ]),
-                        ),
-                        const SizedBox(height: 12),
-                        _Kart(
-                          child: Column(children: [
+                            _Garchig(icon: Icons.add_circle_rounded, ner: 'Цалин, нэмэгдэл', ungu: const Color(0xFF059669)),
                             _Mur(ner: 'Бодогдсон цалин', utga: _u(t['bodogdsonTsalin'])),
                             if (((t['iluuTsagiinTsalin'] as num?) ?? 0) > 0)
-                              _Mur(ner: 'Илүү цагийн цалин', utga: '+${_u(t['iluuTsagiinTsalin'])}', ungu: _brand),
+                              _Mur(ner: 'Илүү цагийн цалин', utga: '+${_u(t['iluuTsagiinTsalin'])}', ungu: const Color(0xFF059669)),
                             for (final n in (t['nemegdeluud'] as List? ?? []))
-                              _Mur(ner: n['ner'].toString(), utga: '+${_u(n['dun'])}', ungu: _brand),
-                            if (((t['khotsroltSuutgal'] as num?) ?? 0) > 0)
-                              _Mur(ner: 'Хоцролтын суутгал', utga: '−${_u(t['khotsroltSuutgal'])}', ungu: const Color(0xFFDC2626)),
+                              _Mur(ner: n['ner'].toString(), utga: '+${_u(n['dun'])}', ungu: const Color(0xFF059669)),
                             _Mur(ner: 'Олговол зохих', utga: _u(t['olgovolZokhikh']), zuraastai: true),
-                            _Mur(ner: 'НДШ', utga: '−${_u(t['ndsh'])}', ungu: c.mutedForeground),
-                            _Mur(ner: 'ХХОАТ', utga: '−${_u(t['khkhoat'])}', ungu: c.mutedForeground),
+                            const SizedBox(height: 10),
+                            _Garchig(icon: Icons.remove_circle_rounded, ner: 'Суутгал', ungu: const Color(0xFFE5484D)),
+                            if (((t['khotsroltSuutgal'] as num?) ?? 0) > 0)
+                              _Mur(ner: 'Хоцролтын суутгал', utga: '−${_u(t['khotsroltSuutgal'])}', ungu: const Color(0xFFE5484D)),
+                            _Mur(ner: 'НДШ', utga: '−${_u(t['ndsh'])}', ungu: const Color(0xFFE5484D)),
+                            _Mur(ner: 'ХХОАТ', utga: '−${_u(t['khkhoat'])}', ungu: const Color(0xFFE5484D)),
                             for (final s in (t['suutgaluud'] as List? ?? []))
-                              _Mur(ner: s['ner'].toString(), utga: '−${_u(s['dun'])}', ungu: const Color(0xFFDC2626)),
-                            _Mur(ner: 'Гарт олгох', utga: _u(t['gartOlgokh']), zuraastai: true, tod: true),
+                              _Mur(ner: s['ner'].toString(), utga: '−${_u(s['dun'])}', ungu: const Color(0xFFE5484D)),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _brand.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(children: [
+                                Text('Гарт олгох', style: TextStyle(fontSize: 15, color: c.primary)),
+                                const Spacer(),
+                                Text('${_u(t['gartOlgokh'])} ₮',
+                                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: _brand, fontFeatures: _tabular)),
+                              ]),
+                            ),
                           ]),
                         ),
                       ],
@@ -223,29 +316,46 @@ class _Kart extends StatelessWidget {
   }
 }
 
-class _Toim extends StatelessWidget {
-  const _Toim({required this.ner, required this.utga, this.tod = false, this.jijig = false});
+class _TsagTile extends StatelessWidget {
+  const _TsagTile({required this.icon, required this.ner, required this.utga, required this.ungu});
+  final IconData icon;
   final String ner, utga;
-  final bool tod, jijig;
+  final Color ungu;
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(ner, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
-      const SizedBox(height: 4),
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Text(utga,
-            style: TextStyle(
-              fontSize: jijig ? 18 : 24,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.5,
-              color: tod ? _brand : c.primary,
-              fontFeatures: _tabular,
-            )),
-      ),
-    ]);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: ungu.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(icon, size: 20, color: ungu),
+        const SizedBox(height: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(utga, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary, fontFeatures: _tabular)),
+        ),
+        Text(ner, style: TextStyle(fontSize: 12, color: c.mutedForeground)),
+      ]),
+    );
+  }
+}
+
+class _Garchig extends StatelessWidget {
+  const _Garchig({required this.icon, required this.ner, required this.ungu});
+  final IconData icon;
+  final String ner;
+  final Color ungu;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(children: [
+        Icon(icon, size: 18, color: ungu),
+        const SizedBox(width: 6),
+        Text(ner, style: TextStyle(fontSize: 13.5, color: ungu)),
+      ]),
+    );
   }
 }
 

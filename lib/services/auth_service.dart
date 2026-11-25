@@ -88,6 +88,67 @@ class AuthService {
   static AuthUser? _currentUser;
   static SharedPreferences? _prefs;
 
+  // ── Холбосон irts бүртгэл ──
+  // FSM-ээр нэвтэрсэн хүн irts.zevtabs.mn-д ч бүртгэлтэй бол (нэг нэр/нууц
+  // үгээр, эсвэл профайлаас холбосон) Ирц/Цалин-г тэр бүртгэлээр ажиллуулна —
+  // ингэснээр ирцийн жинхэнэ түүх (irtsBack) харагдана.
+  // TODO: утасны дугаараар бүртгэл нэгтгэсний дараа сервер нэг нэвтрэлтээр хоёуланг нь буцаана.
+  static const _irtsTokenKey = 'auth_irts_token';
+  static const _irtsUserKey = 'auth_irts_user';
+  static String? _irtsToken;
+  static AuthUser? _irtsUser;
+
+  /// Ирц/Цалин-д ашиглах irts бүртгэл: irts-ээр нэвтэрсэн бол үндсэн хэрэглэгч,
+  /// FSM-ээр нэвтэрсэн бол холбосон irts бүртгэл (байхгүй бол null).
+  static AuthUser? get irtsUser => (_currentUser?.irtsEsekh ?? false) ? _currentUser : _irtsUser;
+  static String? get irtsToken => (_currentUser?.irtsEsekh ?? false) ? _token : _irtsToken;
+
+  /// FSM болон irts хоёр бүртгэлтэй (холбогдсон) эсэх
+  static bool get khoyorBurtgeltei => _currentUser != null && !_currentUser!.irtsEsekh && _irtsUser != null;
+
+  /// Холбосон бүртгэл өөрчлөгдөхөд табуудыг дахин зурахад
+  static final burtgelOorchlogdson = ValueNotifier<int>(0);
+
+  static Future<void> _irtsKhadgalakh(String? token, AuthUser? user) async {
+    final oorchlogdson = _irtsUser?.id != user?.id;
+    _irtsToken = token;
+    _irtsUser = user;
+    if (oorchlogdson) burtgelOorchlogdson.value++;
+    final prefs = await _getPrefs();
+    if (token == null || user == null) {
+      await prefs.remove(_irtsTokenKey);
+      await prefs.remove(_irtsUserKey);
+    } else {
+      await prefs.setString(_irtsTokenKey, token);
+      await prefs.setString(_irtsUserKey, json.encode(user.toJson()));
+    }
+  }
+
+  static Future<void> _irtsSergeekh() async {
+    final prefs = await _getPrefs();
+    final t = prefs.getString(_irtsTokenKey);
+    final u = prefs.getString(_irtsUserKey);
+    if (t != null && u != null) {
+      _irtsToken = t;
+      _irtsUser = AuthUser.fromJson(json.decode(u));
+    }
+  }
+
+  /// Профайлаас: өөр нэр/нууц үгтэй irts бүртгэлээ FSM бүртгэлдээ холбох
+  static Future<AuthResult> irtsHolbokh(String nevtrekhNer, String nuutsUg) async {
+    if (_currentUser == null || _currentUser!.irtsEsekh) {
+      return AuthResult.failure('FSM бүртгэлээр нэвтэрсэн байх шаардлагатай');
+    }
+    final r = await _irtsNevtrey(nevtrekhNer, nuutsUg);
+    if (!r.isSuccess) return r;
+    await _irtsKhadgalakh(r.token, r.user);
+    await _moduluudAvakh(irts: true);
+    return r;
+  }
+
+  /// Холбосон irts бүртгэлийг салгах
+  static Future<void> irtsSalgakh() => _irtsKhadgalakh(null, null);
+
   static Future<SharedPreferences> _getPrefs() async {
     _prefs ??= await SharedPreferences.getInstance();
     return _prefs!;
@@ -112,6 +173,7 @@ class AuthService {
     if (savedToken != null && savedUser != null) {
       _token = savedToken;
       _currentUser = AuthUser.fromJson(json.decode(savedUser));
+      await _irtsSergeekh();
       return true;
     }
     return false;
@@ -123,21 +185,35 @@ class AuthService {
   /// zevtabs-ийн "Цонхны эрх"-д байгууллагад сонгосон цонхнуудыг татаж хадгална.
   /// Алдаа гарвал өмнөх утга хэвээр (null бол апп ажилтны эрхээр л шийднэ).
   static Future<void> moduluudShinechlekh() async {
-    final user = _currentUser;
-    if (_token == null || user == null) return;
+    await Future.wait([
+      _moduluudAvakh(irts: false),
+      if (_irtsUser != null && !(_currentUser?.irtsEsekh ?? true)) _moduluudAvakh(irts: true),
+    ]);
+  }
+
+  /// [irts] true бол холбосон irts бүртгэлийн, үгүй бол үндсэн хэрэглэгчийн модулиуд
+  static Future<void> _moduluudAvakh({required bool irts}) async {
+    final user = irts ? _irtsUser : _currentUser;
+    final token = irts ? _irtsToken : _token;
+    if (token == null || user == null) return;
     try {
       final url = user.irtsEsekh ? '$irtsUrl/erkhiinMedeelelAvya' : '$_tureesUrl/erkhiinMedeelelAvya';
       final res = await http
-          .post(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Authorization': 'bearer $_token'}, body: '{}')
+          .post(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Authorization': 'bearer $token'}, body: '{}')
           .timeout(const Duration(seconds: 15));
       if (res.statusCode != 200) return;
       final data = json.decode(res.body);
       final list = data is Map ? data['moduluud'] : null;
       if (list is! List) return;
       final zamuud = [for (final m in list) if (m is Map && m['zam'] != null) m['zam'].toString()];
-      _currentUser = AuthUser.fromJson({...user.toJson(), 'moduluud': zamuud});
-      final prefs = await _getPrefs();
-      await prefs.setString(_userKey, json.encode(_currentUser!.toJson()));
+      final shine = AuthUser.fromJson({...user.toJson(), 'moduluud': zamuud});
+      if (irts) {
+        await _irtsKhadgalakh(token, shine);
+      } else {
+        _currentUser = shine;
+        final prefs = await _getPrefs();
+        await prefs.setString(_userKey, json.encode(shine.toJson()));
+      }
     } catch (e) {
       debugPrint('[Auth] модуль шинэчилж чадсангүй: $e');
     }
@@ -214,6 +290,7 @@ class AuthService {
     if (savedToken != null && savedUser != null) {
       _token = savedToken;
       _currentUser = AuthUser.fromJson(json.decode(savedUser));
+      await _irtsSergeekh();
       return true;
     }
     return false;
@@ -222,15 +299,52 @@ class AuthService {
   /// irts.zevtabs.mn-ийн API (irts-ийн бүртгэлтэй ажилтан)
   static const irtsUrl = 'https://irts.zevtabs.mn/api';
 
-  /// Нэвтрэх: эхлээд FSM (turees) бүртгэл, таарахгүй бол irts бүртгэлээр.
+  /// Нэвтрэх: FSM (fsmBack/turees) болон irts (irtsBack) бүртгэлийг зэрэг шалгана.
+  ///  • зөвхөн FSM → FSM хэрэглэгч (Ирц нь FSM горимын irtsBack-ээр)
+  ///  • зөвхөн irts → irts хэрэглэгч (Ирц, Хүсэлт, Цалин)
+  ///  • хоёулаа → FSM үндсэн, irts бүртгэлийг холбож Ирц/Цалин-д ашиглана
   /// TODO: FSM, irts хэрэглэгчдийг утасны дугаараар нэгтгэсний дараа нэг л бүртгэлтэй болно.
   static Future<AuthResult> login(String nevtrekhNer, String nuutsUg) async {
-    final fsm = await _fsmNevtrey(nevtrekhNer, nuutsUg);
-    if (fsm.isSuccess) return fsm;
-    final irts = await _irtsNevtrey(nevtrekhNer, nuutsUg);
-    if (irts.isSuccess) return irts;
+    final res = await Future.wait([
+      _fsmNevtrey(nevtrekhNer, nuutsUg),
+      _irtsNevtrey(nevtrekhNer, nuutsUg),
+    ]);
+    final fsm = res[0], irts = res[1];
+    if (fsm.isSuccess) {
+      await _sessionKhadgalakh(fsm);
+      // Ижил нэр/нууц үгтэй irts бүртгэл байвал холбоно; үгүй бол өмнө нь
+      // профайлаас холбосон бүртгэл (ижил хүнийх бол) хэвээр үлдэнэ.
+      if (irts.isSuccess) {
+        await _irtsKhadgalakh(irts.token, irts.user);
+      } else {
+        await _irtsSergeekh();
+        if (_irtsUser != null && !_ijilKhun(fsm.user!, _irtsUser!)) await _irtsKhadgalakh(null, null);
+      }
+      return fsm;
+    }
+    if (irts.isSuccess) {
+      await _sessionKhadgalakh(irts);
+      await _irtsKhadgalakh(null, null);
+      return irts;
+    }
     // Хоёулаа татгалзвал энгийн мессеж; сүлжээний алдааг тэр чигээр нь харуулна
     return irts.errorMessage == _buruuMsg ? AuthResult.failure(_buruuMsg) : fsm;
+  }
+
+  /// Холбосон irts бүртгэл тухайн FSM хэрэглэгчийнх мөн эсэх (утас эсвэл регистрээр)
+  static bool _ijilKhun(AuthUser a, AuthUser b) {
+    String c(String s) => s.replaceAll(RegExp(r'\D'), '');
+    if (c(a.utas).isNotEmpty && c(a.utas) == c(b.utas)) return true;
+    return a.register.isNotEmpty && a.register.toUpperCase() == b.register.toUpperCase();
+  }
+
+  static Future<void> _sessionKhadgalakh(AuthResult r) async {
+    _token = r.token;
+    _currentUser = r.user;
+    final prefs = await _getPrefs();
+    await prefs.setString(_tokenKey, r.token!);
+    await prefs.setString(_userKey, json.encode(r.user!.toJson()));
+    await prefs.setString(_bioTokenKey, r.token!);
   }
 
   static const _buruuMsg = 'Нэвтрэх нэр эсвэл нууц код буруу байна';
@@ -264,13 +378,7 @@ class AuthService {
           tsonkhniiErkhuud: List<String>.from((r['tsonkhniiErkhuud'] as List? ?? []).map((e) => e.toString())),
           system: 'irts',
         );
-        _token = data['token'] as String;
-        _currentUser = user;
-        final prefs = await _getPrefs();
-        await prefs.setString(_tokenKey, _token!);
-        await prefs.setString(_userKey, json.encode(user.toJson()));
-        await prefs.setString(_bioTokenKey, _token!);
-        return AuthResult.success(user);
+        return AuthResult.success(user, token: data['token'] as String);
       }
       final aldaa = data?['aldaa']?.toString() ?? '';
       // Буруу нэр/нууц үг бол нэг ижил мессеж; лицензийн гэх мэт бусад алдааг тэр чигээр
@@ -325,17 +433,8 @@ class AuthService {
           ),
         );
 
-        // Save to state
-        _token = tokenVal;
-        _currentUser = user;
-
-        // Persist locally
-        final prefs = await _getPrefs();
-        await prefs.setString(_tokenKey, tokenVal);
-        await prefs.setString(_userKey, json.encode(user.toJson()));
-        await prefs.setString(_bioTokenKey, tokenVal); // Always update biometric token on successful login
-
-        return AuthResult.success(user);
+        // Төлөвт хадгалахыг login() шийднэ (irts бүртгэлтэй зэрэг шалгадаг тул)
+        return AuthResult.success(user, token: tokenVal);
       } else {
         // Extract error message from various possible formats
         String msg = '';
@@ -433,6 +532,9 @@ class AuthService {
     _currentUser = null;
     final prefs = await _getPrefs();
     await prefs.remove(_tokenKey);
+    // Холбосон irts бүртгэлийг санах ойд л цэвэрлэнэ (biometric нэвтрэлт сэргээнэ)
+    _irtsToken = null;
+    _irtsUser = null;
     // Note: We keep _userKey and _bioTokenKey so biometric login can work after logout
   }
 }
@@ -441,11 +543,12 @@ class AuthResult {
   final bool isSuccess;
   final AuthUser? user;
   final String? errorMessage;
+  final String? token;
 
-  AuthResult._({required this.isSuccess, this.user, this.errorMessage});
+  AuthResult._({required this.isSuccess, this.user, this.errorMessage, this.token});
 
-  factory AuthResult.success(AuthUser user) =>
-      AuthResult._(isSuccess: true, user: user);
+  factory AuthResult.success(AuthUser user, {String? token}) =>
+      AuthResult._(isSuccess: true, user: user, token: token);
 
   factory AuthResult.failure(String message) =>
       AuthResult._(isSuccess: false, errorMessage: message);

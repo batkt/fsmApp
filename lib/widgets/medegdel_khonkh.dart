@@ -48,8 +48,9 @@ class _MedegdelKhonkhState extends State<MedegdelKhonkh> {
   int _unshaagui = 0;
   Timer? _timer;
 
-  bool get _irts => AuthService.currentUser?.irtsEsekh ?? false;
-  bool get _admin => AuthService.currentUser?.role == 'Admin';
+  // FSM+irts хэрэглэгч хоёр системийн мэдэгдлийг хоёуланг нь харна
+  bool get _fsm => !(AuthService.currentUser?.irtsEsekh ?? false);
+  bool get _irtsAdmin => AuthService.irtsUser?.role == 'Admin';
 
   @override
   void initState() {
@@ -114,8 +115,8 @@ class _MedegdelKhonkhState extends State<MedegdelKhonkh> {
         unawaited(_shineMedegdelKharuulya(list));
         return too;
       }),
-      if (_irts && _admin) _safe(() async => (await IrtsService.medegdluud()).$2),
-      if (!_irts) _safe(NotificationService.myUnreadCount),
+      if (_irtsAdmin) _safe(() async => (await IrtsService.medegdluud()).$2),
+      if (_fsm) _safe(NotificationService.myUnreadCount),
     ]);
     if (mounted) setState(() => _unshaagui = toonuud.fold(0, (a, b) => a + b));
   }
@@ -144,7 +145,7 @@ class _MedegdelKhonkhState extends State<MedegdelKhonkh> {
           ));
         }
       }),
-      if (_irts && _admin)
+      if (_irtsAdmin)
         safe(() async {
           for (final m in (await IrtsService.medegdluud()).$1) {
             list.add(_Medegdel(
@@ -157,7 +158,7 @@ class _MedegdelKhonkhState extends State<MedegdelKhonkh> {
             ));
           }
         }),
-      if (!_irts)
+      if (_fsm)
         safe(() async {
           for (final n in await NotificationService.myNotifications()) {
             list.add(_Medegdel(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
 
+/// Day progress: gradient bar + "x / y дууссан".
 class TaskProgressBar extends StatelessWidget {
   final int completedCount;
   final int totalCount;
@@ -15,63 +16,41 @@ class TaskProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (totalCount == 0) return const SizedBox.shrink();
-
     final c = context.colors;
-    return Container(
-      padding: context.rPadding(all: 14),
-      decoration: BoxDecoration(
-        color: c.brandGreen.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(context.rRadius(14)),
-        border: Border.all(color: c.brandGreen.withOpacity(0.12)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.pie_chart_rounded,
-            size: context.rIconSize(20),
-            color: c.brandGreen,
-          ),
-          context.rWidth(10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Өнөөдрийн явц',
-                      style: TextStyle(
-                        fontSize: context.rFontSize(15),
-                        fontWeight: FontWeight.w500,
-                        color: c.primary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '$completedCount / $totalCount',
-                      style: TextStyle(
-                        fontSize: context.rFontSize(15),
-                        fontWeight: FontWeight.w500,
-                        color: c.brandGreen,
-                      ),
-                    ),
-                  ],
+    final khuvi = completedCount / totalCount;
+    return Row(
+      children: [
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, box) => Container(
+              height: context.rSpacing(8),
+              decoration: BoxDecoration(
+                color: c.brandGreen.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(99),
+              ),
+              alignment: Alignment.centerLeft,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOutCubic,
+                width: box.maxWidth * khuvi,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(99),
+                  gradient: const LinearGradient(colors: [Color(0xFF34D399), Color(0xFF059669)]),
                 ),
-                context.rHeight(6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(context.rRadius(4)),
-                  child: LinearProgressIndicator(
-                    value: totalCount > 0 ? completedCount / totalCount : 0,
-                    minHeight: context.rSpacing(6),
-                    backgroundColor: c.muted,
-                    valueColor: AlwaysStoppedAnimation(c.brandGreen),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+        context.rWidth(10),
+        Text(
+          '$completedCount / $totalCount дууссан',
+          style: TextStyle(
+            fontSize: context.rFontSize(12.5),
+            color: c.mutedForeground,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 }

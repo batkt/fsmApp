@@ -1,3 +1,4 @@
+import 'ai_tuslakh_screen.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,7 @@ import 'udirdlaga_screen.dart';
 import 'zuvshuurul_screen.dart';
 import 'login_screen.dart';
 import 'performance_screen.dart';
+import '../widgets/ai_tovch.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -125,10 +127,18 @@ class FsmModul {
     this.systemuud = const {'fsm': null},
     this.zuvkhunAdmin = false,
     this.zevtabsShaardlagatai = false,
+    this.tolgoiKheregtei = false,
+    this.tusdaaKhuudas,
   });
   final IconData icon;
   final String ner;
   final Widget khuudas;
+
+  /// "Цэс"-ээс тусдаа хуудсаар нээхэд өөрийн AppBar-гүй бол гарчиг/буцах нэмнэ
+  final bool tolgoiKheregtei;
+
+  /// "Цэс"-ээс нээхэд [khuudas]-ын оронд харуулах хувилбар (жишээ нь буцах товчтой)
+  final Widget? tusdaaKhuudas;
   final Map<String, List<String>?> systemuud;
 
   /// FSM-д зөвхөн Admin; irts-д Admin эсвэл заасан удирдлагын цонхтой хүн
@@ -138,7 +148,15 @@ class FsmModul {
   /// (мэдэгдэхгүй үед харуулахгүй) — Цалин зэрэг лицензтэй модуль.
   final bool zevtabsShaardlagatai;
 
+  /// FSM+irts хэрэглэгч: аль нэг бүртгэл нь эрхтэй бол харагдана (табууд нийлнэ).
+  /// irts түлхүүртэй модуль (Ирц, Удирдлага...) холбосон irts бүртгэлээр шалгагдана.
   bool kharagdakh(AuthUser? user) {
+    if (_burtgeleerKharagdakh(user)) return true;
+    final irts = AuthService.irtsUser;
+    return irts != null && !identical(irts, user) && _burtgeleerKharagdakh(irts);
+  }
+
+  bool _burtgeleerKharagdakh(AuthUser? user) {
     if (user == null || !systemuud.containsKey(user.system)) return false;
     if (zuvkhunAdmin && !user.irtsEsekh && user.role != 'Admin') return false;
     final erkhuud = systemuud[user.system];
@@ -161,15 +179,58 @@ class _HomeShellState extends State<_HomeShell> {
   int _idx = 0;
   List<String> _moduliinNeruud = const [];
 
-  /// Нүүр хуудаснаас модулийн таб руу шилжих
+  List<FsmModul> _bukhModul = const [];
+
+  /// Доод цэсэнд таб хэвээр үлдэх үндсэн модулиуд (дарааллаар)
+  static const _undsenTabuud = {'Нүүр', 'Даалгавар', 'Ирц', 'Цалин'};
+
+  /// Нүүр хуудаснаас модуль нээх: таб байвал шилжинэ, "Цэс" дотор байвал тусдаа хуудсаар нээнэ
   void _modulNeey(String ner) {
     final i = _moduliinNeruud.indexOf(ner);
-    if (i >= 0) setState(() => _idx = i);
+    if (i >= 0) {
+      setState(() => _idx = i);
+      return;
+    }
+    for (final m in _bukhModul) {
+      if (m.ner == ner) return _modulKhuudasNeey(m);
+    }
+  }
+
+  void _modulKhuudasNeey(FsmModul m) {
+    final khuudas = m.tusdaaKhuudas ?? m.khuudas;
+    if (!m.tolgoiKheregtei) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => khuudas));
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (ctx) => Scaffold(
+        appBar: AppBar(
+          title: Text(m.ner),
+          backgroundColor: ctx.colors.loginBackground,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+        ),
+        backgroundColor: ctx.colors.loginBackground,
+        body: khuudas,
+      ),
+    ));
+  }
+
+  void _burtgelSoligdov() {
+    if (mounted) setState(() => _idx = 0);
+  }
+
+  @override
+  void dispose() {
+    AuthService.burtgelOorchlogdson.removeListener(_burtgelSoligdov);
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    // Профайлаас irts бүртгэл холбох/салгахад табууд шинэчлэгдэнэ
+    AuthService.burtgelOorchlogdson.addListener(_burtgelSoligdov);
     Future.wait([
       AuthService.erkhShinechlekh(),
       AuthService.moduluudShinechlekh(),
@@ -206,10 +267,8 @@ class _HomeShellState extends State<_HomeShell> {
     final tsalinKharagdakh = tsalinModul.kharagdakh(user);
     // Нүүр нь хэд хэдэн модулийг холбох төв
     final nuurKhereg = irtsKharagdakh || tsalinKharagdakh;
-    // Шинэ модуль нэмэхдээ энд нэг мөр (erkh-тэй) нэмнэ.
-    final moduluud = <FsmModul>[
-      if (nuurKhereg)
-        FsmModul(
+    // Нүүр: доод цэсэнд багтаагүй модулиудыг үйлчилгээ болгон харуулна
+    FsmModul nuurModul(List<(IconData, String)> busad) => FsmModul(
           Icons.home_rounded,
           'Нүүр',
           NuurScreen(
@@ -217,11 +276,15 @@ class _HomeShellState extends State<_HomeShell> {
             irtsKharagdakh: irtsKharagdakh,
             daalgavarKharagdakh: !(user?.irtsEsekh ?? false),
             tsalinKharagdakh: tsalinKharagdakh,
+            busadModuluud: busad,
             onModulNeey: _modulNeey,
             onLogout: widget.onLogout,
           ),
           systemuud: const {'fsm': null, 'irts': null},
-        ),
+        );
+    // Шинэ модуль нэмэхдээ энд нэг мөр (erkh-тэй) нэмнэ.
+    final moduluud = <FsmModul>[
+      if (nuurKhereg) nuurModul(const []),
       FsmModul(
         Icons.checklist_rounded,
         'Даалгавар',
@@ -233,6 +296,7 @@ class _HomeShellState extends State<_HomeShell> {
         'Удирдлага',
         UdirdlagaScreen(),
         zuvkhunAdmin: true,
+        tolgoiKheregtei: true,
         systemuud: {
           'fsm': ['/khyanalt/uilchilgee/irts'],
           'irts': [
@@ -267,12 +331,58 @@ class _HomeShellState extends State<_HomeShell> {
             );
           },
         ),
+        tusdaaKhuudas: ValueListenableBuilder<Project?>(
+          valueListenable: ProjectService.activeProject,
+          builder: (context, Project? activeProject, _) {
+            if (activeProject == null) {
+              return const Scaffold(
+                body: Center(child: Text('Төсөл сонгоогүй байна')),
+              );
+            }
+            // Using a unique key forces the ChatScreen to re-mount if the project changes,
+            // which re-initializes _loadMessages() and SocketService rooms.
+            return ChatScreen(
+              key: ValueKey(activeProject.id),
+              projectId: activeProject.id,
+              barilgiinId: activeProject.barilgiinId,
+              baiguullagiinId: activeProject.baiguullagiinId,
+              title: '${activeProject.ner} Чат',
+              showBackButton: true,
+            );
+          },
+        ),
       ),
       const FsmModul(Icons.insights_rounded, 'Гүйцэтгэл', PerformanceScreen()),
     ].where((m) => m.kharagdakh(user)).toList();
-    _moduliinNeruud = [for (final m in moduluud) m.ner];
+    _bukhModul = moduluud;
 
-    if (moduluud.isEmpty) {
+    // Утсан дээр доод цэс 5-аас олон таб багтаахгүй: үндсэн модулиуд таб
+    // хэвээр, үлдсэн нь (Удирдлага, Түүх, Чат, Гүйцэтгэл...) "Цэс" таб руу орно.
+    // Өргөн дэлгэц (хажуугийн цэс) бүх модулийг шууд харуулна.
+    final ortgon = MediaQuery.sizeOf(context).width >= 720;
+    var tabuud = moduluud;
+    if (!ortgon && moduluud.length > 5) {
+      final undsen = [for (final m in moduluud) if (_undsenTabuud.contains(m.ner)) m].take(4).toList();
+      final busad = [for (final m in moduluud) if (!undsen.contains(m)) m];
+      final nuurtei = undsen.any((m) => m.ner == 'Нүүр');
+      tabuud = nuurtei
+          // "Цэс" таб байхгүй: бусад модулиуд Нүүр хуудасны "Үйлчилгээ"-нд орно
+          ? [
+              for (final m in undsen)
+                m.ner == 'Нүүр' ? nuurModul([for (final b in busad) (b.icon, b.ner)]) : m,
+            ]
+          : [
+              ...undsen,
+              FsmModul(
+                Icons.grid_view_rounded,
+                'Цэс',
+                _TsesKhuudas(moduluud: busad, onNeey: _modulKhuudasNeey),
+              ),
+            ];
+    }
+    _moduliinNeruud = [for (final m in tabuud) m.ner];
+
+    if (tabuud.isEmpty) {
       return Scaffold(
         body: SafeArea(
           child: Center(
@@ -315,18 +425,23 @@ class _HomeShellState extends State<_HomeShell> {
       );
     }
 
-    final idx = _idx.clamp(0, moduluud.length - 1);
+    final idx = _idx.clamp(0, tabuud.length - 1);
     final body = IndexedStack(
       index: idx,
-      children: [for (final m in moduluud) m.khuudas],
+      children: [for (final m in tabuud) m.khuudas],
     );
 
     // Ганц модультай бол цэс хэрэггүй
-    if (moduluud.length == 1) return Scaffold(body: body);
+    // AI туслах: хөвөгч товч. Өөрийн хөвөгч товчтой (Даалгавар) эсвэл доороо
+    // бичих талбартай (Чат) табуудад давхцахгүйн тулд харуулахгүй.
+    final aiTovch = const {'Даалгавар', 'Чат'}.contains(tabuud[idx].ner) ? null : const _AiTovch();
+
+    if (tabuud.length == 1) return Scaffold(body: body, floatingActionButton: aiTovch);
 
     // iPad, Galaxy Fold (дэлгэж), хэвтээ утас: хажуугийн цэс
-    if (MediaQuery.sizeOf(context).width >= 720) {
+    if (ortgon) {
       return Scaffold(
+        floatingActionButton: aiTovch,
         body: Row(
           children: [
             SafeArea(
@@ -349,7 +464,7 @@ class _HomeShellState extends State<_HomeShell> {
                   fontSize: 12,
                 ),
                 destinations: [
-                  for (final m in moduluud)
+                  for (final m in tabuud)
                     NavigationRailDestination(
                       icon: Icon(m.icon),
                       label: Text(m.ner),
@@ -366,8 +481,9 @@ class _HomeShellState extends State<_HomeShell> {
 
     return Scaffold(
       body: body,
+      floatingActionButton: aiTovch,
       bottomNavigationBar: _PillNav(
-        moduluud: moduluud,
+        moduluud: tabuud,
         idx: idx,
         onTap: (i) => setState(() => _idx = i),
       ),
@@ -538,6 +654,108 @@ class _NavTab extends StatelessWidget {
         icon,
         if (nerKharuulakh) ...[const SizedBox(width: 6), Flexible(child: ner)],
       ],
+    );
+  }
+}
+
+/// "Цэс" таб: доод цэсэнд багтаагүй модулиудыг өнгөт хавтангаар харуулна
+class _TsesKhuudas extends StatelessWidget {
+  const _TsesKhuudas({required this.moduluud, required this.onNeey});
+  final List<FsmModul> moduluud;
+  final ValueChanged<FsmModul> onNeey;
+
+  static const _ungunuud = [
+    Color(0xFF315BB0),
+    Color(0xFF8B5CF6),
+    Color(0xFF0EA5E9),
+    Color(0xFF14B8A6),
+    Color(0xFFF59E0B),
+    Color(0xFFEF4444),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Scaffold(
+      backgroundColor: c.loginBackground,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
+              child: Text('Бусад модулиуд', style: TextStyle(fontSize: 14, color: c.mutedForeground)),
+            ),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.35,
+              children: [
+                for (var i = 0; i < moduluud.length; i++)
+                  _TsesKhavtan(modul: moduluud[i], ungu: _ungunuud[i % _ungunuud.length], onTap: () => onNeey(moduluud[i])),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TsesKhavtan extends StatelessWidget {
+  const _TsesKhavtan({required this.modul, required this.ungu, required this.onTap});
+  final FsmModul modul;
+  final Color ungu;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Material(
+      color: Color.alphaBlend(ungu.withValues(alpha: 0.10), c.cardBackground),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(color: ungu.withValues(alpha: 0.22)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color.lerp(ungu, Colors.white, 0.25)!, ungu],
+                ),
+              ),
+              child: Icon(modul.icon, color: Colors.white, size: 22),
+            ),
+            const Spacer(),
+            Text(modul.ner, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.primary)),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// AI туслахын хөвөгч товч (бүх үндсэн табын баруун доод буланд)
+class _AiTovch extends StatelessWidget {
+  const _AiTovch();
+  @override
+  Widget build(BuildContext context) {
+    return AiTovch(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const AiTuslakhScreen()),
+      ),
     );
   }
 }

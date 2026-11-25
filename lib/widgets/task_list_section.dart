@@ -47,22 +47,36 @@ class TaskListSection extends StatelessWidget {
     if (tasks.isEmpty) {
       return Center(
         child: Padding(
-          padding: context.rSymmetricPadding(vertical: 40),
+          padding: context.rSymmetricPadding(vertical: 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.event_available,
-                size: context.rIconSize(48),
-                color: c.border,
-              ),
-              context.rHeight(8),
-              Text(
-                'Даалгавар олдсонгүй.',
-                style: TextStyle(
-                  color: c.mutedForeground,
-                  fontSize: context.rFontSize(14),
+              Container(
+                width: context.rSpacing(84),
+                height: context.rSpacing(84),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF5B8DEF).withValues(alpha: 0.18),
+                      const Color(0xFF6D5DFC).withValues(alpha: 0.12),
+                    ],
+                  ),
                 ),
+                child: Icon(Icons.event_available_rounded, size: context.rIconSize(38), color: c.brandGreen),
+              ),
+              context.rHeight(14),
+              Text(
+                'Энэ өдөр даалгавар алга',
+                style: TextStyle(color: c.primary, fontSize: context.rFontSize(15), fontWeight: FontWeight.w500),
+              ),
+              context.rHeight(4),
+              Text(
+                'Өөр өдөр сонгох эсвэл доош татаж шинэчилнэ үү',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: c.mutedForeground, fontSize: context.rFontSize(13)),
               ),
             ],
           ),
@@ -72,16 +86,6 @@ class TaskListSection extends StatelessWidget {
 
     return Column(
       children: [
-        Padding(
-          padding: context.rPadding(left: 4, bottom: 8),
-          child: Text(
-            '${tasks.length} даалгавар',
-            style: TextStyle(
-              fontSize: context.rFontSize(13),
-              color: c.mutedForeground,
-            ),
-          ),
-        ),
         ...tasks.map(
           (t) => Padding(
             padding: context.rPadding(bottom: 12),

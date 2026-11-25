@@ -12,7 +12,18 @@ String _hm(DateTime? d) =>
 String _md(DateTime d) => '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
 const _garag = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
 
-/// Ирцийн тайлан: сарын ажилласан цаг хуваарьтай харьцуулсан, задаргаа, өдөр бүрээр.
+const _garagButen = ['Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба', 'Ням'];
+
+enum _Khugatsaa { udur, doloo, sar }
+
+const _khugatsaaNer = {
+  _Khugatsaa.udur: 'Өдөр',
+  _Khugatsaa.doloo: '7 хоног',
+  _Khugatsaa.sar: 'Сар',
+};
+
+/// Ирцийн тайлан: Өдөр / 7 хоног / Сар сонгоод тухайн хугацааны хураангуй
+/// (ажилласан цаг хуваарьтай харьцуулсан, хоцролт, илүү цаг...) ба өдрүүд.
 class IrtsTailanScreen extends StatefulWidget {
   const IrtsTailanScreen({super.key});
   @override
@@ -20,11 +31,30 @@ class IrtsTailanScreen extends StatefulWidget {
 }
 
 class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
-  DateTime _sar = DateTime(DateTime.now().year, DateTime.now().month);
+  _Khugatsaa _turul = _Khugatsaa.sar;
+  // Сонгосон хугацааг агуулсан аль нэг өдөр (өдөр/долоо хоног/сарын эхлэлийг үүнээс бодно)
+  DateTime _songoson = _ognoo(DateTime.now());
   Map<String, dynamic>? _barilga;
   List<Map<String, dynamic>> _irtsuud = [];
   bool _achaallaj = true;
   String? _aldaa;
+  int _khuselt = 0;
+
+  static DateTime _ognoo(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// [ekh, tug) — сонгосон хугацааны хил
+  (DateTime, DateTime) get _khil {
+    final d = _songoson;
+    switch (_turul) {
+      case _Khugatsaa.udur:
+        return (d, DateTime(d.year, d.month, d.day + 1));
+      case _Khugatsaa.doloo:
+        final ekh = DateTime(d.year, d.month, d.day - (d.weekday - 1));
+        return (ekh, DateTime(ekh.year, ekh.month, ekh.day + 7));
+      case _Khugatsaa.sar:
+        return (DateTime(d.year, d.month, 1), DateTime(d.year, d.month + 1, 1));
+    }
+  }
 
   @override
   void initState() {
@@ -33,18 +63,21 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
   }
 
   Future<void> _achaallaya() async {
+    final dugaar = ++_khuselt;
     setState(() => _achaallaj = true);
     try {
       _barilga ??= await IrtsService.barilgaAvya();
-      final list = await IrtsService.sarynIrts(_sar);
-      if (!mounted) return;
+      final (ekh, tug) = _khil;
+      final list = await IrtsService.khugatsaanyIrts(ekh, tug);
+      // Хурдан солиход хуучин хариу шинийг дарахаас сэргийлнэ
+      if (!mounted || dugaar != _khuselt) return;
       setState(() {
         _irtsuud = list;
         _aldaa = null;
         _achaallaj = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || dugaar != _khuselt) return;
       setState(() {
         _aldaa = e is IrtsAldaa ? e.message : 'Ирцийн сервертэй холбогдож чадсангүй.';
         _achaallaj = false;
@@ -52,20 +85,48 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
     }
   }
 
-  void _sarSoliy(int n) {
-    setState(() => _sar = DateTime(_sar.year, _sar.month + n));
+  void _turulSoliy(_Khugatsaa t) {
+    if (t == _turul) return;
+    setState(() {
+      _turul = t;
+      _songoson = _ognoo(DateTime.now());
+    });
     _achaallaya();
+  }
+
+  void _shiljikh(int n) {
+    final d = _songoson;
+    setState(() {
+      _songoson = switch (_turul) {
+        _Khugatsaa.udur => DateTime(d.year, d.month, d.day + n),
+        _Khugatsaa.doloo => DateTime(d.year, d.month, d.day + 7 * n),
+        _Khugatsaa.sar => DateTime(d.year, d.month + n, 1),
+      };
+    });
+    _achaallaya();
+  }
+
+  String get _khugatsaaTekst {
+    final (ekh, tug) = _khil;
+    switch (_turul) {
+      case _Khugatsaa.udur:
+        return '${_md(ekh)}, ${_garagButen[ekh.weekday - 1]}';
+      case _Khugatsaa.doloo:
+        return '${_md(ekh)} – ${_md(tug.subtract(const Duration(days: 1)))}';
+      case _Khugatsaa.sar:
+        return '${ekh.year} оны ${ekh.month}-р сар';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final now = DateTime.now();
-    final odooginSar = _sar.year == now.year && _sar.month == now.month;
-    final dun = sarynDunTootsoo(_irtsuud, _barilga, _sar);
-    final tugsgul = DateTime(_sar.year, _sar.month + 1, 0);
+    final (ekh, tug) = _khil;
+    final odooginKhugatsaa = !tug.isBefore(_ognoo(DateTime.now()).add(const Duration(days: 1)));
+    final dun = khugatsaanyDunTootsoo(_irtsuud, _barilga, ekh, tug);
     final udruud = [..._irtsuud]
       ..sort((a, b) => (b['ognoo'] ?? '').toString().compareTo((a['ognoo'] ?? '').toString()));
+    String utga(int m) => _achaallaj ? '…' : tsagMinutTekst(m);
 
     return Scaffold(
       backgroundColor: c.loginBackground,
@@ -82,101 +143,113 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
                 children: [
                   _Tolgoi(garchig: 'Ирцийн тайлан'),
                   const SizedBox(height: 8),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    _DuguiTovch(icon: Icons.chevron_left_rounded, onTap: () => _sarSoliy(-1), tailbar: 'Өмнөх сар'),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '${_md(_sar)} – ${_md(tugsgul)}',
-                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary, fontFeatures: _tabular),
-                          ),
-                        ),
+
+                  // ── Өдөр / 7 хоног / Сар ──
+                  _Segment(utga: _turul, onChange: _turulSoliy),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    _DuguiTovch(icon: Icons.chevron_left_rounded, onTap: () => _shiljikh(-1), tailbar: 'Өмнөх'),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(_khugatsaaTekst,
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.primary, fontFeatures: _tabular)),
                       ),
                     ),
                     _DuguiTovch(
                       icon: Icons.chevron_right_rounded,
-                      onTap: odooginSar ? null : () => _sarSoliy(1),
-                      tailbar: 'Дараах сар',
+                      onTap: odooginKhugatsaa ? null : () => _shiljikh(1),
+                      tailbar: 'Дараах',
                     ),
                   ]),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   if (_aldaa != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(_aldaa!, style: TextStyle(color: c.destructive, fontSize: 13)),
                     ),
 
-                  // ── Ажилласан цаг ──
-                  _Kart(
+                  // ── Хураангуй: ажилласан цаг / хуваарьт ──
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF183B83)],
+                      ),
+                    ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      Text('Ажилласан цаг', style: TextStyle(fontSize: 13, color: c.mutedForeground)),
-                      const SizedBox(height: 4),
-                      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text.rich(TextSpan(children: [
-                              TextSpan(
-                                text: _achaallaj ? '…' : tsagMinutTekst(dun.ajillasan),
-                                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500, letterSpacing: -0.8, color: c.primary),
-                              ),
-                              TextSpan(
-                                text: '  / ${tsagMinutTekst(dun.khuvaart)}',
-                                style: TextStyle(fontSize: 15, color: c.mutedForeground),
-                              ),
-                            ]), style: const TextStyle(fontFeatures: _tabular)),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('${(dun.khuvi * 100).round()}%',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.mutedForeground)),
+                      Row(children: [
+                        Text('Ажилласан цаг', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
+                        const Spacer(),
+                        Text(_achaallaj ? '' : '${(dun.khuvi * 100).round()}%',
+                            style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8), fontFeatures: _tabular)),
                       ]),
+                      const SizedBox(height: 6),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text.rich(
+                          TextSpan(children: [
+                            TextSpan(
+                              text: utga(dun.ajillasan),
+                              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w500, letterSpacing: -0.8, color: Colors.white),
+                            ),
+                            TextSpan(
+                              text: '  / ${tsagMinutTekst(dun.khuvaart)}',
+                              style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.7)),
+                            ),
+                          ]),
+                          style: const TextStyle(fontFeatures: _tabular),
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: LinearProgressIndicator(
                           value: _achaallaj ? null : dun.khuvi,
-                          minHeight: 10,
-                          backgroundColor: c.muted,
-                          color: _brand,
+                          minHeight: 8,
+                          backgroundColor: Colors.white.withValues(alpha: 0.18),
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      _Mur(tseg: _brand, ner: 'Хуваарьт цаг', utga: tsagMinutTekst(dun.khuvaart)),
-                      _Mur(tseg: const Color(0xFF8B5CF6), ner: 'Илүү цаг', utga: tsagMinutTekst(dun.iluu)),
-                      _Mur(tseg: c.border, ner: 'Үлдсэн', utga: tsagMinutTekst(dun.uldsen), suuliin: true),
+                      const SizedBox(height: 10),
+                      Text(
+                        _achaallaj ? ' ' : 'Үлдсэн ${tsagMinutTekst(dun.uldsen)} · Ирсэн ${dun.irsenUdur} / ${dun.ajlynUdur} өдөр',
+                        style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.75), fontFeatures: _tabular),
+                      ),
                     ]),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // ── Үзүүлэлтүүд ──
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 2.3,
+                    children: [
+                      _Khavtan(ner: 'Хоцорсон', utga: utga(dun.khotsorson), ungu: const Color(0xFFF59E0B)),
+                      _Khavtan(ner: 'Илүү цаг', utga: utga(dun.iluu), ungu: const Color(0xFF8B5CF6)),
+                      _Khavtan(ner: 'Эрт тарсан', utga: utga(dun.ertTarsan), ungu: const Color(0xFF0EA5E9)),
+                      _Khavtan(
+                        ner: 'Тасалсан',
+                        utga: _achaallaj ? '…' : '${dun.tasalsanUdur} өдөр',
+                        ungu: const Color(0xFFEF4444),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
 
-                  // ── Ажиллаагүй цаг ──
+                  // ── Өдрүүд ──
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Row(children: [
-                      Expanded(child: Text('Ажиллаагүй цаг', style: TextStyle(fontSize: 14, color: c.mutedForeground))),
-                      Text(tsagMinutTekst(dun.khotsorson + dun.ertTarsan),
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: c.primary, fontFeatures: _tabular)),
-                    ]),
-                  ),
-                  const SizedBox(height: 8),
-                  _Kart(
-                    child: Column(children: [
-                      _Mur(ner: 'Хоцорсон', utga: tsagMinutTekst(dun.khotsorson), utgaUngu: dun.khotsorson > 0 ? const Color(0xFFD97706) : null),
-                      _Mur(ner: 'Эрт тарсан', utga: tsagMinutTekst(dun.ertTarsan)),
-                      _Mur(ner: 'Тасалсан', utga: '${dun.tasalsanUdur} өдөр', utgaUngu: dun.tasalsanUdur > 0 ? c.destructive : null),
-                      _Mur(ner: 'Ирсэн өдөр', utga: '${dun.irsenUdur} / ${dun.ajlynUdur}', suuliin: true),
-                    ]),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Өдөр бүрээр ──
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text('Өдөр бүрээр', style: TextStyle(fontSize: 14, color: c.mutedForeground)),
+                    child: Text(_turul == _Khugatsaa.udur ? 'Бүртгэл' : 'Өдрүүд',
+                        style: TextStyle(fontSize: 14, color: c.mutedForeground)),
                   ),
                   const SizedBox(height: 8),
                   _Kart(
@@ -184,7 +257,7 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
                     child: udruud.isEmpty
                         ? Padding(
                             padding: const EdgeInsets.all(20),
-                            child: Text(_achaallaj ? 'Ачаалж байна…' : 'Энэ сард бүртгэл алга.',
+                            child: Text(_achaallaj ? 'Ачаалж байна…' : 'Энэ хугацаанд бүртгэл алга.',
                                 style: TextStyle(color: c.mutedForeground)),
                           )
                         : Column(children: [
@@ -197,6 +270,80 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Өдөр / 7 хоног / Сар сонголт
+class _Segment extends StatelessWidget {
+  const _Segment({required this.utga, required this.onChange});
+  final _Khugatsaa utga;
+  final ValueChanged<_Khugatsaa> onChange;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: c.cardBackground, borderRadius: BorderRadius.circular(16)),
+      child: Row(children: [
+        for (final t in _Khugatsaa.values)
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onChange(t),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: t == utga ? _brand : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _khugatsaaNer[t]!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: t == utga ? Colors.white : c.mutedForeground,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+/// Өнгөт жижиг үзүүлэлтийн хавтан
+class _Khavtan extends StatelessWidget {
+  const _Khavtan({required this.ner, required this.utga, required this.ungu});
+  final String ner;
+  final String utga;
+  final Color ungu;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(ungu.withValues(alpha: 0.12), c.cardBackground),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ungu.withValues(alpha: 0.25)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+        Row(children: [
+          Container(width: 7, height: 7, decoration: BoxDecoration(color: ungu, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Flexible(child: Text(ner, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: c.mutedForeground))),
+        ]),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(utga, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: ungu, fontFeatures: _tabular)),
+        ),
+      ]),
     );
   }
 }
@@ -294,37 +441,6 @@ class _Kart extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(color: context.colors.cardBackground, borderRadius: BorderRadius.circular(22)),
       child: child,
-    );
-  }
-}
-
-class _Mur extends StatelessWidget {
-  const _Mur({required this.ner, required this.utga, this.tseg, this.utgaUngu, this.suuliin = false});
-  final String ner;
-  final String utga;
-  final Color? tseg;
-  final Color? utgaUngu;
-  final bool suuliin;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: BoxDecoration(border: suuliin ? null : Border(bottom: BorderSide(color: c.border))),
-      child: Row(children: [
-        if (tseg != null) ...[
-          Container(width: 8, height: 8, decoration: BoxDecoration(color: tseg, shape: BoxShape.circle)),
-          const SizedBox(width: 10),
-        ],
-        Expanded(child: Text(ner, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c.primary))),
-        Text(utga,
-            style: TextStyle(
-              fontSize: 15,
-              color: utgaUngu ?? c.mutedForeground,
-              fontWeight: utgaUngu != null ? FontWeight.w500 : FontWeight.w500,
-              fontFeatures: _tabular,
-            )),
-      ]),
     );
   }
 }

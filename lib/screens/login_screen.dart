@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -515,21 +516,6 @@ class _LoginScreenState extends State<LoginScreen>
               ],
             ),
             const SizedBox(height: 24),
-            Text(
-              'Тавтай морил',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w500,
-                letterSpacing: -0.8,
-                color: c.primary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Үргэлжлүүлэхийн тулд бүртгэлээрээ нэвтэрнэ үү',
-              style: TextStyle(fontSize: 14.5, color: c.mutedForeground),
-            ),
-            const SizedBox(height: 22),
             shoshgo('Нэвтрэх нэр'),
             TextFormField(
               controller: _emailCtrl,
@@ -815,6 +801,11 @@ class _SheetSlide extends StatelessWidget {
 class _HeroModul {
   const _HeroModul({
     required this.ner,
+    required this.tomUg,
+    required this.bichmel,
+    required this.chipNer,
+    required this.chipUtga,
+    required this.chipKhuvi,
     required this.bogino,
     required this.tailbar,
     required this.icon,
@@ -824,6 +815,17 @@ class _HeroModul {
     required this.gun,
   });
   final String ner;
+
+  /// Картын өргөнийг дүүргэх том 3D үг
+  final String tomUg;
+
+  /// Гарчгийг хөндлөн гатлах гар бичмэл үг
+  final String bichmel;
+
+  /// Тоон үзүүлэлт (0-ээс өснө; цаг бол хөдлөхгүй)
+  final String chipNer;
+  final String chipUtga;
+  final double chipKhuvi;
   final String bogino;
   final String tailbar;
   final IconData icon;
@@ -838,6 +840,11 @@ class _HeroModul {
 const _heroModuluud = <_HeroModul>[
   _HeroModul(
     ner: 'Төлөвлөгөө & Гүйцэтгэл',
+    tomUg: 'ЗОРИЛТ',
+    bichmel: 'гүйцэтгэл',
+    chipNer: 'Q4 гүйцэтгэл',
+    chipUtga: '82%',
+    chipKhuvi: 0.82,
     bogino: 'Төлөвлөгөө',
     tailbar: 'Зорилт, төлөвлөгөөгөө тавьж, гүйцэтгэлийг бодит цагаар хэмжинэ.',
     icon: Icons.track_changes_rounded,
@@ -852,6 +859,11 @@ const _heroModuluud = <_HeroModul>[
   ),
   _HeroModul(
     ner: 'Хүний нөөцийн менежмент',
+    tomUg: 'БАГ',
+    bichmel: 'нөөц',
+    chipNer: 'Идэвхтэй ажилтан',
+    chipUtga: '248',
+    chipKhuvi: 0.68,
     bogino: 'Хүний нөөц',
     tailbar: 'Ажилтны бүртгэл, албан тушаал, гэрээ, үнэлгээг нэг дор удирдана.',
     icon: Icons.groups_outlined,
@@ -866,6 +878,11 @@ const _heroModuluud = <_HeroModul>[
   ),
   _HeroModul(
     ner: 'Цагийн бүртгэл',
+    tomUg: 'ИРЦ',
+    bichmel: 'цаг',
+    chipNer: 'Цагтаа ирлээ',
+    chipUtga: '08:52',
+    chipKhuvi: 0.94,
     bogino: 'Цаг бүртгэл',
     tailbar: 'Ирц, хоцролт, чөлөө, ээлжийн амралтыг нэг товчоор бүртгэнэ.',
     icon: Icons.schedule_rounded,
@@ -880,6 +897,11 @@ const _heroModuluud = <_HeroModul>[
   ),
   _HeroModul(
     ner: 'Цалингийн тооцоолол',
+    tomUg: 'ЦАЛИН',
+    bichmel: 'тооцоо',
+    chipNer: 'Сарын цалин',
+    chipUtga: '1,850,000',
+    chipKhuvi: 1.0,
     bogino: 'Цалин',
     tailbar: 'Ирц, илүү цагаас цалинг автоматаар тооцож, цаг алдалгүй олгоно.',
     icon: Icons.account_balance_wallet_outlined,
@@ -894,6 +916,11 @@ const _heroModuluud = <_HeroModul>[
   ),
   _HeroModul(
     ner: 'Харуулын хяналтын систем',
+    tomUg: 'ХАРУУЛ',
+    bichmel: 'хяналт',
+    chipNer: 'Эргүүлийн цэг',
+    chipUtga: '12 / 12',
+    chipKhuvi: 1.0,
     bogino: 'Харуул',
     tailbar: 'Харуул, эргүүлийн цэгүүдийг хянаж, зөрчлийг шууд мэдэгдэнэ.',
     icon: Icons.verified_user_outlined,
@@ -981,29 +1008,44 @@ class _Hero extends StatelessWidget {
                       final zai = w < 360 ? 20.0 : 24.0;
                       final dood = compact ? 18.0 : (urgun ? 24.0 : 46.0);
                       final dursH = (math.min(
-                        w * (urgun ? 0.62 : 0.42),
-                        h * 0.5,
-                      )).clamp(100.0, 280.0);
+                        w * (urgun ? 0.34 : 0.4),
+                        h * 0.36,
+                      )).clamp(96.0, 240.0);
                       return Opacity(
                         opacity: introA,
                         child: Stack(
                           children: [
                             // Арын хээ: модулийн icon-ууд бүдгээр тархаж хөвнө
                             ..._ikonKhee(modul, w, h, sek),
-                            // Том дүрслэл: icon цагиргууд дунд + хөвөх icon-ууд
+                            // Том 3D үг: картын өргөнийг дүүргэнэ
                             Positioned(
-                              right: urgun ? w * 0.12 : 14,
-                              top: (jijig ? 52 : 64).toDouble(),
+                              left: zai * 0.6,
+                              right: zai * 0.6,
+                              top: h * (jijig ? 0.16 : 0.18),
+                              height: h * (jijig ? 0.42 : 0.38),
+                              child: _TomUg3D(
+                                key: ValueKey('u-${modul.tomUg}'),
+                                ug: modul.tomUg,
+                                ongorson: ongorson,
+                                sek: sek,
+                                tod: modul.tod,
+                                gun: modul.gun,
+                              ),
+                            ),
+                            // "Субъект": үгийн доод хэсгийг дарж урд нь хөвнө (гүний эффект)
+                            Positioned(
+                              left: (w - dursH) / 2,
+                              top: h * (jijig ? 0.40 : 0.42),
                               width: dursH,
                               height: dursH,
                               child: AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 600),
                                 transitionBuilder: (ch, a) => FadeTransition(
                                   opacity: a,
-                                  child: ScaleTransition(
-                                    scale: Tween(
-                                      begin: 0.85,
-                                      end: 1.0,
+                                  child: SlideTransition(
+                                    position: Tween(
+                                      begin: const Offset(0, 0.18),
+                                      end: Offset.zero,
                                     ).animate(a),
                                     child: ch,
                                   ),
@@ -1043,73 +1085,56 @@ class _Hero extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            // Гарчиг, зураас, тайлбар — витрины голд (+ өргөн дэлгэцэнд pill-үүд)
+                            // Доод мөр: [03 / 05] НЭР + тайлбар, өргөн дэлгэцэнд pill-үүд
                             Positioned(
                               left: zai,
-                              right: urgun ? zai : dursH + 20,
-                              top: urgun ? 64 + dursH : (jijig ? 52 : 64),
+                              right: zai,
                               bottom: dood,
-                              child: LayoutBuilder(
-                                builder: (context, tb) => FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: SizedBox(
-                                    width: tb.maxWidth,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text.rich(
+                                    TextSpan(
                                       children: [
-                                        _UsegGarchig(
-                                          ner: modul.ner,
-                                          ongorson: ongorson,
-                                          font: garchigFont,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Container(
-                                          height: 3,
-                                          width:
-                                              56 *
-                                              Curves.easeOutCubic.transform(
-                                                ((ongorson -
-                                                            modul.ner.length *
-                                                                0.028) /
-                                                        0.6)
-                                                    .clamp(0.0, 1.0),
-                                              ),
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                modul.tod,
-                                                modul.tod.withValues(alpha: 0),
-                                              ],
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              2,
+                                        TextSpan(
+                                          text:
+                                              '[${(idx + 1).toString().padLeft(2, '0')} / ${n.toString().padLeft(2, '0')}]  ',
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.7,
                                             ),
                                           ),
                                         ),
-                                        if (!jijig) ...[
-                                          const SizedBox(height: 8),
-                                          _UgTailbar(
-                                            text: modul.tailbar,
-                                            ongorson:
-                                                ongorson -
-                                                modul.ner.length * 0.028 -
-                                                0.12,
-                                          ),
-                                        ],
-                                        if (urgun) ...[
-                                          const SizedBox(height: 18),
-                                          _ModulPilluud(
-                                            idx: idx,
-                                            onSongokh: onSongokh,
-                                          ),
-                                        ],
+                                        TextSpan(
+                                          text: modul.ner.toUpperCase(),
+                                          style: TextStyle(color: modul.tod),
+                                        ),
                                       ],
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'monospace',
+                                      fontSize: jijig ? 12.5 : 14,
+                                      letterSpacing: 0.8,
+                                    ),
                                   ),
-                                ),
+                                  if (!jijig) ...[
+                                    const SizedBox(height: 6),
+                                    _UgTailbar(
+                                      text: modul.tailbar,
+                                      ongorson: ongorson - 0.3,
+                                    ),
+                                  ],
+                                  if (urgun) ...[
+                                    const SizedBox(height: 14),
+                                    _ModulPilluud(
+                                      idx: idx,
+                                      onSongokh: onSongokh,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ],
@@ -1256,6 +1281,124 @@ class _UsegGarchig extends StatelessWidget {
   }
 }
 
+/// Картын өргөнийг дүүргэх том 3D үг: модулийн бараан өнгөөр 7 давхар
+/// "шахалт", нүүр нь цагаанаас модулийн өнгө рүү уусна. Үсэг бүр доороос
+/// гарч ирэх ба үг бүхэлдээ 3D-д аажим хазайна.
+class _TomUg3D extends StatelessWidget {
+  const _TomUg3D({
+    super.key,
+    required this.ug,
+    required this.ongorson,
+    required this.sek,
+    required this.tod,
+    required this.gun,
+  });
+  final String ug;
+  final double ongorson;
+  final double sek;
+  final Color tod;
+  final Color gun;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, b) {
+        TextStyle st(double f, Color c, {List<Shadow>? shadows}) =>
+            GoogleFonts.unbounded(
+              fontSize: f,
+              fontWeight: FontWeight.w800,
+              height: 1,
+              letterSpacing: -f * 0.03,
+              color: c,
+              shadows: shadows,
+            );
+        // 100px-ээр хэмжээд өргөн/өндөрт тааруулна
+        final tp = TextPainter(
+          text: TextSpan(text: ug, style: st(100, Colors.white)),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        final f = math.min(
+          100 * b.maxWidth * 0.94 / tp.width,
+          b.maxHeight * 0.9,
+        );
+        final gun3 = f * 0.012;
+        final sway = math.sin(sek * 2 * math.pi / 7) * 0.16;
+        final usgnuud = ug.characters.toList();
+        return Center(
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0016)
+              ..rotateY(sway)
+              ..rotateX(-0.06),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < usgnuud.length; i++)
+                  Builder(
+                    builder: (_) {
+                      final p = Curves.easeOutCubic.transform(
+                        ((ongorson - i * 0.06) / 0.7).clamp(0.0, 1.0),
+                      );
+                      return Opacity(
+                        opacity: p,
+                        child: Transform.translate(
+                          offset: Offset(0, (1 - p) * f * 0.6),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Шахалтын давхаргууд (гүн рүү)
+                              for (var k = 7; k >= 1; k--)
+                                Transform.translate(
+                                  offset: Offset(k * gun3, k * gun3 * 1.5),
+                                  child: Text(
+                                    usgnuud[i],
+                                    style: st(
+                                      f,
+                                      Color.lerp(gun, Colors.black, k / 14)!,
+                                      shadows: k == 7
+                                          ? [
+                                              Shadow(
+                                                color: gun.withValues(
+                                                  alpha: 0.85,
+                                                ),
+                                                blurRadius: f * 0.25,
+                                                offset: Offset(0, f * 0.16),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                              // Нүүр: цагаанаас модулийн өнгө рүү
+                              ShaderMask(
+                                blendMode: BlendMode.srcIn,
+                                shaderCallback: (r) => LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Colors.white, Colors.white, tod],
+                                  stops: const [0, 0.4, 1],
+                                ).createShader(r),
+                                child: Text(
+                                  usgnuud[i],
+                                  style: st(f, Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Тайлбар үг үгээр гарна
 class _UgTailbar extends StatelessWidget {
   const _UgTailbar({required this.text, required this.ongorson});
@@ -1283,9 +1426,9 @@ class _UgTailbar extends StatelessWidget {
                       child: Text(
                         '${ugs[i]} ',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.75),
-                          fontSize: 14,
-                          height: 1.45,
+                          color: Colors.white.withValues(alpha: 0.88),
+                          fontSize: 15.5,
+                          height: 1.4,
                         ),
                       ),
                     ),
@@ -1315,7 +1458,6 @@ class _ModulPilluud extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1435,17 +1577,36 @@ class _ModulDurs extends StatelessWidget {
                 width: s * 0.4,
                 height: s * 0.4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(s * 0.13),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.25),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      modul.tod.withValues(alpha: 0.85),
+                      modul.gerel.withValues(alpha: 0.6),
+                      modul.gun.withValues(alpha: 0.7),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(s * 0.13),
+                  boxShadow: [
+                    BoxShadow(
+                      color: modul.gun.withValues(alpha: 0.8),
+                      blurRadius: s * 0.18,
+                      offset: Offset(0, s * 0.08),
+                    ),
+                  ],
                 ),
                 child: Transform.translate(
                   offset: Offset(0, khovokh),
-                  child: Transform.rotate(
-                    angle: math.sin(sek * 2 * math.pi / 4.5) * 0.07,
-                    child: Icon(modul.icon, size: s * 0.22, color: modul.tod),
+                  child: Transform.scale(
+                    scale: 1 + 0.08 * math.sin(sek * 2 * math.pi / 3.2),
+                    child: Transform.rotate(
+                      angle: math.sin(sek * 2 * math.pi / 3.2) * 0.12,
+                      child: Icon(
+                        modul.icon,
+                        size: s * 0.22,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1456,20 +1617,35 @@ class _ModulDurs extends StatelessWidget {
                 top:
                     s * bairlal[i].dy +
                     math.sin(sek * 2 * math.pi / 3.2 + i * 1.2) * 5,
-                child: Container(
-                  width: s * 0.15,
-                  height: s * 0.15,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(s * 0.05),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.25),
+                child: Transform.rotate(
+                  angle:
+                      math.sin(sek * 2 * math.pi / (3.2 + i * 0.7) + i) * 0.18,
+                  child: Container(
+                    width: s * 0.15,
+                    height: s * 0.15,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          modul.tod.withValues(alpha: 0.75),
+                          modul.gerel.withValues(alpha: 0.6),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(s * 0.05),
+                      boxShadow: [
+                        BoxShadow(
+                          color: modul.gun.withValues(alpha: 0.6),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Icon(
-                    modul.nemelt[i],
-                    size: s * 0.075,
-                    color: Colors.white,
+                    child: Icon(
+                      modul.nemelt[i],
+                      size: s * 0.075,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -1550,10 +1726,7 @@ class _KhudulgurIcon extends StatelessWidget {
               height: khemjee,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(r),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.45 * (1 - impuls)),
-                  width: 2,
-                ),
+                color: modul.tod.withValues(alpha: 0.35 * (1 - impuls)),
               ),
             ),
           ),

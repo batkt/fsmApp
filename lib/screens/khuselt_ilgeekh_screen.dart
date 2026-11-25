@@ -84,8 +84,14 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
   late KhuseltTurul _turul = widget.turul;
   DateTime _ekh = DateTime.now();
   DateTime _tug = DateTime.now();
-  TimeOfDay _tsagEkh = const TimeOfDay(hour: 10, minute: 0);
-  TimeOfDay _tsagTug = const TimeOfDay(hour: 12, minute: 0);
+  // Анхдагч: одоогийн цагаас 1 цаг (өдөр давахгүй)
+  TimeOfDay _tsagEkh = TimeOfDay.now();
+  TimeOfDay _tsagTug = () {
+    final n = DateTime.now();
+    return n.hour >= 23 ? const TimeOfDay(hour: 23, minute: 59) : TimeOfDay(hour: n.hour + 1, minute: n.minute);
+  }();
+
+  void _nuukh() => FocusManager.instance.primaryFocus?.unfocus();
   final _tailbar = TextEditingController();
   bool _ilgeej = false;
   String? _aldaa;
@@ -100,6 +106,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
   String _d(DateTime d) => '${d.year} / ${d.month.toString().padLeft(2, '0')} / ${d.day.toString().padLeft(2, '0')}';
 
   Future<void> _ognoo(bool ekhlel) async {
+    _nuukh();
     final now = DateTime.now();
     final d = await showDatePicker(
       context: context,
@@ -119,6 +126,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
   }
 
   Future<void> _tsag(bool ekhlel) async {
+    _nuukh();
     final t = await showTimePicker(
       context: context,
       initialTime: ekhlel ? _tsagEkh : _tsagTug,
@@ -128,6 +136,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
   }
 
   Future<void> _ilgeeye() async {
+    _nuukh();
     if (_tailbar.text.trim().isEmpty) {
       setState(() => _aldaa = 'Тайлбараа бичнэ үү.');
       return;
@@ -177,7 +186,11 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
         ),
         title: Text('Хүсэлт илгээх', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
       ),
-      body: Center(
+      // Хоосон зай дээр дарахад гар хаагдана
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: _nuukh,
+        child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: ListView(
@@ -186,6 +199,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
             children: [
             _Kart(
               onTap: () async {
+                _nuukh();
                 final t = await khuseltTurulSongokh(context, odoo: _turul);
                 if (t != null) setState(() => _turul = t);
               },
@@ -221,7 +235,10 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: _tailbar,
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
+              onTapOutside: (_) => _nuukh(),
+              // iOS олон мөрт гар "Done" товчгүй тул гацдаг байсан — "Done" нэмж хаана
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _nuukh(),
               minLines: 4,
               maxLines: 6,
               maxLength: 300,
@@ -245,6 +262,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
               ),
           ]),
         ),
+      ),
       ),
       bottomNavigationBar: SafeArea(
         child: Container(

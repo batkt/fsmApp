@@ -19,8 +19,8 @@ class TaskService {
     // Optional: If we want managers to see all project tasks, we'd need project info here.
     // For now, to satisfy the privacy request, we filter strictly to assigned tasks
     // unless the user has 'admin' or 'manager' role in their profile.
-    final isPrivileged = user.role == 'admin' || user.role == 'manager' || user.role == 'hynalt';
-    
+    final role = user.role.toLowerCase();
+    final isPrivileged = role == 'admin' || role == 'manager' || role == 'hynalt';
     if (isPrivileged) return all;
 
     // Filter to tasks where user is the responsible person or one of the workers
@@ -30,22 +30,36 @@ class TaskService {
     ).toList();
   }
 
+  /// Tasks where the user is hariutsagch or in ajiltnuud — across ALL projects,
+  /// even ones where the user isn't a project member (backend `ajiltanId` filter).
+  static Future<List<ApiTask>> assignedTasks() async {
+    final user = AuthService.currentUser;
+    if (user == null) return [];
+    final res = await ApiService.get('/tasks', query: {'ajiltanId': user.id});
+    return _parseList(res)
+        .where((t) => t.hariutsagchId == user.id || t.ajiltnuud.contains(user.id))
+        .toList();
+  }
+
   /// Fetch tasks assigned to the current user across all projects.
   static Future<List<ApiTask>> myTasks() async {
     final user = AuthService.currentUser;
     if (user == null) return [];
 
-    // 1. Get projects where the user is involved
-    final projects = await ProjectService.myProjects();
-    
-    // 2. Fetch all tasks for those projects
-    final allTasks = <ApiTask>[];
-    for (final p in projects) {
-      final pTasks = await byProject(p.id);
-      allTasks.addAll(pTasks);
+    // Task-level assignment (ажилтныг зөвхөн даалгаварт нэмсэн ч харагдана)
+    final byId = <String, ApiTask>{for (final t in await assignedTasks()) t.id: t};
+
+    // Managers also see every task of the projects they belong to
+    final role = user.role.toLowerCase(); // backend erkh: "Admin", "Manager"
+    final isPrivileged = role == 'admin' || role == 'manager' || role == 'hynalt';
+    if (isPrivileged) {
+      for (final p in await ProjectService.myProjects()) {
+        for (final t in await byProject(p.id)) {
+          byId.putIfAbsent(t.id, () => t);
+        }
+      }
     }
-    
-    return allTasks;
+    return byId.values.toList();
   }
 
   /// Get a single task by ID.

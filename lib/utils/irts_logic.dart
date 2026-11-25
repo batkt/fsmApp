@@ -4,16 +4,17 @@
 
 import 'package:flutter/material.dart';
 
-enum IrtsUildel { orokh, chuluunaasOrokh, tsainiiGarakh, tsainiiOrokh, garakh, garakhHulee, khuleekh, duussan, amralt }
+enum IrtsUildel { orokh, chuluunaasOrokh, tsainiiGarakh, tsainiiOrokh, garakh, garakhChuluu, garakhHulee, khuleekh, duussan, amralt }
 
 extension IrtsUildelNer on IrtsUildel {
   /// Товч дээрх үйлдэл (хийх гэж буй зүйл)
   String get tovch => switch (this) {
         IrtsUildel.orokh => 'Орох',
-        IrtsUildel.chuluunaasOrokh => 'Чөлөөнөөс орох',
+        IrtsUildel.chuluunaasOrokh => 'Орох',
         IrtsUildel.tsainiiGarakh => 'Цайнд гарах',
         IrtsUildel.tsainiiOrokh => 'Цайнаас орох',
         IrtsUildel.garakh => 'Гарах',
+        IrtsUildel.garakhChuluu => 'Гарах (чөлөө)',
         IrtsUildel.garakhHulee => 'Гарах',
         IrtsUildel.khuleekh => 'Хүлээнэ үү',
         IrtsUildel.duussan => 'Өнөөдрийн ажил дууссан',
@@ -26,6 +27,7 @@ extension IrtsUildelNer on IrtsUildel {
         IrtsUildel.chuluunaasOrokh => 'Чөлөөнөөс орлоо',
         IrtsUildel.tsainiiGarakh => 'Цайнд гарлаа',
         IrtsUildel.tsainiiOrokh => 'Цайнаас орлоо',
+        IrtsUildel.garakhChuluu => 'Чөлөөнд гарлаа',
         _ => 'Гарлаа',
       };
 
@@ -35,7 +37,7 @@ extension IrtsUildelNer on IrtsUildel {
         IrtsUildel.chuluunaasOrokh => 'chuluunaasOrokh',
         IrtsUildel.tsainiiGarakh => 'tsainiiGarakh',
         IrtsUildel.tsainiiOrokh => 'tsainiiOrokh',
-        IrtsUildel.garakh => 'garakh',
+        IrtsUildel.garakh || IrtsUildel.garakhChuluu => 'garakh',
         _ => null,
       };
 }
@@ -108,6 +110,19 @@ bool chuluunaasButsaakhEsekh(Map? mur, DateTime? khaakh, DateTime odoo) {
   return khaakh == null || ognooUnshikh(suuliin['duusakhOgnoo'])!.isBefore(khaakh);
 }
 
+/// Одоо явагдаж буй (эсвэл 30 минутын дотор эхлэх) батлагдсан, буцаж ороогүй чөлөө.
+/// Ийм үед "Гарах (чөлөө)" дарахад backend чөлөөнд гарсанд тооцож, дараа нь
+/// "Орох" дарахад гарсан цагийг цуцална (chuluundGarsanIndexAvya).
+Map? odooChuluu(Map? mur, DateTime odoo) {
+  for (final u in asArray(mur?['chuluuniiTurul'])) {
+    final ekh = ognooUnshikh(u['ekhlekhOgnoo']);
+    final tug = ognooUnshikh(u['duusakhOgnoo']);
+    if (ekh == null || tug == null || u['orsonTsag'] != null) continue;
+    if (!odoo.isBefore(ekh.subtract(const Duration(minutes: 30))) && odoo.isBefore(tug)) return u;
+  }
+  return null;
+}
+
 /// Одоо дарах ёстой товч
 IrtsUildel irtsiinUildel({required Map? irts, required Map? barilga, DateTime? odoo}) {
   final now = odoo ?? DateTime.now();
@@ -139,6 +154,11 @@ IrtsUildel irtsiinUildel({required Map? irts, required Map? barilga, DateTime? o
 
   if (!(tsaiGarsan && !tsaiIrsen) && chuluunaasButsaakhEsekh(irts, khaakh, now)) {
     return IrtsUildel.chuluunaasOrokh;
+  }
+
+  // Батлагдсан чөлөөний үеэр (эсвэл эхлэхээс 30 минутын өмнө) — чөлөөнд гарах
+  if (!(tsaiGarsan && !tsaiIrsen) && now.isBefore(khaakh) && odooChuluu(irts, now) != null) {
+    return IrtsUildel.garakhChuluu;
   }
 
   final tsaiAlgassan = !tsaiGarsan && !now.isBefore(tsaiTug);
@@ -232,11 +252,14 @@ int odriinKhuvaartMinut(Map? barilga, DateTime udur) {
   return m.clamp(0, 24 * 60);
 }
 
-SarynDun sarynDunTootsoo(List<Map> irtsuud, Map? barilga, DateTime sar) {
+SarynDun sarynDunTootsoo(List<Map> irtsuud, Map? barilga, DateTime sar) =>
+    khugatsaanyDunTootsoo(irtsuud, barilga, DateTime(sar.year, sar.month, 1), DateTime(sar.year, sar.month + 1, 1));
+
+/// [ekh, tug) хугацааны нэгтгэл (өдөр / 7 хоног / сар)
+SarynDun khugatsaanyDunTootsoo(List<Map> irtsuud, Map? barilga, DateTime ekh, DateTime tug) {
   var khuvaart = 0, ajlynUdur = 0;
-  final udriinToo = DateTime(sar.year, sar.month + 1, 0).day;
-  for (var d = 1; d <= udriinToo; d++) {
-    final m = odriinKhuvaartMinut(barilga, DateTime(sar.year, sar.month, d));
+  for (var d = DateTime(ekh.year, ekh.month, ekh.day); d.isBefore(tug); d = DateTime(d.year, d.month, d.day + 1)) {
+    final m = odriinKhuvaartMinut(barilga, d);
     if (m > 0) {
       khuvaart += m;
       ajlynUdur++;
