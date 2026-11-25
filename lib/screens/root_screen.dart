@@ -248,7 +248,7 @@ class _HomeShellState extends State<_HomeShell> {
     final c = context.colors;
     final user = AuthService.currentUser;
     final irtsModul = FsmModul(
-      Icons.fingerprint_rounded,
+      Icons.how_to_reg_rounded,
       'Ирц',
       IrtsScreen(onLogout: widget.onLogout),
       systemuud: const {
@@ -480,6 +480,8 @@ class _HomeShellState extends State<_HomeShell> {
     }
 
     return Scaffold(
+      // Доод цэсний зурвас хуудасны өнгөтэй ижил — тусдаа цагаан зурвас харагдахгүй
+      backgroundColor: c.loginBackground,
       body: body,
       floatingActionButton: aiTovch,
       bottomNavigationBar: _PillNav(
@@ -514,7 +516,9 @@ class _PillNav extends StatelessWidget {
         ? Duration.zero
         : const Duration(milliseconds: 320);
     return Padding(
-      padding: EdgeInsets.fromLTRB(14, 0, 14, doodZai > 0 ? doodZai : 12),
+      // Капсул доод зурвас дотроо босоо төвд: дээр, доор ойролцоо ижил зай
+      // (iPhone-ы home indicator капсулын доор харагдах тул бүтэн doodZai шаардлагагүй)
+      padding: EdgeInsets.fromLTRB(14, 12, 14, doodZai > 0 ? (doodZai - 14).clamp(12.0, 40.0) : 12),
       child: Container(
         height: 68,
         padding: const EdgeInsets.all(6),

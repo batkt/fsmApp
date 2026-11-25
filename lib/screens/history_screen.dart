@@ -200,8 +200,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final title = activeProject?.ner ?? 'Бүх төсөл';
 
     return Scaffold(
+      backgroundColor: c.loginBackground,
       appBar: AppBar(
-        title: Text('$title - Түүх'),
+        backgroundColor: c.loginBackground,
+        surfaceTintColor: Colors.transparent,
+        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Түүх', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
+          Text(title, style: TextStyle(fontSize: 12.5, color: c.mutedForeground)),
+        ]),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -220,18 +226,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
               else ...[
                 // ── Stat Cards ──
                 GridView.count(
-                  crossAxisCount: 2,
+                  crossAxisCount: 4,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.6,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 0.92,
                   children: [
                     _StatCard(
                       c: c,
                       label: 'Нийт',
                       count: _allTasks.length,
-                      color: c.primary,
+                      color: c.brandGreen,
                       icon: Icons.assignment_rounded,
                       isActive: _filter == 'all',
                       onTap: () => _setFilter('all'),
@@ -271,8 +277,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               // ── Search ──
               Container(
                 decoration: BoxDecoration(
-                  color: c.muted,
-                  borderRadius: BorderRadius.circular(14),
+                  color: c.cardBackground,
+                  borderRadius: BorderRadius.circular(99),
                   border: Border.all(color: c.border),
                 ),
                 child: TextField(
@@ -283,7 +289,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     hintText: 'Даалгавар хайх...',
                     hintStyle: TextStyle(color: c.mutedForeground, fontSize: 15),
                     prefixIcon: Icon(Icons.search_rounded,
-                        color: c.mutedForeground),
+                        color: c.brandGreen),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                         vertical: 14, horizontal: 16),
@@ -291,30 +297,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-
-              // ── Filters ──
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(children: [
-                  _FilterChip(label: 'Бүгд', value: 'all',
-                      selected: _filter, c: c,
-                      onTap: () => _setFilter('all')),
-                  const SizedBox(width: 8),
-                  _FilterChip(label: 'Дууссан', value: 'completed',
-                      selected: _filter, c: c, color: c.success,
-                      onTap: () => _setFilter('completed')),
-                  const SizedBox(width: 8),
-                  _FilterChip(label: 'Явагдаж буй', value: 'inProgress',
-                      selected: _filter, c: c, color: c.info,
-                      onTap: () => _setFilter('inProgress')),
-                  const SizedBox(width: 8),
-                  _FilterChip(label: 'Хэтэрсэн', value: 'overdue',
-                      selected: _filter, c: c, color: c.destructive,
-                      onTap: () => _setFilter('overdue')),
-                ]),
-              ),
-
-              const SizedBox(height: 14),
 
               // ── Result count ──
               Text('${_filteredTasks.length} даалгавар',
@@ -398,61 +380,45 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-        decoration: BoxDecoration(
-          color: isActive ? color.withOpacity(0.12) : color.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isActive ? color.withOpacity(0.5) : color.withOpacity(0.1),
-            width: isActive ? 1.5 : 1,
+    final gradient = [Color.lerp(color, Colors.white, 0.25)!, color];
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: '$label $count',
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: isActive
+                ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: gradient)
+                : null,
+            color: isActive ? null : color.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: isActive
+                ? [BoxShadow(color: color.withValues(alpha: 0.32), blurRadius: 12, offset: const Offset(0, 6))]
+                : null,
           ),
-          boxShadow: isActive
-              ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))]
-              : [],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 18, color: color),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(icon, size: 20, color: isActive ? Colors.white : color),
+            const Spacer(),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('$count',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: isActive ? Colors.white : c.primary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  )),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '$count',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                      color: color,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: c.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isActive)
-              Icon(Icons.chevron_right_rounded, color: color, size: 16),
-          ],
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11.5, color: isActive ? Colors.white.withValues(alpha: 0.9) : c.mutedForeground)),
+          ]),
         ),
       ),
     );
@@ -523,12 +489,18 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: c.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _expanded ? sc.withOpacity(0.3) : c.border),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _expanded ? sc.withValues(alpha: 0.3) : c.border),
       ),
-      child: Column(children: [
+      // Зүүн талын төлөвийн өнгөт зураас
+      child: IntrinsicHeight(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Container(width: 4, color: sc),
+          Expanded(
+            child: Column(children: [
         // ── Top Row (always visible, tappable) ──
         InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -569,17 +541,14 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                 const SizedBox(width: 8),
                 // Status badge
                 Container(
-                  width: 110,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 5),
+                      horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: sc,
+                    color: sc.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999)),
                   child: Text(widget.statusLabel,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white)),
+                      style: TextStyle(fontSize: 11.5, color: sc)),
                 ),
               ]),
               const SizedBox(height: 10),
@@ -588,12 +557,12 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: c.muted,
-                  borderRadius: BorderRadius.circular(10),
+                  color: c.brandGreen.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(children: [
                   Icon(Icons.schedule_rounded, size: 14,
-                      color: c.mutedForeground),
+                      color: c.brandGreen),
                   const SizedBox(width: 4),
                   Text(t.timeRange, style: TextStyle(fontSize: 13,
                       color: c.primary, fontWeight: FontWeight.w500)),
@@ -636,7 +605,10 @@ class _ExpandableHistoryCardState extends State<_ExpandableHistoryCard>
           firstChild: const SizedBox.shrink(),
           secondChild: _buildDetails(c, sc),
         ),
-      ]),
+            ]),
+          ),
+        ]),
+      ),
     );
   }
 

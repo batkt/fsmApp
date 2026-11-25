@@ -177,7 +177,7 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF183B83)],
+                        colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF3B2FA8)],
                       ),
                     ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

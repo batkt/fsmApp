@@ -119,7 +119,7 @@ class _NuurScreenState extends State<NuurScreen> {
     // Үйлчилгээнүүд (апп-лаунчер маягийн сүлжээ)
     final uilchilgee = <_Uilchilgee>[
       if (widget.irtsKharagdakh)
-        _Uilchilgee(Icons.fingerprint_rounded, 'Ирц', const [Color(0xFF38BDF8), Color(0xFF0284C7)],
+        _Uilchilgee(Icons.how_to_reg_rounded, 'Ирц', const [Color(0xFF38BDF8), Color(0xFF0284C7)],
             () => widget.onModulNeey('Ирц')),
       if (widget.irtsKharagdakh)
         _Uilchilgee(Icons.bar_chart_rounded, 'Цаг бүртгэл', const [Color(0xFF5B8DEF), _brand], _tailanNeey),

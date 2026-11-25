@@ -143,13 +143,11 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeProject = ProjectService.activeProject.value;
-    final title = activeProject?.ner ?? 'Бүх төсөл';
 
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('$title - Гүйцэтгэл'),
+          title: const Text('Гүйцэтгэл'),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -234,7 +232,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final kpiHuvv = _kpi?['kpiHuvv'] ?? 0;
 
     return Scaffold(
+      backgroundColor: c.loginBackground,
       appBar: AppBar(
+        backgroundColor: c.loginBackground,
+        surfaceTintColor: Colors.transparent,
         title: Text(
           'Гүйцэтгэл',
           style: TextStyle(
@@ -260,9 +261,8 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: c.cardBackground,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: c.border),
+                color: c.brandGreen.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(99),
               ),
               child: Row(
                 children: [
@@ -283,14 +283,6 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           ),
           const SizedBox(height: 16),
 
-          Text(
-            '${ProjectService.activeProject.value?.ner ?? "Бүх"} төслийн тойм',
-            style: TextStyle(
-              fontSize: context.rFontSize(14),
-              color: c.mutedForeground,
-            ),
-          ),
-          SizedBox(height: context.rSpacing(16)),
 
           // ═══════════════════════════════════════════
           // 1. DAILY COMPLETION RING
@@ -303,8 +295,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   stripTime(_selectedDate) == stripTime(TimezoneService.nowMongolia()) 
                     ? 'Өнөөдрийн гүйцэтгэл' 
                     : '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day} гүйцэтгэл',
-                  style: const TextStyle(color: Colors.white, fontSize: 18,
-                      fontWeight: FontWeight.w500)),
+                  style: const TextStyle(color: Colors.white, fontSize: 15)),
               ],
             ),
             const SizedBox(height: 20),
@@ -424,12 +415,14 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     child: Text('Мэдээлэл байхгүй', style: TextStyle(color: c.mutedForeground)),
                   ))
                 else
-                  ...topAreas.map((e) {
+                  ...topAreas.indexed.map((x) {
+                    final e = x.$2;
+                    const unguud = [Color(0xFF315BB0), Color(0xFF10B981), Color(0xFFF59E0B), Color(0xFF8B5CF6)];
                     final done = e.value.where((t) => t.status == TaskStatus.completed).length;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _AreaRow(c: c, area: e.key,
-                          count: done, total: e.value.length, color: c.brandGreen),
+                          count: done, total: e.value.length, color: unguud[x.$1 % unguud.length]),
                     );
                   }),
               ]),
@@ -453,7 +446,13 @@ class _Mini extends StatelessWidget {
   const _Mini(this.icon, this.label, this.value);
   final IconData icon; final String label, value;
   @override
-  Widget build(BuildContext context) => Column(children: [
+  Widget build(BuildContext context) => Container(
+    padding: context.rSymmetricPadding(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.14),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Column(children: [
     Icon(
       icon,
       color: Colors.white70,
@@ -471,11 +470,11 @@ class _Mini extends StatelessWidget {
     Text(
       label,
       style: TextStyle(
-        fontSize: context.rFontSize(9),
+        fontSize: context.rFontSize(10.5),
         color: Colors.white70,
       ),
     ),
-  ]);
+  ]));
 }
 
 class _GreenCard extends StatelessWidget {
@@ -487,11 +486,10 @@ class _GreenCard extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [c.brandGreen, const Color(0xFF244B9A),
-            const Color(0xFF183B83)]),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [BoxShadow(color: c.brandGreen.withOpacity(0.3),
-          blurRadius: 12, offset: const Offset(0, 6))]),
+        colors: const [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF3B2FA8)]),
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [BoxShadow(color: const Color(0xFF315BB0).withValues(alpha: 0.3),
+          blurRadius: 18, offset: const Offset(0, 8))]),
     child: child,
   );
 }
@@ -516,15 +514,26 @@ class _Card extends StatelessWidget {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
       Row(children: [
-        Icon(icon, color: iconColor, size: context.rIconSize(22)),
-        SizedBox(width: context.rSpacing(8)),
+        Container(
+          padding: context.rPadding(all: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(context.rRadius(11)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color.lerp(iconColor, Colors.white, 0.22)!, iconColor],
+            ),
+          ),
+          child: Icon(icon, color: Colors.white, size: context.rIconSize(18)),
+        ),
+        SizedBox(width: context.rSpacing(10)),
         Expanded(
-          child: Text(title, style: TextStyle(fontSize: context.rFontSize(18),
+          child: Text(title, style: TextStyle(fontSize: context.rFontSize(15.5),
               fontWeight: FontWeight.w500, color: c.primary),
               maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ]),
-      SizedBox(height: context.rSpacing(20)), child,
+      SizedBox(height: context.rSpacing(18)), child,
       if (bottom != null) ...[
         SizedBox(height: context.rSpacing(12)), Center(child: bottom!)],
     ]),
@@ -568,17 +577,20 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: context.rPadding(all: 16),
     decoration: BoxDecoration(
-      color: c.cardBackground,
-      borderRadius: BorderRadius.circular(context.rRadius(16)),
-      border: Border.all(color: c.border),
-      boxShadow: [BoxShadow(color: c.primary.withOpacity(0.03),
-          blurRadius: 8, offset: const Offset(0, 3))]),
+      color: Color.alphaBlend(iconColor.withValues(alpha: 0.09), c.cardBackground),
+      borderRadius: BorderRadius.circular(context.rRadius(20)),
+      border: Border.all(color: iconColor.withValues(alpha: 0.18))),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
       Container(padding: context.rPadding(all: 8),
-        decoration: BoxDecoration(color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(context.rRadius(10))),
-        child: Icon(icon, color: iconColor, size: context.rIconSize(22))),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(context.rRadius(12)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color.lerp(iconColor, Colors.white, 0.22)!, iconColor],
+            )),
+        child: Icon(icon, color: Colors.white, size: context.rIconSize(20))),
       SizedBox(height: context.rSpacing(12)),
       Text(title, 
           style: TextStyle(fontSize: context.rFontSize(13), color: c.mutedForeground),

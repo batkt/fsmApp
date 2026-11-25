@@ -105,80 +105,95 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
     return Scaffold(
       backgroundColor: c.loginBackground,
       body: ListView(padding: EdgeInsets.zero, children: [
-        // ── Толгой ──
+        // ── Толгой (Нүүртэй ижил градиент) ──
         Container(
-          padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 8, 12, 28),
+          clipBehavior: Clip.antiAlias,
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF315BB0), Color(0xFF183B83)]),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF4F7FE8), _brand, Color(0xFF3B2FA8)],
+            ),
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                tooltip: 'Хаах',
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const Icon(Icons.close_rounded, color: Colors.white),
-              ),
-            ),
-            Row(children: [
-              Container(
-                width: 72,
-                height: 72,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.7), width: 2),
+          child: Stack(children: [
+            Positioned(right: -40, top: -30, child: _Toirog(150, 0.10)),
+            Positioned(left: -30, bottom: -40, child: _Toirog(110, 0.07)),
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 4, 12, 24),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    tooltip: 'Хаах',
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.16)),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                  ),
                 ),
-                child: Text(
-                  _tovch(u?.ner ?? ''),
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(ner,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w500, color: Colors.white)),
-                  if ((u?.albanTushaal ?? '').isNotEmpty)
-                    Text(u!.albanTushaal, style: const TextStyle(fontSize: 14, color: Color(0xCCFFFFFF))),
+                Row(children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.55), width: 2),
+                    ),
+                    child: CircleAvatar(
+                      radius: 34,
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      child: Text(
+                        _tovch(u?.ner ?? ''),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(ner,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w500, color: Colors.white)),
+                      if ((u?.albanTushaal ?? '').isNotEmpty)
+                        Text(u!.albanTushaal, style: const TextStyle(fontSize: 14, color: Color(0xCCFFFFFF))),
+                    ]),
+                  ),
                 ]),
-              ),
-            ]),
+                const SizedBox(height: 16),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  _TolgoiPill(
+                    icon: Icons.apartment_rounded,
+                    text: u?.baiguullagaNer.isNotEmpty == true ? u!.baiguullagaNer : 'Байгууллага',
+                  ),
+                  if (_barilgiinNer != null) _TolgoiPill(icon: Icons.location_on_rounded, text: _barilgiinNer!),
+                ]),
+              ]),
+            ),
           ]),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            // Байгууллага
             _Buleg(children: [
-              _Mur(
-                icon: Icons.apartment_rounded,
-                ner: u?.baiguullagaNer.isNotEmpty == true ? u!.baiguullagaNer : 'Байгууллага',
-                tailbar: _barilgiinNer,
-              ),
-            ]),
-            const SizedBox(height: 16),
-            _Buleg(children: [
-              _Mur(icon: Icons.person_outline_rounded, ner: 'Хувийн мэдээлэл', onTap: () => _neey(const _KhuviinMedeelel())),
+              _Mur(icon: Icons.person_rounded, iconUngu: const Color(0xFF5B8DEF), ner: 'Хувийн мэдээлэл', onTap: () => _neey(const _KhuviinMedeelel())),
               if (widget.irtsKharagdakh) ...[
-                _Mur(icon: Icons.bar_chart_rounded, ner: 'Ажлын тайлан', onTap: () => _neey(const IrtsTailanScreen())),
-                _Mur(icon: Icons.event_note_rounded, ner: 'Ажлын хуваарь', onTap: () => _neey(const AjlynKhuvaariScreen())),
+                _Mur(icon: Icons.bar_chart_rounded, iconUngu: const Color(0xFF10B981), ner: 'Ажлын тайлан', onTap: () => _neey(const IrtsTailanScreen())),
+                _Mur(icon: Icons.event_note_rounded, iconUngu: const Color(0xFFF59E0B), ner: 'Ажлын хуваарь', onTap: () => _neey(const AjlynKhuvaariScreen())),
               ],
             ]),
             const _BulgiinNer('Тохиргоо'),
             _Buleg(children: [
-              _Mur(icon: Icons.settings_outlined, ner: 'Утасны тохиргоо', onTap: () => openAppSettings()),
+              _Mur(icon: Icons.settings_rounded, iconUngu: const Color(0xFF64748B), ner: 'Утасны тохиргоо', onTap: () => openAppSettings()),
               _Mur(
-                icon: Icons.verified_user_outlined,
+                icon: Icons.verified_user_rounded,
+                iconUngu: const Color(0xFF14B8A6),
                 ner: 'Байршил, мэдэгдлийн зөвшөөрөл',
                 onTap: () => _neey(const ZuvshuurulScreen()),
               ),
               if (_bioDemjikh)
                 _Mur(
                   icon: Icons.fingerprint_rounded,
+                  iconUngu: const Color(0xFF0EA5E9),
                   ner: 'Биометрик ашиглах',
                   trailing: Switch(
                     value: _bioIdevkhtei,
@@ -191,7 +206,8 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
                   ),
                 ),
               _Mur(
-                icon: Icons.dark_mode_outlined,
+                icon: Icons.dark_mode_rounded,
+                iconUngu: const Color(0xFF7C3AED),
                 ner: 'Харанхуй горим',
                 trailing: Switch(
                   value: kharanhui,
@@ -210,6 +226,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
               _Buleg(children: [
                 _Mur(
                   icon: Icons.add_link_rounded,
+                  iconUngu: const Color(0xFF2563EB),
                   ner: 'Ирц бүртгэл холбох',
                   tailbar: 'irts.zevtabs.mn-ийн нэвтрэх нэрээрээ',
                   onTap: _irtsHolbokh,
@@ -220,7 +237,8 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
             _Buleg(children: [
               // FAQScreen нь доод цонхонд зориулагдсан (апп-ын бусад хэсэгтэй ижил нээнэ)
               _Mur(
-                icon: Icons.help_outline_rounded,
+                icon: Icons.help_rounded,
+                iconUngu: const Color(0xFFEC4899),
                 ner: 'Түгээмэл асуулт',
                 onTap: () => showModalBottomSheet(
                   context: context,
@@ -236,7 +254,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
             ]),
             const SizedBox(height: 16),
             _Buleg(children: [
-              _Mur(icon: Icons.logout_rounded, ner: 'Гарах', ungu: const Color(0xFFDC2626), onTap: _garakh),
+              _Mur(icon: Icons.logout_rounded, iconUngu: const Color(0xFFE5484D), ner: 'Гарах', ungu: const Color(0xFFDC2626), onTap: _garakh),
             ]),
             if (_khuvilbar.isNotEmpty)
               Padding(
@@ -253,6 +271,36 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
     final k = ner.replaceAll('.', ' ').trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     return ((k.isNotEmpty ? k[0][0] : '') + (k.length > 1 ? k[1][0] : '')).toUpperCase();
   }
+}
+
+class _TolgoiPill extends StatelessWidget {
+  const _TolgoiPill({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(99)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 15, color: Colors.white),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13, color: Colors.white)),
+          ),
+        ]),
+      );
+}
+
+class _Toirog extends StatelessWidget {
+  const _Toirog(this.d, this.alpha);
+  final double d, alpha;
+  @override
+  Widget build(BuildContext context) => Container(
+        width: d,
+        height: d,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: alpha)),
+      );
 }
 
 class _BulgiinNer extends StatelessWidget {
@@ -287,8 +335,10 @@ class _Buleg extends StatelessWidget {
 }
 
 class _Mur extends StatelessWidget {
-  const _Mur({required this.icon, required this.ner, this.tailbar, this.onTap, this.trailing, this.ungu});
+  const _Mur({required this.icon, required this.ner, this.tailbar, this.onTap, this.trailing, this.ungu, this.iconUngu});
   final IconData icon;
+  /// Дүрсний дэвсгэрийн өнгө (мөр бүр өөр)
+  final Color? iconUngu;
   final String ner;
   final String? tailbar;
   final VoidCallback? onTap;
@@ -301,7 +351,21 @@ class _Mur extends StatelessWidget {
       onTap: onTap,
       minTileHeight: 58,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Icon(icon, color: ungu ?? c.primary),
+      leading: iconUngu == null
+          ? Icon(icon, color: ungu ?? c.primary)
+          : Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(11),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color.lerp(iconUngu, Colors.white, 0.22)!, iconUngu!],
+                ),
+              ),
+              child: Icon(icon, size: 19, color: Colors.white),
+            ),
       title: Text(ner, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: ungu ?? c.primary)),
       subtitle: tailbar == null ? null : Text(tailbar!, style: TextStyle(fontSize: 13, color: c.mutedForeground)),
       trailing: trailing ?? (onTap == null ? null : Icon(Icons.chevron_right_rounded, color: c.mutedForeground)),

@@ -1066,7 +1066,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Container(
                       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                       decoration: BoxDecoration(
-                        color: msg.isImage ? Colors.transparent : bgColor,
+                        color: msg.isImage ? Colors.transparent : (isMine ? null : bgColor),
+                        // Өөрийн мессеж: брэнд градиент
+                        gradient: isMine && !msg.isImage
+                            ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFF5B8DEF), Color(0xFF315BB0), Color(0xFF4C3FC9)],
+                              )
+                            : null,
                         borderRadius: radius,
                         boxShadow: [
                            BoxShadow(
