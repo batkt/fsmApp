@@ -12,6 +12,7 @@ import '../services/kpi_service.dart';
 import '../services/socket_service.dart';
 import '../services/timezone_service.dart';
 import '../widgets/app_toast.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 class PerformanceScreen extends StatefulWidget {
   const PerformanceScreen({super.key});
@@ -146,9 +147,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
 
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Гүйцэтгэл'),
-        ),
+        appBar: const GradientTolgoi(garchig: 'Гүйцэтгэл'),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -233,21 +232,13 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
 
     return Scaffold(
       backgroundColor: c.loginBackground,
-      appBar: AppBar(
-        backgroundColor: c.loginBackground,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'Гүйцэтгэл',
-          style: TextStyle(
-            fontSize: context.rFontSize(16),
-          ),
-        ),
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month_rounded),
+      appBar: GradientTolgoi(
+        garchig: 'Гүйцэтгэл',
+        uildluud: [
+          GradientTolgoi.tovch(
+            icon: Icons.calendar_month_rounded,
+            tailbar: 'Өдөр сонгох',
             onPressed: () => _selectDate(context),
-            tooltip: 'Өдөр сонгох',
           ),
         ],
       ),

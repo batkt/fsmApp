@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _brand = Color(0xFFF18F02);
 const _garag = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
@@ -60,31 +61,17 @@ class _AjlynKhuvaariScreenState extends State<AjlynKhuvaariScreen> {
 
     return Scaffold(
       backgroundColor: c.loginBackground,
+      appBar: const GradientTolgoi(garchig: 'Ажлын хуваарь'),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: CustomScrollView(slivers: [
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    SizedBox(
-                      height: 52,
-                      child: Stack(alignment: Alignment.center, children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconButton(
-                            tooltip: 'Буцах',
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            style: IconButton.styleFrom(backgroundColor: c.cardBackground, fixedSize: const Size(44, 44)),
-                            icon: Icon(Icons.arrow_back_rounded, color: c.primary),
-                          ),
-                        ),
-                        Text('Ажлын хуваарь', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
-                      ]),
-                    ),
-                    const SizedBox(height: 12),
                     Row(children: [
                       IconButton(
                         tooltip: 'Өмнөх сар',

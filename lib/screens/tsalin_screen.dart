@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _brand = Color(0xFFF18F02);
 const _tabular = [FontFeature.tabularFigures()];
@@ -80,11 +81,7 @@ class _TsalinScreenState extends State<TsalinScreen> {
     final t = _list.isEmpty ? null : _list[_i];
     return Scaffold(
       backgroundColor: c.loginBackground,
-      appBar: AppBar(
-        backgroundColor: c.loginBackground,
-        surfaceTintColor: Colors.transparent,
-        title: Text('Цалин', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: c.primary)),
-      ),
+      appBar: GradientTolgoi(garchig: 'Цалин'),
       body: _achaallaj
           ? const Center(child: CircularProgressIndicator(color: _brand))
           : RefreshIndicator(

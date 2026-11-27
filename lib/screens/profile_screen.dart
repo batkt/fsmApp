@@ -7,6 +7,7 @@ import '../services/settings_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
 import '../utils/responsive.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.onLogout});
@@ -124,29 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: Image.asset(
-                'assets/images/app_logo_round.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'Профайл',
-                style: const TextStyle(fontWeight: FontWeight.w500),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: const GradientTolgoi(garchig: 'Профайл'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

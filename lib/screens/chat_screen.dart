@@ -17,6 +17,7 @@ import '../services/timezone_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
 import 'chat_detail_screen.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -548,62 +549,24 @@ class _ChatScreenState extends State<ChatScreen> {
     final c = context.colors;
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: c.cardBackground,
-        automaticallyImplyLeading: widget.showBackButton,
-        leading: widget.showBackButton
-            ? IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: c.primary,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: c.primary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: TextButton.icon(
-              icon: Icon(
-                Icons.info_outline_rounded,
-                color: c.brandGreen,
-                size: 20,
-              ),
-              label: Text(
-                'Дэлгэрэнгүй',
-                style: TextStyle(
-                  color: c.brandGreen,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChatDetailScreen(
-                      messages: _messages,
-                      title: widget.title,
-                    ),
+      appBar: GradientTolgoi(
+        garchig: widget.title,
+        butsakh: widget.showBackButton,
+        uildluud: [
+          GradientTolgoi.tovch(
+            icon: Icons.info_outline_rounded,
+            tailbar: 'Дэлгэрэнгүй',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatDetailScreen(
+                    messages: _messages,
+                    title: widget.title,
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),

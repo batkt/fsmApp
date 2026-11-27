@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _brand = Color(0xFFF18F02);
 const _tabular = [FontFeature.tabularFigures()];
@@ -176,16 +177,7 @@ class _KhuseltIlgeekhScreenState extends State<KhuseltIlgeekhScreen> {
     final chuluu = _turul.key == 'chuluu';
     return Scaffold(
       backgroundColor: c.loginBackground,
-      appBar: AppBar(
-        backgroundColor: c.cardBackground,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          tooltip: 'Буцах',
-          icon: const Icon(Icons.arrow_back_rounded, color: _brand),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: Text('Хүсэлт илгээх', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
-      ),
+      appBar: const GradientTolgoi(garchig: 'Хүсэлт илгээх', khonkh: false),
       // Хоосон зай дээр дарахад гар хаагдана
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,

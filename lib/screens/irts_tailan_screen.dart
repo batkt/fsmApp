@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _brand = Color(0xFFF18F02);
 const _tabular = [FontFeature.tabularFigures()];
@@ -130,7 +131,9 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
 
     return Scaffold(
       backgroundColor: c.loginBackground,
+      appBar: const GradientTolgoi(garchig: 'Ирцийн тайлан'),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
@@ -138,11 +141,9 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
               color: _brand,
               onRefresh: _achaallaya,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  _Tolgoi(garchig: 'Ирцийн тайлан'),
-                  const SizedBox(height: 8),
 
                   // ── Өдөр / 7 хоног / Сар ──
                   _Segment(utga: _turul, onChange: _turulSoliy),
@@ -386,25 +387,6 @@ class _OdriinMur extends StatelessWidget {
         ),
         Text(ajillasan > 0 ? tsagMinutTekst(ajillasan) : '—',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: c.mutedForeground, fontFeatures: _tabular)),
-      ]),
-    );
-  }
-}
-
-class _Tolgoi extends StatelessWidget {
-  const _Tolgoi({required this.garchig});
-  final String garchig;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return SizedBox(
-      height: 52,
-      child: Stack(alignment: Alignment.center, children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: _DuguiTovch(icon: Icons.arrow_back_rounded, onTap: () => Navigator.of(context).maybePop(), tailbar: 'Буцах'),
-        ),
-        Text(garchig, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
       ]),
     );
   }

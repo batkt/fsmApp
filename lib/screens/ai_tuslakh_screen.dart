@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _brand = Color(0xFFF18F02);
 const _sanaluud = [
@@ -96,25 +97,14 @@ class _AiTuslakhScreenState extends State<AiTuslakhScreen> {
     final c = context.colors;
     return Scaffold(
       backgroundColor: c.loginBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFFF6B003), _brand, Color(0xFF6D5DFC)]),
-          ),
-        ),
-        foregroundColor: Colors.white,
-        title: const Row(children: [
-          Icon(Icons.auto_awesome_rounded, size: 20),
-          SizedBox(width: 8),
-          Text('AI туслах', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-        ]),
-        actions: [
+      appBar: GradientTolgoi(
+        garchig: 'AI туслах',
+        khonkh: false,
+        uildluud: [
           if (_messejuud.isNotEmpty)
-            IconButton(
-              tooltip: 'Шинэ яриа',
+            GradientTolgoi.tovch(
+              icon: Icons.refresh_rounded,
+              tailbar: 'Шинэ яриа',
               onPressed: () {
                 _sub?.cancel();
                 setState(() {
@@ -122,7 +112,6 @@ class _AiTuslakhScreenState extends State<AiTuslakhScreen> {
                   _ajillaj = false;
                 });
               },
-              icon: const Icon(Icons.refresh_rounded),
             ),
         ],
       ),

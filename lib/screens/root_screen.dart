@@ -20,6 +20,7 @@ import 'zuvshuurul_screen.dart';
 import 'login_screen.dart';
 import 'performance_screen.dart';
 import '../widgets/ai_tovch.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -208,12 +209,7 @@ class _HomeShellState extends State<_HomeShell> {
     }
     Navigator.of(context).push(MaterialPageRoute(
       builder: (ctx) => Scaffold(
-        appBar: AppBar(
-          title: Text(m.ner),
-          backgroundColor: ctx.colors.loginBackground,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-        ),
+        appBar: GradientTolgoi(garchig: m.ner),
         backgroundColor: ctx.colors.loginBackground,
         body: khuudas,
       ),

@@ -11,7 +11,6 @@ import '../models/task_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/calendar_strip.dart';
 import '../widgets/task_detail_modal.dart';
-import '../widgets/dashboard_header.dart';
 import '../widgets/task_progress_bar.dart';
 import '../widgets/task_filter_chips.dart';
 import '../widgets/task_list_section.dart';
@@ -42,6 +41,7 @@ import 'support_chat_screen.dart';
 import 'faq_screen.dart';
 import '../widgets/ai_tovch.dart';
 import '../widgets/medegdel_khonkh.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
   const CleanerDashboardScreen({super.key, required this.onLogout, this.irtsKharagdakh = false});
@@ -1578,52 +1578,24 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
       config: _walkthroughConfig,
       autoStart: false,
       child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: context.rIconSize(28),
-                height: context.rIconSize(28),
-                child: Image.asset(
-                  'assets/images/app_logo_round.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              context.rWidth(6),
-              Flexible(
-                child: Text(
-                  _isSameDay(_selectedDay, TimezoneService.nowMongolia())
-                      ? 'Өнөөдрийн ажил'
-                      : '${_selectedDay.year}-${_selectedDay.month.toString().padLeft(2, '0')}-${_selectedDay.day.toString().padLeft(2, '0')} Даалгавар',
-                  style: TextStyle(fontSize: context.rFontSize(16)),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            // Help/Walkthrough button
+        appBar: GradientTolgoi(
+          garchig: _isSameDay(_selectedDay, TimezoneService.nowMongolia())
+              ? 'Өнөөдрийн ажил'
+              : '${_selectedDay.year}-${_selectedDay.month.toString().padLeft(2, '0')}-${_selectedDay.day.toString().padLeft(2, '0')}',
+          khonkh: false,
+          uildluud: [
             Builder(
-              builder: (context) => IconButton(
-                onPressed: () {
-                  context.startWalkthrough();
-                },
-                icon: Icon(
-                  Icons.help_outline,
-                  color: c.primary,
-                  size: context.rIconSize(24),
-                ),
-                tooltip: 'Тусламж / Заавар',
-                iconSize: context.rIconSize(24),
+              builder: (context) => GradientTolgoi.tovch(
+                icon: Icons.help_outline_rounded,
+                tailbar: 'Тусламж / Заавар',
+                onPressed: () => context.startWalkthrough(),
               ),
             ),
             // Нүүр, Ирцтэй ижил мэдэгдлийн хонх
             KeyedSubtree(
               key: _notificationKey,
-              child: const MedegdelKhonkh(),
+              child: const MedegdelKhonkh(tsagaanDeer: false),
             ),
-            context.rWidth(12),
           ],
         ),
         body: SafeArea(
@@ -1636,8 +1608,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DashboardHeader(
-                    projectSelector: ProjectSelector(
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ProjectSelector(
                       key: _projectSelectorKey,
                       isLoading: _projectsLoading,
                       projects: _apiProjects,

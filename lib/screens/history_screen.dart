@@ -12,6 +12,7 @@ import '../services/timezone_service.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_detail_modal.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -201,14 +202,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       backgroundColor: c.loginBackground,
-      appBar: AppBar(
-        backgroundColor: c.loginBackground,
-        surfaceTintColor: Colors.transparent,
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Түүх', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
-          Text(title, style: TextStyle(fontSize: 12.5, color: c.mutedForeground)),
-        ]),
-      ),
+      appBar: GradientTolgoi(garchig: 'Түүх', dedGarchig: title),
       body: SafeArea(
         child: SingleChildScrollView(
           controller: _scrollController,

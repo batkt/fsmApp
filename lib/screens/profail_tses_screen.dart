@@ -11,6 +11,7 @@ import 'ajlyn_khuvaari_screen.dart';
 import 'faq_screen.dart';
 import 'irts_tailan_screen.dart';
 import 'zuvshuurul_screen.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _brand = Color(0xFFF18F02);
 
@@ -391,11 +392,7 @@ class _KhuviinMedeelel extends StatelessWidget {
     ].where((m) => m.$2.isNotEmpty).toList();
     return Scaffold(
       backgroundColor: c.loginBackground,
-      appBar: AppBar(
-        backgroundColor: c.loginBackground,
-        surfaceTintColor: Colors.transparent,
-        title: Text('Хувийн мэдээлэл', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: c.primary)),
-      ),
+      appBar: const GradientTolgoi(garchig: 'Хувийн мэдээлэл', khonkh: false),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         _Buleg(children: [
           for (final m in murnuud)

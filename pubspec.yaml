@@ -82,7 +82,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/app_logo.png"
   remove_alpha_ios: true
-  adaptive_icon_background: "#315BB0"
+  adaptive_icon_background: "#F18F02"
   adaptive_icon_foreground: "assets/images/app_logo_foreground.png"
 
 # For information on the generic Dart part of this file, see the

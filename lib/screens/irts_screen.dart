@@ -11,7 +11,7 @@ import 'irts_tailan_screen.dart';
 import 'khuselt_ilgeekh_screen.dart';
 import 'profail_tses_screen.dart';
 import '../widgets/irts_gazriin_zurag.dart';
-import '../widgets/medegdel_khonkh.dart';
+import '../widgets/gradient_tolgoi.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
 const _brand = Color(0xFFF18F02);
@@ -293,50 +293,36 @@ class _DeedKhesek extends StatelessWidget {
     return Stack(children: [
       Positioned.fill(child: IrtsGazriinZurag(doodZai: doodZai + 36)),
       SafeArea(
+        top: false,
         bottom: false,
         right: false,
         child: LayoutBuilder(builder: (context, box) {
           final r = (math.min(box.maxHeight, box.maxWidth) * 0.17).clamp(46.0, 80.0);
           return Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Row(children: [
-                if (onLogout != null) ...[
-                  IconButton(
-                    tooltip: 'Профайл',
+            GradientTolgoi(
+              garchig: 'Ирц',
+              butsakh: false,
+              garchigWidget: Row(children: [
+                const Icon(Icons.location_on_rounded, size: 18, color: Colors.white),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    barilga?['ner']?.toString() ?? 'Барилга',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ]),
+              uildluud: [
+                if (onLogout != null)
+                  GradientTolgoi.tovch(
+                    icon: Icons.person_outline_rounded,
+                    tailbar: 'Профайл',
                     onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                       builder: (_) => ProfailTsesScreen(onLogout: onLogout!, irtsKharagdakh: true),
                     )),
-                    style: IconButton.styleFrom(backgroundColor: Colors.white),
-                    icon: const Icon(Icons.person_outline_rounded, size: 22, color: Color(0xFF0F172A)),
                   ),
-                  const SizedBox(width: 6),
-                ],
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(99),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.location_on_rounded, size: 17, color: _brand),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          barilga?['ner']?.toString() ?? 'Барилга',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF0F172A)),
-                        ),
-                      ),
-                    ]),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const MedegdelKhonkh(),
-              ]),
+              ],
             ),
             if (aldaa != null)
               Padding(
