@@ -55,19 +55,19 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   // ── Light Mode ──
   static const light = AppColorScheme(
-    brandGreen: Color(0xFF315BB0),
-    primary: Color(0xFF182235),
+    brandGreen: Color(0xFFF18F02),
+    primary: Color(0xFF262626),
     primaryForeground: Color(0xFFF8FAFC),
     background: Color(0xFFFFFFFF),
     cardBackground: Color(0xFFFFFFFF),
-    loginBackground: Color(0xFFEAF2FA),
-    secondary: Color(0xFFF1F5FB),
-    muted: Color(0xFFF3F6FB),
-    mutedForeground: Color(0xFF7B879A),
-    border: Color(0xFFE0E7F0),
-    inputBorder: Color(0xFFE0E7F0),
-    destructive: Color(0xFFEF4444),
-    success: Color(0xFF10B981),
+    loginBackground: Color(0xFFFFF8EE),
+    secondary: Color(0xFFFDFAF7),
+    muted: Color(0xFFFDFAF7),
+    mutedForeground: Color(0xFF8A8A8A),
+    border: Color(0xFFE5E7EB),
+    inputBorder: Color(0xFFE5E7EB),
+    destructive: Color(0xFFFC313F),
+    success: Color(0xFF16A34A),
     warning: Color(0xFFFACC15),
     warningOrange: Color(0xFFF97316),
     info: Color(0xFF3B82F6),
@@ -82,7 +82,7 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   // ── Dark Mode ──
   static const dark = AppColorScheme(
-    brandGreen: Color(0xFF6A8FDB),
+    brandGreen: Color(0xFFF6B003),
     primary: Color(0xFFF8FAFC),
     primaryForeground: Color(0xFF0F172A),
     background: Color(0xFF020817),
@@ -97,13 +97,13 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     success: Color(0xFF2EB88A),
     warning: Color(0xFFFACC15),
     warningOrange: Color(0xFFE09333),
-    info: Color(0xFF2663D9),
-    chart1: Color(0xFF2663D9),
+    info: Color(0xFFE67E00),
+    chart1: Color(0xFFE67E00),
     chart2: Color(0xFF2EB88A),
     chart3: Color(0xFFE09333),
     chart4: Color(0xFFA855F7),
     chart5: Color(0xFFE03670),
-    blueAccent: Color(0xFF2663D9),
+    blueAccent: Color(0xFFE67E00),
     lightBlue: Color(0xFF1E293B),
   );
 

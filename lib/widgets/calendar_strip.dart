@@ -64,11 +64,11 @@ class _FullCalendarState extends State<FullCalendar>
   Color _statusColor(TaskStatus s, AppColorScheme c) {
     switch (s) {
       case TaskStatus.pending:
-        return c.warningOrange;
+        return const Color(0xFF7C3AED);
       case TaskStatus.inProgress:
-        return const Color(0xFF3B82F6);
+        return const Color(0xFF2563EB);
       case TaskStatus.completed:
-        return c.brandGreen;
+        return c.success;
       case TaskStatus.overdue:
         return c.destructive;
     }
@@ -383,11 +383,11 @@ class _FullCalendarState extends State<FullCalendar>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF24458F)],
+          colors: [Color(0xFFF6B003), Color(0xFFF18F02), Color(0xFFE67E00)],
         ),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF315BB0).withValues(alpha: 0.30), blurRadius: 18, offset: const Offset(0, 8)),
+          BoxShadow(color: const Color(0xFFF18F02).withValues(alpha: 0.30), blurRadius: 18, offset: const Offset(0, 8)),
         ],
       ),
       padding: const EdgeInsets.all(14),
@@ -962,7 +962,7 @@ class _FullCalendarState extends State<FullCalendar>
   }
 }
 
-const _kartBrand = Color(0xFF315BB0);
+const _kartBrand = Color(0xFFF18F02);
 
 /// Цэнхэр градиент карт дээрх өнгө: текст цагаан, сонгосон өдөр цагаан дэвсгэр
 AppColorScheme _kartUngu(AppColorScheme c) => c.copyWith(

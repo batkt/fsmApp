@@ -17,10 +17,10 @@ class TaskFilterChips extends StatelessWidget {
   });
 
   static const _tiles = [
-    ('all', 'Бүгд', Icons.layers_rounded, [Color(0xFF5B8DEF), Color(0xFF315BB0)]),
-    ('pending', 'Хүлээгдэж', Icons.schedule_rounded, [Color(0xFFFBBF24), Color(0xFFF97316)]),
-    ('inProgress', 'Явагдаж', Icons.play_circle_outline_rounded, [Color(0xFF38BDF8), Color(0xFF2563EB)]),
-    ('completed', 'Дууссан', Icons.check_circle_outline_rounded, [Color(0xFF34D399), Color(0xFF059669)]),
+    ('all', 'Бүгд', Icons.layers_rounded, [Color(0xFFF6B003), Color(0xFFF18F02)]),
+    ('pending', 'Хүлээгдэж', Icons.schedule_rounded, [Color(0xFFA78BFA), Color(0xFF7C3AED)]),
+    ('inProgress', 'Явагдаж', Icons.play_circle_outline_rounded, [Color(0xFF60A5FA), Color(0xFF2563EB)]),
+    ('completed', 'Дууссан', Icons.check_circle_outline_rounded, [Color(0xFF4ADE80), Color(0xFF16A34A)]),
   ];
 
   @override

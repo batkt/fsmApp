@@ -26,7 +26,7 @@ class DashboardHeader extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF5B8DEF), Color(0xFF315BB0)],
+              colors: [Color(0xFFF6B003), Color(0xFFF18F02)],
             ),
           ),
           child: Text(

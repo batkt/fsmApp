@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_theme.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _asuusanTulkhuur = 'zuvshuurul_asuusan_v1';
 
 /// Зөвшөөрлийн бодит төлөв (утасны тохиргооноос)

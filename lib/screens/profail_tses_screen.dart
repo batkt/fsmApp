@@ -12,7 +12,7 @@ import 'faq_screen.dart';
 import 'irts_tailan_screen.dart';
 import 'zuvshuurul_screen.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 
 /// Профайлын цэс (аватар дээр дарахад): хувийн мэдээлэл, ирцийн хуудсууд,
 /// тохиргоо, тусламж, гарах.
@@ -112,7 +112,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF4F7FE8), _brand, Color(0xFF3B2FA8)],
+              colors: [Color(0xFFF6B003), _brand, Color(0xFF3B2FA8)],
             ),
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
           ),
@@ -175,7 +175,7 @@ class _ProfailTsesScreenState extends State<ProfailTsesScreen> {
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _Buleg(children: [
-              _Mur(icon: Icons.person_rounded, iconUngu: const Color(0xFF5B8DEF), ner: 'Хувийн мэдээлэл', onTap: () => _neey(const _KhuviinMedeelel())),
+              _Mur(icon: Icons.person_rounded, iconUngu: const Color(0xFFF6B003), ner: 'Хувийн мэдээлэл', onTap: () => _neey(const _KhuviinMedeelel())),
               if (widget.irtsKharagdakh) ...[
                 _Mur(icon: Icons.bar_chart_rounded, iconUngu: const Color(0xFF10B981), ner: 'Ажлын тайлан', onTap: () => _neey(const IrtsTailanScreen())),
                 _Mur(icon: Icons.event_note_rounded, iconUngu: const Color(0xFFF59E0B), ner: 'Ажлын хуваарь', onTap: () => _neey(const AjlynKhuvaariScreen())),

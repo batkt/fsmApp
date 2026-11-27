@@ -417,7 +417,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 else
                   ...topAreas.indexed.map((x) {
                     final e = x.$2;
-                    const unguud = [Color(0xFF315BB0), Color(0xFF10B981), Color(0xFFF59E0B), Color(0xFF8B5CF6)];
+                    const unguud = [Color(0xFFF18F02), Color(0xFF10B981), Color(0xFFF59E0B), Color(0xFF8B5CF6)];
                     final done = e.value.where((t) => t.status == TaskStatus.completed).length;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
@@ -486,9 +486,9 @@ class _GreenCard extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: const [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF3B2FA8)]),
+        colors: const [Color(0xFFF6B003), Color(0xFFF18F02), Color(0xFF3B2FA8)]),
       borderRadius: BorderRadius.circular(24),
-      boxShadow: [BoxShadow(color: const Color(0xFF315BB0).withValues(alpha: 0.3),
+      boxShadow: [BoxShadow(color: const Color(0xFFF18F02).withValues(alpha: 0.3),
           blurRadius: 18, offset: const Offset(0, 8))]),
     child: child,
   );

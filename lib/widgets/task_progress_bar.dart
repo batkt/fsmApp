@@ -35,7 +35,7 @@ class TaskProgressBar extends StatelessWidget {
                 width: box.maxWidth * khuvi,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(99),
-                  gradient: const LinearGradient(colors: [Color(0xFF34D399), Color(0xFF059669)]),
+                  gradient: const LinearGradient(colors: [Color(0xFF4ADE80), Color(0xFF16A34A)]),
                 ),
               ),
             ),

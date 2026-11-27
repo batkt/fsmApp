@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _sanaluud = [
   'Энэ сард би хэдэн цаг ажилласан бэ?',
   'Миний хүсэлтүүд ямар төлөвтэй байна?',
@@ -102,7 +102,7 @@ class _AiTuslakhScreenState extends State<AiTuslakhScreen> {
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF4F7FE8), _brand, Color(0xFF6D5DFC)]),
+            gradient: LinearGradient(colors: [Color(0xFFF6B003), _brand, Color(0xFF6D5DFC)]),
           ),
         ),
         foregroundColor: Colors.white,
@@ -218,7 +218,7 @@ class _Bombogo extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.82),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          gradient: minii ? const LinearGradient(colors: [Color(0xFF4F7FE8), _brand]) : null,
+          gradient: minii ? const LinearGradient(colors: [Color(0xFFF6B003), _brand]) : null,
           color: minii ? null : (m.aldaa ? c.destructive.withValues(alpha: 0.1) : c.cardBackground),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),

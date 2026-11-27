@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _tabular = [FontFeature.tabularFigures()];
 
 /// irtsBack-ийн дэмждэг хүсэлтийн төрлүүд

@@ -14,7 +14,7 @@ import '../widgets/irts_gazriin_zurag.dart';
 import '../widgets/medegdel_khonkh.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _garag = ['Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба', 'Ням'];
 const _garagTovch = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
 
@@ -263,7 +263,7 @@ class _DeedKhesek extends StatelessWidget {
     final gradient = !idevkhtei
         ? const [Color(0xFFCBD5E1), Color(0xFF94A3B8)]
         : switch (uildel) {
-            IrtsUildel.orokh || IrtsUildel.chuluunaasOrokh => const [Color(0xFF5B8DEF), _brand],
+            IrtsUildel.orokh || IrtsUildel.chuluunaasOrokh => const [Color(0xFFF6B003), _brand],
             IrtsUildel.tsainiiGarakh => const [Color(0xFFFBBF24), Color(0xFFEA8A0C)],
             IrtsUildel.tsainiiOrokh => const [Color(0xFF2DD4BF), Color(0xFF0F8F86)],
             IrtsUildel.garakhChuluu => const [Color(0xFF38BDF8), Color(0xFF0369A1)],

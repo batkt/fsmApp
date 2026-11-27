@@ -735,13 +735,13 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                             Container(
                               padding: EdgeInsets.all(context.rSpacing(6)),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
+                                color: const Color(0xFFF18F02).withOpacity(0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.inventory_2_rounded,
                                 size: context.rIconSize(16),
-                                color: Colors.blue,
+                                color: const Color(0xFFF18F02),
                               ),
                             ),
                             SizedBox(width: context.rSpacing(10)),
@@ -760,7 +760,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                               style: TextStyle(
                                 fontSize: context.rFontSize(12),
                                 fontWeight: FontWeight.w500,
-                                color: Colors.blue,
+                                color: const Color(0xFFF18F02),
                               ),
                             ),
                           ],
@@ -803,13 +803,13 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                   child: Container(
                                     padding: EdgeInsets.all(context.rSpacing(12)),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.withOpacity(0.05),
+                                      color: const Color(0xFFF18F02).withOpacity(0.05),
                                       borderRadius: BorderRadius.circular(context.rRadius(12)),
-                                      border: Border.all(color: Colors.blue.withOpacity(0.3), style: BorderStyle.solid),
+                                      border: Border.all(color: const Color(0xFFF18F02).withOpacity(0.3), style: BorderStyle.solid),
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.add_circle_outline, color: Colors.blue, size: context.rIconSize(20)),
+                                        Icon(Icons.add_circle_outline, color: const Color(0xFFF18F02), size: context.rIconSize(20)),
                                         SizedBox(width: context.rSpacing(12)),
                                         Expanded(
                                           child: Text(
@@ -817,7 +817,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             style: TextStyle(
                                               fontSize: context.rFontSize(14),
                                               fontWeight: FontWeight.w500,
-                                              color: Colors.blue,
+                                              color: const Color(0xFFF18F02),
                                             ),
                                           ),
                                         ),
@@ -864,7 +864,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             vertical: context.rSpacing(4),
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.blue.withOpacity(0.1),
+                                            color: const Color(0xFFF18F02).withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(
                                               context.rRadius(8),
                                             ),
@@ -874,7 +874,7 @@ class _TaskDetailModalState extends State<TaskDetailModal> {
                                             style: TextStyle(
                                               fontSize: context.rFontSize(12),
                                               fontWeight: FontWeight.w500,
-                                              color: Colors.blue,
+                                              color: const Color(0xFFF18F02),
                                             ),
                                           ),
                                         ),

@@ -4,7 +4,7 @@ import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _tabular = [FontFeature.tabularFigures()];
 
 String _hm(DateTime? d) =>
@@ -177,7 +177,7 @@ class _IrtsTailanScreenState extends State<IrtsTailanScreen> {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF3B2FA8)],
+                        colors: [Color(0xFFF6B003), Color(0xFFF18F02), Color(0xFF3B2FA8)],
                       ),
                     ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

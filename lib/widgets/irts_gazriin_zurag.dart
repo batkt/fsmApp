@@ -7,7 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../screens/zuvshuurul_screen.dart';
 import '../services/irts_service.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _ulaanbaatar = LatLng(47.9185, 106.9176);
 
 /// Ирцийн газрын зураг (OpenStreetMap): миний байршил, оффисын бүс,

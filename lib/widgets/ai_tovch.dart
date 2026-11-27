@@ -14,7 +14,7 @@ class AiTovch extends StatelessWidget {
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         elevation: 6,
-        shadowColor: const Color(0xFF315BB0).withValues(alpha: 0.5),
+        shadowColor: const Color(0xFFF18F02).withValues(alpha: 0.5),
         child: Ink(
           width: 56,
           height: 56,
@@ -22,7 +22,7 @@ class AiTovch extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF4F7FE8), Color(0xFF315BB0), Color(0xFF6D5DFC)],
+              colors: [Color(0xFFF6B003), Color(0xFFF18F02), Color(0xFF6D5DFC)],
             ),
           ),
           child: InkWell(

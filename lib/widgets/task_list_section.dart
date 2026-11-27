@@ -60,8 +60,8 @@ class TaskListSection extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF5B8DEF).withValues(alpha: 0.18),
-                      const Color(0xFF6D5DFC).withValues(alpha: 0.12),
+                      const Color(0xFFF6B003).withValues(alpha: 0.18),
+                      const Color(0xFFE67E00).withValues(alpha: 0.12),
                     ],
                   ),
                 ),

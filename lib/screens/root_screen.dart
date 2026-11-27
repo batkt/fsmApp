@@ -66,8 +66,8 @@ class _RootScreenState extends State<RootScreen> {
         _isCheckingSession = false;
       });
       if (restored) {
-        if (!(AuthService.currentUser?.irtsEsekh ?? false))
-          SocketService.connect();
+        // fsmBack irts токеныг ч хүлээн авдаг тул бүх хэрэглэгч FSM socket-той
+        SocketService.connect();
         _startTimer();
       }
     }
@@ -75,17 +75,16 @@ class _RootScreenState extends State<RootScreen> {
 
   void _handleLoggedIn() {
     setState(() => _isLoggedIn = true);
-    // irts хэрэглэгчийн токен fsmBack-д хүчингүй тул FSM socket холбохгүй
-    if (!(AuthService.currentUser?.irtsEsekh ?? false)) SocketService.connect();
+    // fsmBack irts токеныг ч хүлээн авдаг тул бүх хэрэглэгч FSM socket-той
+    SocketService.connect();
     _startTimer();
   }
 
   void _handleLogout() async {
     _inactivityTimer?.cancel();
     SocketService.disconnect();
-    // Deactivate FCM token before logout (FSM хэрэглэгч л бүртгүүлдэг)
-    if (!(AuthService.currentUser?.irtsEsekh ?? false))
-      await FCMService.deactivateToken();
+    // Deactivate FCM token before logout (FSM болон irts хэрэглэгч хоёулаа бүртгүүлдэг)
+    await FCMService.deactivateToken();
     await AuthService.logout();
     if (mounted) setState(() => _isLoggedIn = false);
   }
@@ -170,7 +169,12 @@ class FsmModul {
     if (org != null && !taarakh(org)) return false;
     // 2) Admin бүх сонгогдсон цонхыг харна (вэбтэй ижил)
     if (user.role == 'Admin' && (org != null || user.irtsEsekh)) return true;
-    // 3) Ажилтанд тухайн цонх (эсвэл дэд цонх) олгогдсон байх
+    // 3) Байгууллагад zevtabs-аар идэвхжүүлсэн модуль (Ирц, Цалин, Ажил
+    //    менежмент...) тухайн байгууллагын БҮХ ажилтанд харагдана — ажилтан
+    //    бүрт цонх олгох шаардлагагүй. Зөвхөн удирдлагын модуль (Удирдлага)
+    //    ажилтанд тухайн цонх олгогдсон байхыг шаардана.
+    if (org != null && !zuvkhunAdmin) return true;
+    // 4) Байгууллагын мэдээлэл ирээгүй, эсвэл удирдлагын модуль бол ажилтны цонхоор
     return taarakh(user.tsonkhniiErkhuud);
   }
 }
@@ -257,6 +261,16 @@ class _HomeShellState extends State<_HomeShell> {
       },
     );
     final irtsKharagdakh = irtsModul.kharagdakh(user);
+    // Ажил менежмент (FSM): FSM бүртгэлд үргэлж, irts бүртгэлд байгууллагад
+    // zevtabs-ийн "Ажил менежмент" (/khyanalt/uilchilgee/...) цонх сонгогдсон
+    // бөгөөд ажилтанд (эсвэл Admin) олгогдсон үед харагдана.
+    const fsmSystemuud = {
+      'fsm': null,
+      'irts': ['/khyanalt/uilchilgee'],
+    };
+    final daalgavarKharagdakh =
+        const FsmModul(Icons.checklist_rounded, 'Даалгавар', SizedBox(), systemuud: fsmSystemuud)
+            .kharagdakh(user);
     // Цалин бүх хэрэглэгчид харагдана (эрхээс үл хамаарна)
     const tsalinModul = FsmModul(
       Icons.account_balance_wallet_outlined,
@@ -266,7 +280,7 @@ class _HomeShellState extends State<_HomeShell> {
     );
     final tsalinKharagdakh = tsalinModul.kharagdakh(user);
     // Нүүр нь хэд хэдэн модулийг холбох төв
-    final nuurKhereg = irtsKharagdakh || tsalinKharagdakh;
+    final nuurKhereg = irtsKharagdakh || tsalinKharagdakh || daalgavarKharagdakh;
     // Нүүр: доод цэсэнд багтаагүй модулиудыг үйлчилгээ болгон харуулна
     FsmModul nuurModul(List<(IconData, String)> busad) => FsmModul(
           Icons.home_rounded,
@@ -274,7 +288,7 @@ class _HomeShellState extends State<_HomeShell> {
           NuurScreen(
             key: ValueKey('nuur-${user?.id}'),
             irtsKharagdakh: irtsKharagdakh,
-            daalgavarKharagdakh: !(user?.irtsEsekh ?? false),
+            daalgavarKharagdakh: daalgavarKharagdakh,
             tsalinKharagdakh: tsalinKharagdakh,
             busadModuluud: busad,
             onModulNeey: _modulNeey,
@@ -288,7 +302,8 @@ class _HomeShellState extends State<_HomeShell> {
       FsmModul(
         Icons.checklist_rounded,
         'Даалгавар',
-        CleanerDashboardScreen(onLogout: widget.onLogout),
+        CleanerDashboardScreen(onLogout: widget.onLogout, irtsKharagdakh: irtsKharagdakh),
+        systemuud: fsmSystemuud,
       ),
       irtsModul,
       const FsmModul(
@@ -307,7 +322,7 @@ class _HomeShellState extends State<_HomeShell> {
         },
       ),
       tsalinModul,
-      const FsmModul(Icons.calendar_today_rounded, 'Түүх', HistoryScreen()),
+      const FsmModul(Icons.calendar_today_rounded, 'Түүх', HistoryScreen(), systemuud: fsmSystemuud),
       FsmModul(
         Icons.chat_bubble_outline_rounded,
         'Чат',
@@ -351,8 +366,9 @@ class _HomeShellState extends State<_HomeShell> {
             );
           },
         ),
+        systemuud: fsmSystemuud,
       ),
-      const FsmModul(Icons.insights_rounded, 'Гүйцэтгэл', PerformanceScreen()),
+      const FsmModul(Icons.insights_rounded, 'Гүйцэтгэл', PerformanceScreen(), systemuud: fsmSystemuud),
     ].where((m) => m.kharagdakh(user)).toList();
     _bukhModul = moduluud;
 
@@ -669,7 +685,7 @@ class _TsesKhuudas extends StatelessWidget {
   final ValueChanged<FsmModul> onNeey;
 
   static const _ungunuud = [
-    Color(0xFF315BB0),
+    Color(0xFFF18F02),
     Color(0xFF8B5CF6),
     Color(0xFF0EA5E9),
     Color(0xFF14B8A6),

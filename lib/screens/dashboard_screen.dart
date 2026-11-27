@@ -10,7 +10,6 @@ import '../models/notification_model.dart';
 import '../models/task_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/calendar_strip.dart';
-import '../widgets/notification_modal.dart';
 import '../widgets/task_detail_modal.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/task_progress_bar.dart';
@@ -40,13 +39,15 @@ import '../services/timezone_service.dart';
 import '../utils/responsive.dart';
 import 'chat_screen.dart';
 import 'support_chat_screen.dart';
-import 'profile_screen.dart';
 import 'faq_screen.dart';
 import '../widgets/ai_tovch.dart';
+import '../widgets/medegdel_khonkh.dart';
 
 class CleanerDashboardScreen extends StatefulWidget {
-  const CleanerDashboardScreen({super.key, required this.onLogout});
+  const CleanerDashboardScreen({super.key, required this.onLogout, this.irtsKharagdakh = false});
   final VoidCallback onLogout;
+  /// Ирц модульд эрхтэй эсэх (Профайл дахь ирцийн мөрүүдэд)
+  final bool irtsKharagdakh;
   @override
   State<CleanerDashboardScreen> createState() => _State();
 }
@@ -74,7 +75,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   final GlobalKey _filterChipsKey = GlobalKey();
   final GlobalKey _taskListKey = GlobalKey();
   final GlobalKey _notificationKey = GlobalKey();
-  final GlobalKey _profileKey = GlobalKey();
 
   @override
   void initState() {
@@ -722,7 +722,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     });
   }
 
-  int get _unreadCount => _notifications.where((n) => !n.isRead).length;
 
   Future<void> _loadNotifications() async {
     try {
@@ -1024,9 +1023,9 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   Color _statusColor(TaskStatus s, AppColorScheme c) {
     switch (s) {
       case TaskStatus.pending:
-        return c.warningOrange;
+        return const Color(0xFF7C3AED); // Хүлээгдэж буй — нил ягаан (вэбтэй ижил)
       case TaskStatus.inProgress:
-        return c.info;
+        return const Color(0xFF2563EB); // Явагдаж буй — цэнхэр
       case TaskStatus.completed:
         return c.success;
       case TaskStatus.overdue:
@@ -1464,129 +1463,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
     AppToast.show(context, msg);
   }
 
-  void _openProfile() => Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => ProfileScreen(onLogout: widget.onLogout)),
-  );
-
-  void _openNotifications() {
-    showNotificationModal(
-      context,
-      notifications: _notifications,
-      onMarkAllRead: () async {
-        final user = AuthService.currentUser;
-        if (user == null) return;
-
-        final count = await NotificationService.markAllAsRead(
-          ajiltniiId: user.id,
-          baiguullagiinId: user.baiguullagaId,
-        );
-
-        debugPrint('[Dashboard] Marked $count notifications as read');
-
-        if (count > 0 && mounted) {
-          await _loadNotifications();
-        }
-      },
-      onNotificationTap: (notification) async {
-        // Mark as read when tapped
-        if (!notification.isRead) {
-          await NotificationService.markAsRead(notification.id);
-          if (mounted) {
-            setState(() {
-              final index = _notifications.indexWhere(
-                (n) => n.id == notification.id,
-              );
-              if (index != -1) {
-                _notifications[index] = notification.copyWith(isRead: true);
-              }
-            });
-            _syncWidget();
-          }
-        }
-
-        if (!mounted) return;
-
-        // 1. Handle Task Notifications (Open Detail Modal)
-        if (notification.taskId != null && notification.taskId!.isNotEmpty) {
-          // Check if task exists in our local list first
-          try {
-            final existingTask = _tasks.firstWhere(
-              (t) => t.id == notification.taskId,
-            );
-            Navigator.pop(context); // Close notification modal
-            _openTaskDetail(existingTask);
-            return;
-          } catch (_) {
-            // Not in list, fetch from API
-            AppToast.show(context, 'Даалгавар ачаалж байна...');
-            final apiTask = await TaskService.getById(notification.taskId!);
-            if (apiTask != null && mounted) {
-              // Fetch subtasks
-              final subtasks = await SubTaskService.byTask(apiTask.id);
-              final fullTask = ApiTask(
-                id: apiTask.id,
-                projectId: apiTask.projectId,
-                taskId: apiTask.taskId,
-                ner: apiTask.ner,
-                bairshil: apiTask.bairshil,
-                davkhar: apiTask.davkhar,
-                tailbar: apiTask.tailbar,
-                zereglel: apiTask.zereglel,
-                tuluv: apiTask.tuluv,
-                hariutsagchId: apiTask.hariutsagchId,
-                ajiltnuud: apiTask.ajiltnuud,
-                ekhlekhTsag: apiTask.ekhlekhTsag,
-                duusakhTsag: apiTask.duusakhTsag,
-                ekhlekhMinute: apiTask.ekhlekhMinute,
-                duusakhMinute: apiTask.duusakhMinute,
-                khugatsaaDuusakhOgnoo: apiTask.khugatsaaDuusakhOgnoo,
-                zurag: apiTask.zurag,
-                hariutsagchZurag: apiTask.hariutsagchZurag,
-                ajiltanZurag: apiTask.ajiltanZurag,
-                baraa: apiTask.baraa,
-                baiguullagiinId: apiTask.baiguullagiinId,
-                barilgiinId: apiTask.barilgiinId,
-                color: apiTask.color,
-                subTasks: subtasks,
-                ajiltanTsag: apiTask.ajiltanTsag,
-                createdAt: apiTask.createdAt,
-                updatedAt: apiTask.updatedAt,
-              );
-
-              if (mounted) {
-                Navigator.pop(context); // Close notification modal
-                _openTaskDetail(CleaningTask.fromApi(fullTask));
-              }
-              return;
-            }
-          }
-        }
-
-        // 2. Handle Chat Notifications
-        if (notification.turul == 'chatMessage' &&
-            notification.projectId != null) {
-          if (mounted) {
-            Navigator.pop(context); // Close notification modal
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(
-                  projectId: notification.projectId!,
-                  taskId: notification.taskId,
-                  barilgiinId: notification.barilgiinId,
-                  baiguullagiinId: notification.baiguullagiinId,
-                  title: notification.taskId != null
-                      ? 'Даалгаврын мессеж'
-                      : 'Төслийн мессеж',
-                ),
-              ),
-            );
-          }
-        }
-      },
-    );
-  }
-
   void _openTaskDetail(CleaningTask t) {
     showTaskDetail(
       context,
@@ -1689,14 +1565,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
           targetKey: _notificationKey,
           position: WalkthroughPosition.bottom,
         ),
-        WalkthroughStep(
-          id: 'profile',
-          title: 'Профайл',
-          description:
-              'Эндээс профайл мэдээлэл, тохиргоо, гарах зэрэг үйлдлүүдийг хийх боломжтой.',
-          targetKey: _profileKey,
-          position: WalkthroughPosition.bottom,
-        ),
       ],
     );
   }
@@ -1705,7 +1573,6 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final c = context.colors;
     final tasks = _todayTasks;
-    final unread = _unreadCount;
 
     return WalkthroughWrapper(
       config: _walkthroughConfig,
@@ -1751,79 +1618,12 @@ class _State extends State<CleanerDashboardScreen> with WidgetsBindingObserver {
                 iconSize: context.rIconSize(24),
               ),
             ),
-            // Notification bell
-            Stack(
+            // Нүүр, Ирцтэй ижил мэдэгдлийн хонх
+            KeyedSubtree(
               key: _notificationKey,
-              clipBehavior: Clip.none,
-              children: [
-                IconButton(
-                  onPressed: _openNotifications,
-                  icon: Icon(
-                    Icons.notifications_outlined,
-                    color: c.primary,
-                    size: context.rIconSize(24),
-                  ),
-                  tooltip: 'Мэдэгдэл',
-                  padding: EdgeInsets.all(context.rSpacing(8)),
-                  constraints: const BoxConstraints(),
-                ),
-                if (unread > 0)
-                  Positioned(
-                    right: context.rSpacing(4),
-                    top: context.rSpacing(4),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: context.rSpacing(4),
-                        vertical: context.rSpacing(2),
-                      ),
-                      constraints: BoxConstraints(
-                        minWidth: context.rSpacing(18),
-                        minHeight: context.rSpacing(18),
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF43F5E), // Rose 500
-                        borderRadius: BorderRadius.circular(
-                          context.rRadius(10),
-                        ),
-                        border: Border.all(
-                          color: Colors.white,
-                          width: context.rSpacing(2),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFF43F5E).withOpacity(0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          unread > 99 ? '99+' : '$unread',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: context.rFontSize(9),
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+              child: const MedegdelKhonkh(),
             ),
-            // Profile
-            IconButton(
-              key: _profileKey,
-              onPressed: _openProfile,
-              icon: Icon(
-                Icons.person_outline,
-                color: c.primary,
-                size: context.rIconSize(24),
-              ),
-              tooltip: 'Профайл',
-              iconSize: context.rIconSize(24),
-            ),
+            context.rWidth(12),
           ],
         ),
         body: SafeArea(

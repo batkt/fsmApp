@@ -692,7 +692,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             Container(
                               width: 3,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF315BB0),
+                                color: const Color(0xFFF18F02),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -704,14 +704,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.reply_rounded, size: 14, color: const Color(0xFF315BB0)),
+                                      const Icon(Icons.reply_rounded, size: 14, color: const Color(0xFFF18F02)),
                                       const SizedBox(width: 4),
                                       Text(
                                         _replyingTo!.ajiltniiNer,
                                         style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: const Color(0xFF315BB0),
+                                          color: const Color(0xFFF18F02),
                                         ),
                                       ),
                                     ],
@@ -1027,8 +1027,8 @@ class _ChatScreenState extends State<ChatScreen> {
       secondaryBackground: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: const Color(0xFF315BB0).withValues(alpha: 0.2),
-        child: const Icon(Icons.reply_rounded, color: const Color(0xFF315BB0), size: 28),
+        color: const Color(0xFFF18F02).withValues(alpha: 0.2),
+        child: const Icon(Icons.reply_rounded, color: const Color(0xFFF18F02), size: 28),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1072,7 +1072,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ? const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [Color(0xFF5B8DEF), Color(0xFF315BB0), Color(0xFF4C3FC9)],
+                                colors: [Color(0xFFF6B003), Color(0xFFF18F02), Color(0xFF4C3FC9)],
                               )
                             : null,
                         borderRadius: radius,
@@ -1241,7 +1241,7 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 12),
               
               ListTile(
-                leading: const Icon(Icons.reply_rounded, color: const Color(0xFF315BB0)),
+                leading: const Icon(Icons.reply_rounded, color: const Color(0xFFF18F02)),
                 title: const Text('Хариулах'),
                 onTap: () {
                   Navigator.pop(ctx);

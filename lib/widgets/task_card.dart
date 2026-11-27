@@ -151,7 +151,7 @@ class _TaskCardState extends State<TaskCard> {
                             icon: prog ? Icons.check_rounded : Icons.play_arrow_rounded,
                             gradient: prog
                                 ? const [Color(0xFF34D399), Color(0xFF059669)]
-                                : const [Color(0xFF5B8DEF), Color(0xFF315BB0)],
+                                : const [Color(0xFFF6B003), Color(0xFFF18F02)],
                             onTap: prog ? widget.onFinish : widget.onStart,
                           )
                         else

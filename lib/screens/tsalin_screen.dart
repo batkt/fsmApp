@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _tabular = [FontFeature.tabularFigures()];
 const _nuukhTulkhuur = 'tsalin_nuukh';
 
@@ -144,7 +144,7 @@ class _TsalinScreenState extends State<TsalinScreen> {
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     gradient: songogdson
-                                        ? const LinearGradient(colors: [Color(0xFF5B8DEF), _brand])
+                                        ? const LinearGradient(colors: [Color(0xFFF6B003), _brand])
                                         : null,
                                     color: songogdson ? null : _brand.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(99),
@@ -167,7 +167,7 @@ class _TsalinScreenState extends State<TsalinScreen> {
                             gradient: const LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [Color(0xFF5B8DEF), _brand, Color(0xFF4C3FC9)],
+                              colors: [Color(0xFFF6B003), _brand, Color(0xFF4C3FC9)],
                             ),
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [BoxShadow(color: _brand.withValues(alpha: 0.30), blurRadius: 20, offset: const Offset(0, 10))],

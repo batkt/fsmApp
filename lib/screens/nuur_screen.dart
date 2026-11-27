@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import '../services/irts_service.dart';
+import '../models/task_model.dart';
 import '../services/task_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
@@ -9,7 +10,7 @@ import '../widgets/medegdel_khonkh.dart';
 import 'irts_tailan_screen.dart';
 import 'profail_tses_screen.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 
 /// Нүүр хуудас: мэндчилгээ, сарын модулиудын товч мэдээлэл.
 class NuurScreen extends StatefulWidget {
@@ -44,6 +45,7 @@ class _NuurScreenState extends State<NuurScreen> {
   List<Map<String, dynamic>> _sarynIrts = [];
   int? _khuleegdejBui;
   int? _idevkhteiDaalgavar;
+  List<ApiTask>? _ajluud;
   bool _achaallaj = true;
 
   @override
@@ -76,6 +78,7 @@ class _NuurScreenState extends State<NuurScreen> {
       if (widget.daalgavarKharagdakh)
         _ayulgui(() async {
           final v = await TaskService.myTasks();
+          _ajluud = v;
           _idevkhteiDaalgavar = v.where((t) => t.tuluv != 'duussan').length;
         }),
     ]);
@@ -122,7 +125,7 @@ class _NuurScreenState extends State<NuurScreen> {
         _Uilchilgee(Icons.how_to_reg_rounded, 'Ирц', const [Color(0xFF38BDF8), Color(0xFF0284C7)],
             () => widget.onModulNeey('Ирц')),
       if (widget.irtsKharagdakh)
-        _Uilchilgee(Icons.bar_chart_rounded, 'Цаг бүртгэл', const [Color(0xFF5B8DEF), _brand], _tailanNeey),
+        _Uilchilgee(Icons.bar_chart_rounded, 'Цаг бүртгэл', const [Color(0xFFF6B003), _brand], _tailanNeey),
       if (widget.irtsKharagdakh)
         _Uilchilgee(Icons.send_rounded, 'Хүсэлт', const [Color(0xFFFBBF24), Color(0xFFF97316)],
             () => widget.onModulNeey('Ирц'),
@@ -159,7 +162,7 @@ class _NuurScreenState extends State<NuurScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF4F7FE8), _brand, Color(0xFF3B2FA8)],
+                  colors: [Color(0xFFF6B003), _brand, Color(0xFFE67E00)],
                 ),
                 borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
               ),
@@ -304,7 +307,12 @@ class _NuurScreenState extends State<NuurScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   // ── Анхаарах зүйлс ──
-                  if ((_khuleegdejBui ?? 0) > 0 || (_idevkhteiDaalgavar ?? 0) > 0) ...[
+                  // ── Ажил менежмент: өнөөдрийн ажлын самбар ──
+                  if (widget.daalgavarKharagdakh) ...[
+                    _AjilKart(ajluud: _ajluud, achaallaj: _achaallaj, onTap: () => widget.onModulNeey('Даалгавар')),
+                    const SizedBox(height: 18),
+                  ],
+                  if ((_khuleegdejBui ?? 0) > 0) ...[
                     Wrap(spacing: 8, runSpacing: 8, children: [
                       if ((_khuleegdejBui ?? 0) > 0)
                         _AnkhaarPill(
@@ -312,13 +320,6 @@ class _NuurScreenState extends State<NuurScreen> {
                           text: '$_khuleegdejBui хүсэлт хүлээгдэж буй',
                           ungu: const Color(0xFFF97316),
                           onTap: () => widget.onModulNeey('Ирц'),
-                        ),
-                      if ((_idevkhteiDaalgavar ?? 0) > 0)
-                        _AnkhaarPill(
-                          icon: Icons.bolt_rounded,
-                          text: '$_idevkhteiDaalgavar идэвхтэй даалгавар',
-                          ungu: const Color(0xFF2563EB),
-                          onTap: () => widget.onModulNeey('Даалгавар'),
                         ),
                     ]),
                     const SizedBox(height: 18),
@@ -430,8 +431,10 @@ class _UilchilgeeTovch extends StatelessWidget {
 
 /// Сарын ажилласан хувийн цагираг
 class _KhuviTsagirag extends StatelessWidget {
-  const _KhuviTsagirag({required this.khuvi});
+  const _KhuviTsagirag({required this.khuvi, this.tailbar = 'ажилласан', this.unguud});
   final double khuvi;
+  final String tailbar;
+  final List<Color>? unguud;
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
@@ -443,13 +446,13 @@ class _KhuviTsagirag extends StatelessWidget {
         width: 92,
         height: 92,
         child: CustomPaint(
-          painter: _TsagiragZurag(v, _brand.withValues(alpha: 0.12)),
+          painter: _TsagiragZurag(v, (unguud?.last ?? _brand).withValues(alpha: 0.12), unguud),
           child: Center(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Text('${(v * 100).round()}%',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: c.primary,
                       fontFeatures: const [FontFeature.tabularFigures()])),
-              Text('ажилласан', style: TextStyle(fontSize: 10.5, color: c.mutedForeground)),
+              Text(tailbar, style: TextStyle(fontSize: 10.5, color: c.mutedForeground)),
             ]),
           ),
         ),
@@ -459,9 +462,10 @@ class _KhuviTsagirag extends StatelessWidget {
 }
 
 class _TsagiragZurag extends CustomPainter {
-  _TsagiragZurag(this.khuvi, this.ar);
+  _TsagiragZurag(this.khuvi, this.ar, [this.unguud]);
   final double khuvi;
   final Color ar;
+  final List<Color>? unguud;
   @override
   void paint(Canvas canvas, Size size) {
     const zuzaan = 9.0;
@@ -479,10 +483,10 @@ class _TsagiragZurag extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = zuzaan
         ..strokeCap = StrokeCap.round
-        // Дээрээс эхэлж ногоон → цэнхэр → нил ягаан
-        ..shader = const SweepGradient(
-          transform: GradientRotation(-1.5708),
-          colors: [Color(0xFF34D399), Color(0xFF5B8DEF), Color(0xFF7C3AED), Color(0xFF34D399)],
+        // Дээрээс эхэлж (анхдагч: алтлаг шаргал градиент)
+        ..shader = SweepGradient(
+          transform: const GradientRotation(-1.5708),
+          colors: unguud ?? const [Color(0xFFF6B003), Color(0xFFF18F02), Color(0xFFE67E00), Color(0xFFF6B003)],
         ).createShader(rect),
     );
   }
@@ -555,4 +559,97 @@ class _Toirog extends StatelessWidget {
         height: d,
         decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: alpha)),
       );
+}
+
+
+/// Өнөөдрийн ажлын самбар (Ажил менежмент) — "Энэ сарын ирц" карттай ижил хэв маяг.
+/// Төлөвийн өнгө вэбтэй ижил: дууссан = ногоон, хийгдэж буй = цэнхэр, хэтэрсэн = улаан.
+class _AjilKart extends StatelessWidget {
+  const _AjilKart({required this.ajluud, required this.achaallaj, required this.onTap});
+  final List<ApiTask>? ajluud;
+  final bool achaallaj;
+  final VoidCallback onTap;
+
+  static const _nogoon = Color(0xFF16A34A);
+  static const _tsenkher = Color(0xFF2563EB);
+  static const _ulaan = Color(0xFFFC313F);
+
+  static DateTime _udur(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  static bool _unuudur(ApiTask t, DateTime unuudur) {
+    final ekh = t.ekhlekhOgnoo ?? t.ekhlekhTsag;
+    final tug = t.duusakhOgnoo ?? t.duusakhTsag ?? ekh;
+    if (ekh == null) return false;
+    return !_udur(ekh.toLocal()).isAfter(unuudur) && !_udur((tug ?? ekh).toLocal()).isBefore(unuudur);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final unuudur = _udur(DateTime.now());
+    final bukh = ajluud ?? const <ApiTask>[];
+    final unuudriin = bukh.where((t) => _unuudur(t, unuudur)).toList();
+    bool duussan(ApiTask t) => t.tuluv == 'duussan' || t.tuluv == 'shalga';
+    final duussanToo = unuudriin.where(duussan).length;
+    final khiigdej = unuudriin.where((t) => t.tuluv == 'khiigdej bui').length;
+    final khetersen = bukh.where((t) {
+      if (duussan(t)) return false;
+      final tug = t.khugatsaaDuusakhOgnoo ?? t.duusakhTsag;
+      return tug != null && _udur(tug.toLocal()).isBefore(unuudur);
+    }).length;
+    final khuvi = unuudriin.isEmpty ? 0.0 : duussanToo / unuudriin.length;
+    final ach = achaallaj || ajluud == null;
+
+    return Material(
+      color: c.cardBackground,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: c.border),
+            boxShadow: [BoxShadow(color: _brand.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 10))],
+          ),
+          child: Row(children: [
+            _KhuviTsagirag(
+              khuvi: ach ? 0 : khuvi,
+              tailbar: 'дууссан',
+              unguud: const [Color(0xFF4ADE80), _nogoon, Color(0xFF15803D), Color(0xFF4ADE80)],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Expanded(child: Text('Өнөөдрийн ажил', style: TextStyle(fontSize: 13, color: c.mutedForeground))),
+                  Icon(Icons.chevron_right_rounded, size: 20, color: c.mutedForeground),
+                ]),
+                const SizedBox(height: 6),
+                _MiniStat(
+                  icon: Icons.checklist_rounded,
+                  ungu: _brand,
+                  ner: 'Өнөөдөр',
+                  utga: ach ? '…' : '$duussanToo / ${unuudriin.length}',
+                ),
+                _MiniStat(
+                  icon: Icons.play_circle_outline_rounded,
+                  ungu: _tsenkher,
+                  ner: 'Хийгдэж буй',
+                  utga: ach ? '…' : '$khiigdej',
+                ),
+                _MiniStat(
+                  icon: Icons.alarm_rounded,
+                  ungu: khetersen == 0 ? _nogoon : _ulaan,
+                  ner: 'Хэтэрсэн',
+                  utga: ach ? '…' : (khetersen == 0 ? 'Байхгүй' : '$khetersen'),
+                ),
+              ]),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
 }

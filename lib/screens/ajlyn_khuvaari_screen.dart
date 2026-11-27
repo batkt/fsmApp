@@ -4,7 +4,7 @@ import '../services/irts_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/irts_logic.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 const _garag = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
 
 /// Ажлын хуваарь: сарын өдөр бүрийн ажлын цаг, амралтын өдөр, чөлөө/амралт.

@@ -9,7 +9,7 @@ import '../services/notification_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 
-const _brand = Color(0xFF315BB0);
+const _brand = Color(0xFFF18F02);
 
 /// Хонхонд харагдах нэг мэдэгдэл (эх сурвалжаас үл хамааран)
 class _Medegdel {

@@ -765,7 +765,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-const _heroUngu = Color(0xFF315BB0);
+const _heroUngu = Color(0xFFF18F02);
 
 /// Нээгдэхэд доороос (эсвэл баруунаас) гулсаж гарах
 class _SheetSlide extends StatelessWidget {
@@ -1837,7 +1837,7 @@ class _GyalbaaTovch extends StatelessWidget {
     return Container(
       height: 54,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF183B83), _heroUngu]),
+        gradient: const LinearGradient(colors: [Color(0xFFE67E00), _heroUngu]),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
